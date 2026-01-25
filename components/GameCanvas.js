@@ -91,16 +91,17 @@ export default function GameCanvas() {
       console.error(e);
     }
   };
+// ... inside GameCanvas component
 
-  const handleClick = (e) => {
+  const handleInput = (clientX, clientY) => {
     if (!isPlaying) return;
     
     const rect = canvasRef.current.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
-    const { x, y, radius } = gameState.current.target;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    const { x: tx, y: ty, radius } = gameState.current.target;
 
-    const dist = Math.hypot(clickX - x, clickY - y);
+    const dist = Math.hypot(x - tx, y - ty);
 
     if (dist < radius) {
       setScore(s => s + 10);
@@ -111,34 +112,43 @@ export default function GameCanvas() {
     }
   };
 
+  const onMouseDown = (e) => handleInput(e.clientX, e.clientY);
+  const onTouchStart = (e) => {
+    // Prevent scrolling when tapping
+    e.preventDefault(); 
+    const touch = e.touches[0];
+    handleInput(touch.clientX, touch.clientY);
+  };
+
   return (
     <div style={{ textAlign: 'center', marginTop: '20px' }}>
+      {/* HUD ... */}
       <div style={{ marginBottom: '10px', fontSize: '24px', fontFamily: 'monospace' }}>
         TIME: {timeLeft}s | SCORE: {score}
       </div>
+      
       <canvas
         ref={canvasRef}
         width={350}
         height={400}
-        onClick={handleClick}
+        onMouseDown={onMouseDown}
+        onTouchStart={onTouchStart} // ADDED THIS
         style={{ 
           background: '#222', 
           border: '4px solid #444', 
           borderRadius: '10px',
           cursor: 'crosshair',
-          touchAction: 'none'
+          touchAction: 'none' // CRITICAL
         }}
       />
+      {/* Buttons ... */}
       {!isPlaying && (
-        <div style={{ marginTop: '20px' }}>
-          <button 
-            onClick={startGame}
-            style={{ padding: '15px 40px', fontSize: '20px', background: '#00cc66', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-          >
-            {timeLeft === 0 ? 'PLAY AGAIN' : 'START GAME'}
-          </button>
-        </div>
+         // ... existing button code
+         <div style={{ marginTop: '20px' }}>
+             <button onClick={startGame} /* ... existing styles */ >
+               {timeLeft === 0 ? 'PLAY AGAIN' : 'START GAME'}
+             </button>
+         </div>
       )}
     </div>
   );
-}
