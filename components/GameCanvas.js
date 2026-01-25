@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { getSessionId } from '../lib/session';
 
-export default function GameCanvas() {
+function GameCanvas({ targetScore }) {
   const canvasRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [score, setScore] = useState(0);
@@ -79,18 +79,41 @@ export default function GameCanvas() {
     setIsPlaying(false);
     const sid = getSessionId();
     
+    // Check if they beat the challenger
+    let msg = `GAME OVER\nScore: ${score}`;
+    if (targetScore > 0) {
+      if (score > targetScore) msg += `\n🏆 YOU WON! (Beat ${targetScore})`;
+      else msg += `\n💀 YOU LOST! (Target: ${targetScore})`;
+    }
+
+    // Generate Share URL (Current URL base + params)
+    const shareUrl = `${window.location.origin}/play?target=${score}&challenger=${sid}`;
+    
+    // Native Share or Alert
+    if (navigator.share) {
+         if(confirm(`${msg}\n\nShare challenge?`)) {
+             navigator.share({
+                 title: 'Beat my Zog Score!',
+                 text: `I scored ${score} on Zogs. Can you beat me?`,
+                 url: shareUrl
+             });
+         }
+    } else {
+         // Fallback for desktop: Copy to clipboard
+         alert(`${msg}\n\nShare this link to challenge friends:\n${shareUrl}`);
+    }
+    
+    // Background Save
     try {
-      const res = await fetch('/api/score', {
+      fetch('/api/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: sid, score: score })
       });
-      const data = await res.json();
-      alert(`GAME OVER\nScore: ${score}\nYour Best: ${data.best}`);
-    } catch (e) {
-      console.error(e);
-    }
+    } catch(e) {}
   };
+  
+  // ... rest of component
 // ... inside GameCanvas component
 
   const handleInput = (clientX, clientY) => {
@@ -152,3 +175,6 @@ export default function GameCanvas() {
       )}
     </div>
   );
+}
+
+export default GameCanvas;
