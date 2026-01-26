@@ -12,6 +12,7 @@ async function listModels() {
     // Gemini currently uses "getModel" to check info
     // Or you can hardcode known models: gemini-1.5, gemini-1.5-chat
     const availableModels = [
+      "getModel",
       "gemini-1.5",
       "gemini-1.5-chat",
       "gemini-1.5-large"

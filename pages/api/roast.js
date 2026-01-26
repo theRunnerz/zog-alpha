@@ -1,33 +1,33 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import dotenv from "dotenv";
 
-dotenv.config();
-
-const client = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
-
-  const { prompt } = req.body;
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
-    // 1. Get the model object
-    const model = client.model("gemini-1.5-chat");
+    const { score } = req.body;
 
-    // 2. Use the model object to chat
-    const response = await model.chat({
-      messages: [
-        { role: "system", content: "You are Coach Zog, an alien football coach who roasts players humorously in 1-2 sentences." },
-        { role: "user", content: prompt },
-      ],
+    const model = genAI.getGenerativeModel({
+      model: "gemini-pro",
     });
 
-    // 3. Extract the AI text
-    const roastText = response?.candidates?.[0]?.content ?? "Coach Zog is speechless 🫠";
+    const prompt = `
+You are Coach Zog, an alien football coach.
+Roast the player in 1–2 funny sentences.
+Score: ${score}
+    `;
 
-    res.status(200).json({ roast: roastText });
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    res.status(200).json({ roast: text });
   } catch (err) {
-    console.error("AI Roast Error Details:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Gemini Error:", err);
+    res.status(500).json({
+      roast: "Coach Zog lost his voice yelling at aliens 🫠",
+    });
   }
 }
