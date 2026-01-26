@@ -1,42 +1,43 @@
+// pages/api/roast.js
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
 export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { score, won } = req.body;
+
+  // Create a fun prompt for Coach Zog
+  const prompt = `
+You are Coach Zog, an alien football coach. You speak in 1-2 sentence humorous, slightly sarcastic roasts for players after a game. 
+Do NOT use placeholder text. Be funny, creative, and encouraging.
+
+Player scored ${score} points.
+${won ? "They won the game!" : "They lost the game."}
+
+Write ONLY the roast text. Do not say anything else.
+`;
+
+
   try {
-    const { score } = req.body;
+    const model = ai.model("models/chat-bison-001");
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: `You are Coach Zog, a sarcastic but funny AI game coach.
-The player scored ${score}.
-Give a short playful roast (1–2 sentences).`
-                }
-              ]
-            }
-          ]
-        })
-      }
-    );
-
-    const data = await response.json();
-
-    const text =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ??
-      "Coach Zog lost his whistle 🫠";
-
-    res.status(200).json({ roast: text });
-  } catch (err) {
-    console.error(err);
-    res.status(200).json({
-      roast: "Coach Zog is on a coffee break ☕"
+    const response = await model.chat({
+      messages: [
+        { role: "system", content: "You are Coach Zog, an alien football coach." },
+        { role: "user", content: prompt }
+      ]
     });
+
+    // Extract text
+    const roastText = response?.candidates?.[0]?.content || "Coach Zog lost his whistle 🫠";
+
+    return res.status(200).json({ roast: roastText });
+  } catch (err) {
+    console.error("AI Roast Error:", err);
+    return res.status(200).json({ roast: "Coach Zog is on a coffee break ☕" });
   }
 }
