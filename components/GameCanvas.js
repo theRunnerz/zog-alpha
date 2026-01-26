@@ -84,62 +84,43 @@ export default function GameCanvas({ targetScore }) { // Receives target from UR
     setIsPlaying(true);
   };
 
-  const endGame = async () => {
-    setIsPlaying(false);
-    setLoadingRoast(true);
-    const sid = getSessionId();
-    
-    // 1. Get AI Roast
-    try {
-      const aiRes = await fetch('/api/roast', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          score, 
-          won: targetScore && score > targetScore 
-        })
-      });
-      const aiData = await aiRes.json();
-      setRoast(aiData.roast);
-    } catch(e) {
-      setRoast("Connection error. Coach Zog is silent.");
-    }
-    setLoadingRoast(false);
+const endGame = async () => {
+  setIsPlaying(false);
+  setLoadingRoast(true);
+  const sid = getSessionId();
 
-    // 2. Check if they beat the challenger
-    let msg = `GAME OVER\nScore: ${score}`;
-    if (targetScore > 0) {
-      if (score > targetScore) msg += `\n🏆 YOU WON! (Beat ${targetScore})`;
-      else msg += `\n💀 YOU LOST! (Target: ${targetScore})`;
-    }
+  // 1. Get AI Roast
+  try {
+    const aiRes = await fetch('/api/roast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        score, 
+        won: targetScore && score > targetScore 
+      })
+    });
+    const aiData = await aiRes.json();
+    setRoast(aiData.roast);
+  } catch(e) {
+    setRoast("Connection error. Coach Zog is silent.");
+  }
+  setLoadingRoast(false);
 
-    // Generate Share URL (Current URL base + params)
-    const shareUrl = `${window.location.origin}/play?target=${score}&challenger=${sid}`;
-    
-    // Native Share or Alert
-    if (navigator.share) {
-         if(confirm(`${msg}\n\nShare challenge?`)) {
-             navigator.share({
-                 title: 'Beat my Zog Score!',
-                 text: `I scored ${score} on Zogs. Can you beat me?`,
-                 url: shareUrl
-             });
-         }
-    } else {
-         // Fallback for desktop: Copy to clipboard
-         alert(`${msg}\n\nShare this link to challenge friends:\n${shareUrl}`);
-    }
-    
-    // Background Save
-    try {
-      fetch('/api/score', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: sid, score: score })
-      });
-    } catch(e) {}
-  };
-  
+  // 2. Background Save
+  try {
+    await fetch('/api/score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: sid, score: score })
+    });
+  } catch(e) {}
+
+  // 3. Prepare share URL (but DON'T call navigator.share yet)
+  const shareUrl = `${window.location.origin}/play?target=${score}&challenger=${sid}`;
+  // Save share URL in state so we can use it in the button
+  setShareLink(shareUrl);
+};
+
   // ... rest of component
 // ... inside GameCanvas component
 
