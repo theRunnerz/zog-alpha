@@ -11,16 +11,19 @@ export default async function handler(req, res) {
   const { prompt } = req.body;
 
   try {
-    // Use the correct chat method
-    const response = await client.chat({
-      model: "gemini-1.5-chat",
+    // 1. Get the model object
+    const model = client.model("gemini-1.5-chat");
+
+    // 2. Use the model object to chat
+    const response = await model.chat({
       messages: [
         { role: "system", content: "You are Coach Zog, an alien football coach who roasts players humorously in 1-2 sentences." },
         { role: "user", content: prompt },
       ],
     });
 
-    const roastText = response?.candidates?.[0]?.content ?? "Coach Zog lost his whistle 🫠";
+    // 3. Extract the AI text
+    const roastText = response?.candidates?.[0]?.content ?? "Coach Zog is speechless 🫠";
 
     res.status(200).json({ roast: roastText });
   } catch (err) {
