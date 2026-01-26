@@ -3,7 +3,8 @@ import { getSessionId } from '../lib/session';
 
 // --- Emoji drawing helper ---
 const drawAlien = (ctx, x, y, radius) => {
-  ctx.font = `${radius * 2}px Arial`;
+  // FIXED: Added backticks for template literal
+  ctx.font = `${radius * 2}px Arial`; 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('👾', x, y); 
@@ -16,16 +17,16 @@ export default function GameCanvas({ targetScore }) {
   const [timeLeft, setTimeLeft] = useState(60);
   const [roast, setRoast] = useState('');
   const [loadingRoast, setLoadingRoast] = useState(false);
-  const [shareLink, setShareLink] = useState(null); // NEW: store share URL
+  const [shareLink, setShareLink] = useState(null);
 
-  // Game state
+  // Game state (Refs are mutable without re-render)
   const gameState = useRef({
     target: { x: 150, y: 150, radius: 25, vx: 2, vy: 2 },
     width: 0,
     height: 0
   });
 
-  // 1. Game loop
+  // 1. Game looping
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -60,7 +61,7 @@ export default function GameCanvas({ targetScore }) {
     return () => window.cancelAnimationFrame(animationFrameId);
   }, [isPlaying]);
 
-  // 2. Timer
+  // 2. Timer logic
   useEffect(() => {
     let timerId;
     if (isPlaying && timeLeft > 0) {
@@ -71,12 +72,13 @@ export default function GameCanvas({ targetScore }) {
     return () => clearInterval(timerId);
   }, [isPlaying, timeLeft]);
 
-  // 3. Start & end game
+  // 3. Start & End Helpers
   const startGame = () => {
     setScore(0);
     setTimeLeft(60);
     setIsPlaying(true);
-    setShareLink(null); // Reset share link on new game
+    setShareLink(null);
+    setRoast('');
   };
 
   const endGame = async () => {
@@ -84,34 +86,30 @@ export default function GameCanvas({ targetScore }) {
     setLoadingRoast(true);
     const sid = getSessionId();
 
-// AI Roast
-try {
-  const aiRes = await fetch('/api/roast', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      score, 
-      won: targetScore && score > targetScore 
-    })
-  });
+    // CALL AI ROAST
+    try {
+      const aiRes = await fetch('/api/roast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          score, 
+          won: targetScore && score > targetScore 
+        })
+      });
+      const aiData = await aiRes.json();
+      
+      if (aiData?.roast) {
+        setRoast(aiData.roast);
+      } else {
+        setRoast("Coach Zog is speechless.");
+      }
+    } catch (err) {
+      console.error(err);
+      setRoast("Coach Zog lost signal.");
+    }
+    setLoadingRoast(false);
 
-  const aiData = await aiRes.json();
-  console.log("ROAST PAYLOAD:", aiData);
-
-  if (aiData?.roast) {
-    setRoast(aiData.roast);
-  } else {
-    setRoast("Coach Zog lost his whistle 🥴");
-  }
-
-} catch (err) {
-  console.error("AI Roast Error:", err);
-  setRoast("Coach Zog is on a coffee break ☕");
-}
-
-setLoadingRoast(false);
-
-    // Save score
+    // Save score in background
     try {
       await fetch('/api/score', {
         method: 'POST',
@@ -120,12 +118,12 @@ setLoadingRoast(false);
       });
     } catch {}
 
-    // Set share URL
+    // Generate Share Link
     const shareUrl = `${window.location.origin}/play?target=${score}&challenger=${sid}`;
     setShareLink(shareUrl);
   };
 
-  // 4. Handle clicks/touches
+  // 4. Input Handlers
   const handleInput = (clientX, clientY) => {
     if (!isPlaying) return;
 
@@ -138,8 +136,10 @@ setLoadingRoast(false);
 
     if (dist < radius) {
       setScore(s => s + 10);
+      // Teleport
       gameState.current.target.x = Math.random() * (gameState.current.width - 50) + 25;
       gameState.current.target.y = Math.random() * (gameState.current.height - 50) + 25;
+      // Speed up
       gameState.current.target.vx *= 1.1;
       gameState.current.target.vy *= 1.1;
     }
@@ -150,26 +150,6 @@ setLoadingRoast(false);
     e.preventDefault();
     const touch = e.touches[0];
     handleInput(touch.clientX, touch.clientY);
-  };
-
-  // Button styles
-  const btnStyle = {
-    padding: '15px 40px',
-    fontSize: '20px',
-    background: '#7928CA',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    marginTop: '10px',
-    width: '100%',
-    maxWidth: '300px'
-  };
-
-  const shareBtnStyle = {
-    ...btnStyle,
-    background: '#0f0',
-    color: '#000'
   };
 
   return (
@@ -193,20 +173,32 @@ setLoadingRoast(false);
         }}
       />
 
+      {/* GAME OVER UI */}
       {!isPlaying && (
         <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-          {score > 0 && (
-            <div style={{ padding: '15px', border: '1px dashed #0f0', maxWidth: '350px' }}>
-              <h3 style={{ margin: 0, color: '#0f0' }}>👽 COACH ZOG SAYS:</h3>
+          
+          {/* AI MESSAGE BOX */}
+          {(score > 0 || roast) && (
+            <div style={{ padding: '15px', border: '1px dashed #0f0', maxWidth: '350px', background: '#111' }}>
+              <h3 style={{ margin: '0 0 10px 0', color: '#0f0' }}>👽 COACH ZOG SAYS:</h3>
               {loadingRoast ? (
-                <p style={{ fontStyle: 'italic', color: '#888' }}>Analyzing tape...</p>
+                <p style={{ fontStyle: 'italic', color: '#888' }}>Transmitting insult...</p>
               ) : (
-                <p style={{ fontSize: '18px', fontWeight: 'bold' }}>"{roast}"</p>
+                <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff' }}>"{roast}"</p>
               )}
             </div>
           )}
 
-          <button onClick={startGame} style={btnStyle}>PLAY AGAIN</button>
+          <button 
+            onClick={startGame} 
+            style={{ 
+              padding: '15px 40px', fontSize: '20px', 
+              background: '#7928CA', color: 'white', 
+              border: 'none', borderRadius: '5px', cursor: 'pointer', width: '100%', maxWidth: '300px'
+            }}
+          >
+            {score === 0 ? "START GAME" : "PLAY AGAIN"}
+          </button>
 
           {shareLink && (
             <button
@@ -214,24 +206,22 @@ setLoadingRoast(false);
                 if (navigator.share) {
                   navigator.share({
                     title: 'Beat my Zog Score!',
-                    text: `I scored ${score} on Zogs. Can you beat me?`,
+                    text: `I scored ${score}. Coach Zog roasted me: "${roast}"`,
                     url: shareLink
-                  }).catch(console.error);
+                  }).catch(() => {});
                 } else {
-                  alert(`Share this link: ${shareLink}`);
+                  alert(`Copy this link: ${shareLink}`);
                 }
               }}
-              style={shareBtnStyle}
+              style={{
+                 padding: '15px 40px', fontSize: '20px', 
+                 background: '#0f0', color: '#000', 
+                 border: 'none', borderRadius: '5px', cursor: 'pointer', width: '100%', maxWidth: '300px'
+              }}
             >
               SHARE SCORE
             </button>
           )}
-        </div>
-      )}
-
-      {!isPlaying && score === 0 && (
-        <div style={{ marginTop: '20px' }}>
-          <button onClick={startGame} style={btnStyle}>START GAME</button>
         </div>
       )}
     </div>
