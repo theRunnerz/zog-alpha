@@ -84,19 +84,32 @@ export default function GameCanvas({ targetScore }) {
     setLoadingRoast(true);
     const sid = getSessionId();
 
-    // AI Roast
-    try {
-      const aiRes = await fetch('/api/roast', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ score, won: targetScore && score > targetScore })
-      });
-      const aiData = await aiRes.json();
-      setRoast(aiData.roast);
-    } catch {
-      setRoast("Connection error. Coach Zog is silent.");
-    }
-    setLoadingRoast(false);
+// AI Roast
+try {
+  const aiRes = await fetch('/api/roast', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      score, 
+      won: targetScore && score > targetScore 
+    })
+  });
+
+  const aiData = await aiRes.json();
+  console.log("ROAST PAYLOAD:", aiData);
+
+  if (aiData?.roast) {
+    setRoast(aiData.roast);
+  } else {
+    setRoast("Coach Zog lost his whistle 🥴");
+  }
+
+} catch (err) {
+  console.error("AI Roast Error:", err);
+  setRoast("Coach Zog is on a coffee break ☕");
+}
+
+setLoadingRoast(false);
 
     // Save score
     try {
