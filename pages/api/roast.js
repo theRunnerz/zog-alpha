@@ -3,31 +3,33 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method !== 'POST') return res.status(405).end();
+
+  const { score, won } = req.body;
 
   try {
-    const { score } = req.body;
-
-    const model = genAI.getGenerativeModel({
-      model: "gemini-pro",
-    });
+    // ✅ USING YOUR SPECIFIC AVAILABLE MODEL (Gemini 2.0 Flash)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `
-You are Coach Zog, an alien football coach.
-Roast the player in 1–2 funny sentences.
-Score: ${score}
+      You are Coach Zog, an aggressive funny alien sports coach.
+      A player just finished a game.
+      Score: ${score}.
+      Outcome: ${won ? "They won!" : "They lost."}
+      
+      Give them a funny, ruthless 1-2 sentence roast. Use sci-fi slang.
+      Do not use emojis in your response, just text.
     `;
 
     const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const response = await result.response;
+    const text = response.text();
 
-    res.status(200).json({ roast: text });
-  } catch (err) {
-    console.error("Gemini Error:", err);
-    res.status(500).json({
-      roast: "Coach Zog lost his voice yelling at aliens 🫠",
-    });
+    return res.status(200).json({ roast: text });
+
+  } catch (error) {
+    console.error("AI Roast Error:", error);
+    // Fallback so game never crashes
+    return res.status(200).json({ roast: "Coach Zog lost signal. (Connection Error)" });
   }
 }
