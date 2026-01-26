@@ -1,34 +1,42 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
-
-  const { score, won } = req.body;
-
   try {
-    const model = genAI.getGenerativeModel({ model: "models/gemini-1.5-pro" });
+    const { score } = req.body;
 
-    // The Persona
-    const prompt = `
-      You are an alien sports coach named Coach Zog. 
-      The player just finished a round of "Alien Flick".
-      Score: ${score}.
-      Result: ${won ? "They beat the challenge target." : "They failed the challenge or just played for fun."}
-      
-      Output ONE sentence (max 15 words).
-      If score < 200: ROAST them ruthlessly. Call them a "earthling noob".
-      If score > 500: Praise them, but sound surprised a human could do it.
-      Tone: Funny, aggressive, sci-fi slang.
-    `;
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: `You are Coach Zog, a sarcastic but funny AI game coach.
+The player scored ${score}.
+Give a short playful roast (1–2 sentences).`
+                }
+              ]
+            }
+          ]
+        })
+      }
+    );
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const data = await response.json();
 
-    return res.status(200).json({ roast: text });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ roast: "Coach Zog is on a coffee break. (AI Error)" });
+    const text =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ??
+      "Coach Zog lost his whistle 🫠";
+
+    res.status(200).json({ roast: text });
+  } catch (err) {
+    console.error(err);
+    res.status(200).json({
+      roast: "Coach Zog is on a coffee break ☕"
+    });
   }
 }
