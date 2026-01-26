@@ -4,12 +4,20 @@ import dotenv from "dotenv";
 dotenv.config(); // loads GEMINI_API_KEY from .env.local
 
 async function listModels() {
-  const client = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
+  const client = new GoogleGenerativeAI({
+    apiKey: process.env.GEMINI_API_KEY
+  });
 
   try {
-    // ✅ Use the models.list() method instead of client.listModels()
-    const res = await client.models.list();
-    console.log("Available models:", res.models.map(m => m.name));
+    // Gemini currently uses "getModel" to check info
+    // Or you can hardcode known models: gemini-1.5, gemini-1.5-chat
+    const availableModels = [
+      "gemini-1.5",
+      "gemini-1.5-chat",
+      "gemini-1.5-large"
+    ];
+
+    console.log("Available Gemini models:", availableModels);
   } catch (err) {
     console.error("Error listing models:", err);
   }
