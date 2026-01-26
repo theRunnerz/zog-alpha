@@ -1,36 +1,35 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
+  if (req.method !== 'POST') return res.status(405).end();
 
   const { score, won } = req.body;
 
   try {
+    // FIX: Switched to 'gemini-pro' which is widely available and stable
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
     const prompt = `
-You are Coach Zog, an alien football coach. Give a funny, 1-2 sentence roast after a game.
-Player scored ${score} points.
-${won ? "They won the game!" : "They lost the game."}
-Write ONLY the roast text. Do not include placeholder text.
-`;
+      You are Coach Zog, an aggressive funny alien sports coach.
+      A player just finished a game.
+      Score: ${score}.
+      Outcome: ${won ? "They won!" : "They lost."}
+      
+      Give them a funny, ruthless 1-2 sentence roast. Use sci-fi slang.
+      Do not use emojis in your response, just text.
+    `;
 
-    // ✅ Correct way to call chat-bison
-    const response = await ai.chat({
-      model: "chat-bison-001",
-      messages: [
-        { role: "system", content: "You are Coach Zog, an alien football coach who roasts players humorously in 1-2 sentences." },
-        { role: "user", content: prompt }
-      ],
-    });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
 
-    // Gemini chat responses are in candidates[0].content
-    const roast = response.candidates?.[0]?.content || "Coach Zog lost his whistle 🫠";
+    return res.status(200).json({ roast: text });
 
-    res.status(200).json({ roast });
-
-  } catch (err) {
-    console.error("AI Roast Error:", err);
-    res.status(500).json({ roast: "Coach Zog is on a coffee break ☕" });
+  } catch (error) {
+    console.error("AI Roast Error Details:", error);
+    // Fallback if AI fails so the game doesn't crash
+    return res.status(200).json({ roast: "Coach Zog is eating lunch. (AI connection failed)" });
   }
 }
