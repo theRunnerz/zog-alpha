@@ -1,12 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
 import { getSessionId } from '../lib/session';
 
-function GameCanvas({ targetScore }) {
+// --- NEW VISUALS ---
+// Simple emoji drawing helper instead of red ball
+const drawAlien = (ctx, x, y, radius) => {
+  ctx.font = `${radius * 2}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('👾', x, y); 
+};
+// -------------------
+
+export default function GameCanvas({ targetScore }) { // Receives target from URL
   const canvasRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
+  const [roast, setRoast] = useState(''); // NEW: Store AI response
+  const [loadingRoast, setLoadingRoast] = useState(false);
   
+  // ... existing code ...
   // Game State Refs
   const gameState = useRef({
     target: { x: 150, y: 150, radius: 25, vx: 2, vy: 2 },
@@ -36,14 +49,10 @@ function GameCanvas({ targetScore }) {
       // Draw
       ctx.clearRect(0, 0, width, height);
       
-      // Draw Target
-      ctx.beginPath();
-      ctx.arc(target.x, target.y, target.radius, 0, 2 * Math.PI);
-      ctx.fillStyle = '#ff4d4d';
-      ctx.fill();
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = '#ffffff';
-      ctx.stroke();
+      // Draw Target (REPLACED RED BALL WITH ALIEN)
+      drawAlien(ctx, target.x, target.y, target.radius);
+      // Optional: draw debug circle behind it if hitboxes feel weird
+      // ctx.beginPath(); ctx.arc(target.x, target.y, target.radius, 0, 2 * Math.PI); ctx.stroke();
 
       animationFrameId = window.requestAnimationFrame(render);
     };
@@ -77,9 +86,27 @@ function GameCanvas({ targetScore }) {
 
   const endGame = async () => {
     setIsPlaying(false);
+    setLoadingRoast(true);
     const sid = getSessionId();
     
-    // Check if they beat the challenger
+    // 1. Get AI Roast
+    try {
+      const aiRes = await fetch('/api/roast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          score, 
+          won: targetScore && score > targetScore 
+        })
+      });
+      const aiData = await aiRes.json();
+      setRoast(aiData.roast);
+    } catch(e) {
+      setRoast("Connection error. Coach Zog is silent.");
+    }
+    setLoadingRoast(false);
+
+    // 2. Check if they beat the challenger
     let msg = `GAME OVER\nScore: ${score}`;
     if (targetScore > 0) {
       if (score > targetScore) msg += `\n🏆 YOU WON! (Beat ${targetScore})`;
@@ -145,8 +172,7 @@ function GameCanvas({ targetScore }) {
 
   return (
     <div style={{ textAlign: 'center', marginTop: '20px' }}>
-      {/* HUD ... */}
-      <div style={{ marginBottom: '10px', fontSize: '24px', fontFamily: 'monospace' }}>
+      <div style={{ marginBottom: '10px', fontSize: '24px', fontFamily: 'monospace', color: '#0f0' }}>
         TIME: {timeLeft}s | SCORE: {score}
       </div>
       
@@ -155,26 +181,41 @@ function GameCanvas({ targetScore }) {
         width={350}
         height={400}
         onMouseDown={onMouseDown}
-        onTouchStart={onTouchStart} // ADDED THIS
+        onTouchStart={onTouchStart}
         style={{ 
-          background: '#222', 
-          border: '4px solid #444', 
+          background: 'radial-gradient(circle, #2a2a2a 0%, #000 100%)', // UPGRADE BG
+          border: '4px solid #0f0', 
           borderRadius: '10px',
           cursor: 'crosshair',
-          touchAction: 'none' // CRITICAL
+          touchAction: 'none'
         }}
       />
-      {/* Buttons ... */}
-      {!isPlaying && (
-         // ... existing button code
+      
+      {/* --- NEW: AI FEEDBACK SECTION --- */}
+      {!isPlaying && score > 0 && (
+        <div style={{ margin: '20px auto', padding: '15px', border: '1px dashed #0f0', maxWidth: '350px' }}>
+          <h3 style={{ margin: 0, color: '#0f0' }}>👽 COACH ZOG SAYS:</h3>
+          {loadingRoast ? (
+            <p style={{ fontStyle: 'italic', color: '#888' }}>Analyzing tape...</p>
+          ) : (
+            <p style={{ fontSize: '18px', fontWeight: 'bold' }}>"{roast}"</p>
+          )}
+          <button onClick={startGame} style={btnStyle}>PLAY AGAIN</button>
+        </div>
+      )}
+
+      {!isPlaying && score === 0 && (
          <div style={{ marginTop: '20px' }}>
-             <button onClick={startGame} /* ... existing styles */ >
-               {timeLeft === 0 ? 'PLAY AGAIN' : 'START GAME'}
-             </button>
+            <button onClick={startGame} style={btnStyle}>START GAME</button>
          </div>
       )}
     </div>
   );
 }
 
-export default GameCanvas;
+const btnStyle = {
+  padding: '15px 40px', fontSize: '20px', 
+  background: '#7928CA', color: 'white', 
+  border: 'none', borderRadius: '5px', cursor: 'pointer',
+  marginTop: '10px'
+};
