@@ -4,7 +4,7 @@ import { CHARACTERS } from '../data/characters';
 
 // Justin Sun's Address (acting as the Game Treasury for this Demo)
 // In production, this is your Smart Contract
-const GAME_TREASURY = "TT3PvdaloT7AjXpE7h5x2uC4dWGkT45k6B"; 
+const GAME_TREASURY = "TY691Xr2EWgKJmHfm7NWKMRJjojLmS2cma"; 
 
 export default function GameCanvas() {
   const canvasRef = useRef(null);
