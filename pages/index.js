@@ -1,47 +1,75 @@
+import Head from 'next/head';
 import Link from 'next/link';
 import Header from '../components/Header';
 
 export default function Home() {
   return (
-    <main>
+    <div style={{ backgroundColor: '#000', minHeight: '100vh', color: '#fff', fontFamily: 'Arial, sans-serif' }}>
+      <Head>
+        <title>Zogs: Alien Sports</title>
+        <meta name="description" content="Play Zogs - The viral alien sports game." />
+      </Head>
+
       <Header />
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <h1 style={{ fontSize: '4rem', margin: '0 0 20px 0' }}>👽 ZOGS</h1>
-        <p>Tap the alien. Don't miss.</p>
-        <Link href="/play">
-          <button style={{ 
-            marginTop: '30px', 
-            padding: '20px 60px', 
-            fontSize: '24px', 
-            background: '#7928CA', 
-            border: 'none', 
-            borderRadius: '50px',
-            cursor: 'pointer' 
-          }}>
-            PLAY NOW
-          </button>
-        </Link>
-      </div>
-      // ... existing imports + Link
-// inside Home() return:
 
-      <div style={{ display: 'flex', gap: '20px', marginTop: '30px' }}>
-        <Link href="/play">
-          <button style={{ 
-            padding: '20px 40px', fontSize: '24px', background: '#7928CA', border: 'none', borderRadius: '50px', cursor: 'pointer', color: 'white' 
-          }}>
-            PLAY GAME
-          </button>
-        </Link>
-        <Link href="/locker">
-          <button style={{ 
-            padding: '20px 40px', fontSize: '24px', background: '#333', border: '2px solid #555', borderRadius: '50px', cursor: 'pointer', color: 'white'
-          }}>
-             MY WALLET
-          </button>
-        </Link>
-      </div>
+      <main style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        paddingtop: '50px',
+        textAlign: 'center' 
+      }}>
+        
+        {/* HERO TITLE */}
+        <h1 style={{ fontSize: '4rem', margin: '50px 0 10px', color: '#0f0', letterSpacing: '-2px' }}>
+          ZOGS
+        </h1>
+        <p style={{ fontSize: '1.2rem', color: '#888', marginBottom: '40px' }}>
+          Alien Arcade Sports on TRON
+        </p>
 
-    </main>
+        {/* --- THE BUTTONS --- */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '300px' }}>
+          
+          {/* 1. PLAY GAME BUTTON */}
+          <Link href="/play" style={{ width: '100%' }}>
+            <button style={{ 
+              width: '100%',
+              padding: '20px', 
+              fontSize: '20px', 
+              fontWeight: 'bold',
+              background: '#7928CA', 
+              border: 'none', 
+              borderRadius: '10px', 
+              cursor: 'pointer', 
+              color: 'white',
+              boxShadow: '0 4px 0 #5a1e96'
+            }}>
+              PLAY GAME 🕹️
+            </button>
+          </Link>
+
+          {/* 2. MY WALLET BUTTON (NEW) */}
+          <Link href="/locker" style={{ width: '100%' }}>
+            <button style={{ 
+              width: '100%',
+              padding: '20px', 
+              fontSize: '20px', 
+              fontWeight: 'bold',
+              background: '#222', 
+              border: '2px solid #0f0', 
+              borderRadius: '10px', 
+              cursor: 'pointer', 
+              color: '#0f0',
+              boxShadow: '0 4px 0 #004400'
+            }}>
+              MY WALLET 💼
+            </button>
+          </Link>
+
+        </div>
+
+      </main>
+    </div>
   );
 }
