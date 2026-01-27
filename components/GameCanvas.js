@@ -1,247 +1,196 @@
 import { useEffect, useRef, useState } from 'react';
-import { getSessionId } from '../lib/session';
 
-// --- Emoji drawing helper ---
-const drawAlien = (ctx, x, y, radius) => {
-  ctx.font = `${radius * 2}px Arial`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('👾', x, y);
-};
-
-export default function GameCanvas({ targetScore }) {
+export default function GameCanvas() {
   const canvasRef = useRef(null);
-  const endedRef = useRef(false); // 🔒 prevent double endGame
-
+  
+  // Game State
   const [isPlaying, setIsPlaying] = useState(false);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
-  const [roast, setRoast] = useState('');
+  const [roast, setRoast] = useState(null);
+  const [gameOver, setGameOver] = useState(false);
   const [loadingRoast, setLoadingRoast] = useState(false);
-  const [shareLink, setShareLink] = useState(null);
+  
+  // Active Character State
+  const [myCharId, setMyCharId] = useState(null);
 
-  // Game state
-  const gameState = useRef({
-    target: { x: 150, y: 150, radius: 25, vx: 2, vy: 2 },
-    width: 0,
-    height: 0
-  });
+  // Entities
+  const player = useRef({ x: 150, y: 300, size: 40 });
+  const target = useRef({ x: 100, y: 100, size: 30, dx: 2, dy: 2 });
 
-  // 1. Game loop
   useEffect(() => {
-    if (!isPlaying) return;
+    // 1. CHECK WHO IS EQUIPPED
+    const equipped = localStorage.getItem('zogs_active_char');
+    if (equipped) setMyCharId(equipped);
+  }, []);
 
+  // Main Loop
+  useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let animationFrameId;
 
-    gameState.current.width = canvas.width;
-    gameState.current.height = canvas.height;
-
     const render = () => {
-      if (!isPlaying) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const { width, height, target } = gameState.current;
+      // Draw Player (Simple Circle for now)
+      ctx.fillStyle = '#0f0'; // Alien Green
+      ctx.beginPath();
+      ctx.arc(player.current.x, player.current.y, player.current.size, 0, 2 * Math.PI);
+      ctx.fill();
 
-      target.x += target.vx;
-      target.y += target.vy;
+      // Draw Target (Red)
+      if (isPlaying) {
+        ctx.fillStyle = '#f00';
+        ctx.beginPath();
+        ctx.arc(target.current.x, target.current.y, target.current.size, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Move Target
+        target.current.x += target.current.dx;
+        target.current.y += target.current.dy;
 
-      if (target.x + target.radius > width || target.x - target.radius < 0) target.vx *= -1;
-      if (target.y + target.radius > height || target.y - target.radius < 0) target.vy *= -1;
+        // Bounce
+        if (target.current.x < 0 || target.current.x > canvas.width) target.current.dx *= -1;
+        if (target.current.y < 0 || target.current.y > canvas.height) target.current.dy *= -1;
+      }
 
-      ctx.clearRect(0, 0, width, height);
-      drawAlien(ctx, target.x, target.y, target.radius);
-
-      animationFrameId = requestAnimationFrame(render);
+      animationFrameId = window.requestAnimationFrame(render);
     };
 
     render();
-
-    return () => cancelAnimationFrame(animationFrameId);
+    return () => window.cancelAnimationFrame(animationFrameId);
   }, [isPlaying]);
 
-  // 2. Timer
+  // Timer
   useEffect(() => {
-    if (!isPlaying) return;
-
-    if (timeLeft <= 0) {
-      endGame();
-      return;
-    }
-
-    const timerId = setTimeout(() => {
-      setTimeLeft(t => t - 1);
+    if (!isPlaying || timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          endGame(false); // Time run out = Loss
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
-
-    return () => clearTimeout(timerId);
+    return () => clearInterval(timer);
   }, [isPlaying, timeLeft]);
 
-  // 3. Start game
   const startGame = () => {
-    endedRef.current = false;
+    setIsPlaying(true);
     setScore(0);
     setTimeLeft(60);
-    setIsPlaying(true);
-    setShareLink(null);
-    setRoast('');
+    setGameOver(false);
+    setRoast(null);
   };
 
-  // 4. End game (AI roast)
-  const endGame = async () => {
-    if (endedRef.current) return;
-    endedRef.current = true;
+  const handleTap = (e) => {
+    if (!isPlaying) return;
+    
+    const rect = canvasRef.current.getBoundingClientRect();
+    const touchX = (e.clientX || e.touches[0].clientX) - rect.left;
+    const touchY = (e.clientY || e.touches[0].clientY) - rect.top;
 
+    // Check hit
+    const dist = Math.sqrt(
+      Math.pow(touchX - target.current.x, 2) + Math.pow(touchY - target.current.y, 2)
+    );
+
+    if (dist < target.current.size + 10) {
+      setScore(s => s + 10);
+      // Move target randomly
+      target.current.x = Math.random() * 300;
+      target.current.y = Math.random() * 500;
+      // Increase difficulty speed
+      target.current.dx *= 1.1;
+      target.current.dy *= 1.1;
+    }
+  };
+
+  const endGame = async (won) => {
     setIsPlaying(false);
+    setGameOver(true);
     setLoadingRoast(true);
 
-    const controller = new AbortController();
-    const sid = getSessionId();
-
     try {
+      // 2. SEND SCORE + EQUIPPED CHARACTER ID
       const res = await fetch('/api/roast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          score,
-          won: targetScore && score > targetScore
-        })
+        body: JSON.stringify({ 
+          score, 
+          won,
+          characterId: myCharId // <--- Sending the ID
+        }), 
       });
-
-      if (!res.ok) {
-        throw new Error(`AI error ${res.status}`);
-      }
-
       const data = await res.json();
-      setRoast(data?.roast || 'Coach Zog is unimpressed.');
-    } catch (err) {
-      console.error('AI roast failed:', err);
-      setRoast('Coach Zog lost the transmission.');
-    } finally {
-      setLoadingRoast(false);
-      controller.abort();
+      setRoast(data.roast); 
+    } catch (e) {
+      console.error(e);
+      setRoast("Alien connection failed.");
     }
-
-    // Save score (non-blocking)
-    fetch('/api/score', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId: sid, score })
-    }).catch(() => {});
-
-    const shareUrl = `${window.location.origin}/play?target=${score}&challenger=${sid}`;
-    setShareLink(shareUrl);
-  };
-
-  // 5. Input
-  const handleInput = (clientX, clientY) => {
-    if (!isPlaying) return;
-
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
-
-    const { x: tx, y: ty, radius } = gameState.current.target;
-    const dist = Math.hypot(x - tx, y - ty);
-
-    if (dist < radius) {
-      setScore(s => s + 10);
-
-      gameState.current.target.x = Math.random() * (gameState.current.width - 50) + 25;
-      gameState.current.target.y = Math.random() * (gameState.current.height - 50) + 25;
-
-      gameState.current.target.vx *= 1.1;
-      gameState.current.target.vy *= 1.1;
-    }
-  };
-
-  const onMouseDown = e => handleInput(e.clientX, e.clientY);
-  const onTouchStart = e => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    handleInput(touch.clientX, touch.clientY);
+    setLoadingRoast(false);
   };
 
   return (
-    <div style={{ textAlign: 'center', marginTop: 20 }}>
-      <div style={{ marginBottom: 10, fontSize: 24, fontFamily: 'monospace', color: '#0f0' }}>
-        TIME: {timeLeft}s | SCORE: {score}
+    <div style={{ textAlign: 'center', touchAction: 'none' }}>
+      
+      {/* HUD */}
+      <div style={{ display:'flex', justifyContent:'space-between', padding:'10px', maxWidth:'400px', margin:'0 auto' }}>
+        <h2 style={{ color: '#fff' }}>Score: {score}</h2>
+        <h2 style={{ color: timeLeft < 10 ? 'red' : '#fff' }}>Time: {timeLeft}s</h2>
       </div>
 
       <canvas
         ref={canvasRef}
         width={350}
-        height={400}
-        onMouseDown={onMouseDown}
-        onTouchStart={onTouchStart}
-        style={{
-          background: 'radial-gradient(circle, #2a2a2a 0%, #000 100%)',
-          border: '4px solid #0f0',
-          borderRadius: 10,
-          cursor: 'crosshair',
-          touchAction: 'none'
-        }}
+        height={500}
+        style={{ background: '#222', borderRadius: '10px', border: '2px solid #555' }}
+        onMouseDown={handleTap}
+        onTouchStart={handleTap}
       />
 
-      {!isPlaying && (
-        <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
-          {(score > 0 || roast) && (
-            <div style={{ padding: 15, border: '1px dashed #0f0', maxWidth: 350, background: '#111' }}>
-              <h3 style={{ color: '#0f0', marginBottom: 10 }}>👽 COACH ZOG SAYS:</h3>
-              {loadingRoast ? (
-                <p style={{ color: '#888', fontStyle: 'italic' }}>Transmitting insult…</p>
-              ) : (
-                <p style={{ color: '#fff', fontWeight: 'bold' }}>"{roast}"</p>
-              )}
+      {/* GAME OVER MODAL */}
+      {gameOver && (
+        <div style={{ padding: '20px', color: '#fff' }}>
+          <h1>GAME OVER</h1>
+          
+          {loadingRoast ? (
+            <p>Waiting for Alien Analysis...</p>
+          ) : (
+            <div style={{ background: '#333', padding: '15px', borderRadius: '10px', border:'1px solid #7928CA', margin:'10px' }}>
+              {/* If character is equipped, maybe show their name? */}
+              {myCharId && <p style={{color:'#0f0', fontSize:'12px', marginBottom:'5px'}}>MESSAGE FROM {myCharId.toUpperCase()}:</p>}
+              <p style={{ fontSize: '18px', fontStyle: 'italic' }}>"{roast}"</p>
             </div>
           )}
 
-          <button
+          <button 
             onClick={startGame}
-            style={{
-              padding: '15px 40px',
-              fontSize: 20,
-              background: '#7928CA',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 5,
-              cursor: 'pointer',
-              width: '100%',
-              maxWidth: 300
+            style={{ 
+              marginTop: '20px', padding: '15px 30px', fontSize: '20px', 
+              background: '#0f0', border: 'none', borderRadius: '50px', 
+              fontWeight: 'bold', cursor: 'pointer', color: '#000' 
             }}
           >
-            {score === 0 ? 'START GAME' : 'PLAY AGAIN'}
+            PLAY AGAIN
           </button>
-
-          {shareLink && (
-            <button
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({
-                    title: 'Beat my Zog score!',
-                    text: `I scored ${score}. Coach Zog roasted me.`,
-                    url: shareLink
-                  }).catch(() => {});
-                } else {
-                  alert(`Copy this link:\n${shareLink}`);
-                }
-              }}
-              style={{
-                padding: '15px 40px',
-                fontSize: 20,
-                background: '#0f0',
-                color: '#000',
-                border: 'none',
-                borderRadius: 5,
-                cursor: 'pointer',
-                width: '100%',
-                maxWidth: 300
-              }}
-            >
-              SHARE SCORE
-            </button>
-          )}
         </div>
+      )}
+
+      {!isPlaying && !gameOver && (
+        <button 
+          onClick={startGame}
+          style={{ 
+            marginTop: '20px', padding: '20px 40px', fontSize: '24px', 
+            background: '#7928CA', border: 'none', borderRadius: '50px', 
+            cursor: 'pointer', color: 'white' 
+          }}
+        >
+          START GAME
+        </button>
       )}
     </div>
   );
