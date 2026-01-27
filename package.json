@@ -12,6 +12,8 @@
     "@google/generative-ai": "^0.24.1",
     "next": "16.1.4",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "tron": "^0.2.4",
+    "web": "^0.0.2"
   }
 }
