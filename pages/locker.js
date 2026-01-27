@@ -31,7 +31,7 @@ export default function Locker() {
         body: JSON.stringify({
           message: userMsg,
           characterId: selectedChar,
-          sessionId: getSessionId() + selectedChar // Unique session per char
+          sessionId: getSessionId() + selectedChar 
         })
       });
       const data = await res.json();
@@ -43,91 +43,117 @@ export default function Locker() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', padding: '20px', background: '#111', color: '#fff' }}>
+    // ✅ FORCE SCROLL CONTAINER
+    // 'fixed' breaks it out of the flexbox trap
+    // 'overflowY: scroll' forces the scrollbar to appear
+    <div style={{ 
+      position: 'fixed', 
+      top: 0, 
+      left: 0, 
+      width: '100%', 
+      height: '100%', 
+      background: '#111', 
+      overflowY: 'scroll', 
+      WebkitOverflowScrolling: 'touch',
+      zIndex: 1000 
+    }}>
       
-      {/* HEADER */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
-        <Link href="/" style={{ marginRight: '20px', fontSize: '20px' }}>← Home</Link>
-        <h1 style={{ margin: 0, fontSize: '24px' }}>MY LOCKER (NFTs)</h1>
-      </div>
-
-      {/* 1. CHARACTER GRID */}
-      {!selectedChar && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '20px' }}>
-          {Object.entries(CHARACTERS).map(([key, char]) => (
-            <div 
-              key={key} 
-              onClick={() => selectCharacter(key)}
-              style={{ 
-                border: '1px solid #333', borderRadius: '10px', overflow: 'hidden', 
-                cursor: 'pointer', background: '#222', textAlign: 'center' 
-              }}
-            >
-              <img src={char.img} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
-              <div style={{ padding: '10px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px' }}>{char.name}</h3>
-                <p style={{ margin: '5px 0 0', fontSize: '12px', color: '#888' }}>{char.role}</p>
-              </div>
-            </div>
-          ))}
+      <div style={{ padding: '20px', paddingBottom: '100px', maxWidth: '800px', margin: '0 auto' }}>
+        
+        {/* HEADER */}
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
+          <Link href="/" style={{ marginRight: '20px', fontSize: '20px', textDecoration: 'none' }}>🏠 Home</Link>
+          <h1 style={{ margin: 0, fontSize: '24px', color: '#fff' }}>MY LOCKER</h1>
         </div>
-      )}
 
-      {/* 2. CHAT INTERFACE */}
-      {selectedChar && (
-        <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', height: '80vh' }}>
-          
-          {/* Active Character Header */}
-          <div style={{ display: 'flex', alignItems: 'center', background: '#222', padding: '15px', borderRadius: '10px 10px 0 0', border: '1px solid #333' }}>
-            <button onClick={() => setSelectedChar(null)} style={{ marginRight: '15px', background: 'none', border: 'none', color: '#666', fontSize: '20px', cursor:'pointer' }}>✕</button>
-            <img 
-              src={CHARACTERS[selectedChar].img} 
-              style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: '10px' }} 
-            />
-            <div>
-              <div style={{ fontWeight: 'bold' }}>{CHARACTERS[selectedChar].name}</div>
-              <div style={{ fontSize: '12px', color: '#0f0' }}>● Use Brain</div>
-            </div>
-          </div>
-
-          {/* Messages Area */}
-          <div style={{ flex: 1, overflowY: 'auto', background: '#000', borderX: '1px solid #333', padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {messages.map((m, i) => (
-              <div key={i} style={{ 
-                alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-                maxWidth: '80%',
-                background: m.role === 'user' ? '#7928CA' : '#222',
-                padding: '10px 15px',
-                borderRadius: '15px',
-                color: '#fff',
-                fontSize: '14px',
-                lineHeight: '1.4'
-              }}>
-                {m.text}
+        {/* 1. CHARACTER GRID */}
+        {!selectedChar && (
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
+            gap: '20px'
+          }}>
+            {Object.entries(CHARACTERS).map(([key, char]) => (
+              <div 
+                key={key} 
+                onClick={() => selectCharacter(key)}
+                style={{ 
+                  border: '1px solid #333', borderRadius: '10px', overflow: 'hidden', 
+                  cursor: 'pointer', background: '#222', textAlign: 'center' 
+                }}
+              >
+                <img src={char.img} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
+                <div style={{ padding: '10px' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', color: '#fff' }}>{char.name}</h3>
+                  <p style={{ margin: '5px 0 0', fontSize: '12px', color: '#888' }}>{char.role}</p>
+                </div>
               </div>
             ))}
-            {loading && <div style={{ color: '#666', fontSize: '12px', fontStyle: 'italic' }}>Thinking...</div>}
           </div>
+        )}
 
-          {/* Input Area */}
-          <div style={{ display: 'flex', padding: '10px', background: '#222', borderRadius: '0 0 10px 10px', border: '1px solid #333' }}>
-            <input 
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder={`Message ${CHARACTERS[selectedChar].name}...`}
-              style={{ flex: 1, padding: '10px', background: '#000', border: 'none', color: '#fff', borderRadius: '5px', outline: 'none' }}
-            />
-            <button 
-              onClick={handleSend}
-              style={{ marginLeft: '10px', padding: '10px 20px', background: '#0f0', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}
-            >
-              SEND
-            </button>
+        {/* 2. CHAT INTERFACE */}
+        {selectedChar && (
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            height: '80vh', // Fixed height chat window
+            border: '1px solid #333',
+            borderRadius: '10px',
+            background: '#000',
+            overflow: 'hidden'
+          }}>
+            
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', background: '#222', padding: '10px' }}>
+              <button onClick={() => setSelectedChar(null)} style={{ marginRight: '15px', background: 'none', border: 'none', color: '#fff', fontSize: '24px', cursor:'pointer' }}>←</button>
+              <img src={CHARACTERS[selectedChar].img} style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: '10px', border: '1px solid #0f0' }} />
+              <div>
+                <div style={{ fontWeight: 'bold', color: '#fff' }}>{CHARACTERS[selectedChar].name}</div>
+                <div style={{ fontSize: '11px', color: '#0f0' }}>● ONLINE</div>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '15px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              {messages.map((m, i) => (
+                <div key={i} style={{ 
+                  alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
+                  maxWidth: '85%',
+                  background: m.role === 'user' ? '#7928CA' : '#222',
+                  padding: '12px 16px',
+                  borderRadius: '15px',
+                  color: '#fff',
+                  fontSize: '15px',
+                  lineHeight: '1.4'
+                }}>
+                  {m.text}
+                </div>
+              ))}
+              {loading && <div style={{ color: '#0f0', fontSize: '12px' }}>Typing...</div>}
+            </div>
+
+            {/* Input */}
+            <div style={{ padding: '10px', background: '#222', display: 'flex' }}>
+              <input 
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                placeholder="Message..."
+                style={{ flex: 1, padding: '15px', background: '#111', border: '1px solid #444', color: '#fff', borderRadius: '30px', outline: 'none', fontSize: '16px' }}
+              />
+              <button 
+                onClick={handleSend}
+                disabled={loading}
+                style={{ marginLeft: '10px', padding: '0 20px', background: '#0f0', color: '#000', border: 'none', borderRadius: '30px', fontWeight: 'bold' }}
+              >
+                ➤
+              </button>
+            </div>
           </div>
+        )}
 
-        </div>
-      )}
+      </div>
     </div>
   );
 }
