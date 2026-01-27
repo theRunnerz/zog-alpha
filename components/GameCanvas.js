@@ -154,7 +154,7 @@ export default function GameCanvas() {
       }
       if (isPlaying) {
         ctx.font = '30px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(opponent ? '💰' : '🎯', target.current.x, target.current.y);
+        ctx.fillText(opponent ? '💰' : '👽', target.current.x, target.current.y);
         target.current.x += target.current.dx; target.current.y += target.current.dy;
         if (target.current.x < 20 || target.current.x > canvas.width - 20) target.current.dx *= -1;
         if (target.current.y < 20 || target.current.y > canvas.height - 20) target.current.dy *= -1;
