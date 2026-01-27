@@ -5,7 +5,7 @@ import { CHARACTERS } from '../data/characters';
 // ⚠️ PASTE YOUR DEPLOYED SMART CONTRACT ADDRESS HERE
 // If you haven't deployed yet, use the previous wallet logic, 
 // otherwise this will fail until deployed.
-const CONTRACT_ADDRESS = "TG...YOUR_CONTRACT_ADDRESS_HERE..."; 
+const CONTRACT_ADDRESS = "TDYtR58aj5iQcCS7etZ1GwomY8QyxStu3x"; 
 
 export default function GameCanvas() {
   const canvasRef = useRef(null);
