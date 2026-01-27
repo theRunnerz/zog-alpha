@@ -1,18 +1,12 @@
 /* pages/api/payout.js */
-
-// 🟢 FIX: Use 'require' instead of 'import' for this specific library
-const TronWeb = require('tronweb');
+const TronWebLib = require('tronweb');
 
 // ⚠️ YOUR DEPLOYED CONTRACT ADDRESS
 const CONTRACT_ADDRESS = "TDYtR58aj5iQcCS7etZ1GwomY8QyxStu3x"; 
 
 export default async function handler(req, res) {
-  // 1. Check Method
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-  // 2. Check Environment Variable (Local & Vercel)
   const privateKey = process.env.TRON_OWNER_PRIVATE_KEY;
   if (!privateKey) {
     console.error("❌ ERROR: TRON_OWNER_PRIVATE_KEY is missing.");
@@ -24,17 +18,20 @@ export default async function handler(req, res) {
   try {
     console.log(`🤖 Payout Initiated. ID: ${matchId}`);
 
-    // 3. Initialize TronWeb
-    // We use the 'require' version of TronWeb properly here
+    // 🟢 ROBUST IMPORT FIX
+    // We check if the library is the class itself, or if the class is inside a property
+    const TronWeb = TronWebLib.TronWeb || TronWebLib.default || TronWebLib;
+
+    // Initialize
     const tronWeb = new TronWeb({
-      fullHost: 'https://api.shasta.trongrid.io', // ⚠️ Change to Mainnet if needed
+      fullHost: 'https://api.shasta.trongrid.io', // ⚠️ Use Mainnet for real money
       privateKey: privateKey
     });
 
-    // 4. Connect to Contract
+    // Connect to Contract
     const contract = await tronWeb.contract().at(CONTRACT_ADDRESS);
 
-    // 5. Execute Payout on Blockchain
+    // CALL RESOLVE FUNCTION
     const txId = await contract.resolveMatch(
       matchId, 
       winnerAddress
@@ -47,7 +44,7 @@ export default async function handler(req, res) {
     console.error("❌ Payout Failed:", error);
     return res.status(500).json({ 
       error: "Transaction Failed", 
-      details: error.message || "Unknown error" 
+      details: error.message || error 
     });
   }
 }
