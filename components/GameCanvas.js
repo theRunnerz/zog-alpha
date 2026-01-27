@@ -81,7 +81,7 @@ export default function GameCanvas() {
         ctx.font = '30px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('🎯', target.current.x, target.current.y);
+        ctx.fillText('👽', target.current.x, target.current.y);
         
         target.current.x += target.current.dx;
         target.current.y += target.current.dy;
