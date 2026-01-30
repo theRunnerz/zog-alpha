@@ -1,58 +1,47 @@
+/* pages/api/chat.js - Fixed for Gemini 2.0 */
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { CHARACTERS } from "../../data/characters";
+import { CHARACTERS } from '../../data/characters';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// Store chat history in memory (TEMPORARY for Hackathon demo)
-// In production, this would go in a database like Redis/Mongo
-let historyStore = {}; 
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { message, characterId, sessionId } = req.body;
-  const character = CHARACTERS[characterId];
-
-  if (!character) return res.status(400).json({ error: "Unknown Character" });
+  const { characterId, messages, wallet } = req.body;
+  const char = CHARACTERS[characterId] || CHARACTERS["WALL"];
 
   try {
-    // 1. Initialize Model
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    // 2. Retrieve History
-    if (!historyStore[sessionId]) historyStore[sessionId] = [];
-    const history = historyStore[sessionId];
+    // 1. Format History for Gemini (It expects 'user' and 'model' roles)
+    // We remove the last message because that is the 'new' message we send via sendMessage
+    const history = messages.slice(0, -1).map(m => ({
+      role: m.role === 'user' ? 'user' : 'model',
+      parts: [{ text: m.content }]
+    }));
 
-    // 3. Construct Chat (Note: we inject personality as the first message role)
+    // 2. Start Chat Session
     const chat = model.startChat({
-      history: [
-        {
-          role: "user",
-          parts: [{ text: `System Instruction: ${character.systemPrompt}. Stay in character.` }],
-        },
-        {
-          role: "model",
-          parts: [{ text: "Understood. I am ready." }],
-        },
-        ...history // Append previous convo
-      ],
+      history: history,
+      generationConfig: { maxOutputTokens: 200 }, // Keep it short
+      systemInstruction: { 
+        role: "system", 
+        parts: [{ text: `${char.systemPrompt}\nContext: User Wallet is ${wallet || "Unknown"}` }] 
+      }
     });
 
-    // 4. Send Message
-    const result = await chat.sendMessage(message);
-    const text = result.response.text();
+    // 3. Send the NEW message
+    const lastMsgContent = messages[messages.length - 1].content;
+    const result = await chat.sendMessage(lastMsgContent);
+    
+    // 4. Get Response
+    const response = await result.response;
+    const text = response.text();
 
-    // 5. Update History
-    history.push({ role: "user", parts: [{ text: message }] });
-    history.push({ role: "model", parts: [{ text: text }] });
-
-    // Cap history at last 10 turns to save tokens
-    if (history.length > 20) historyStore[sessionId] = history.slice(-20);
-
-    res.status(200).json({ reply: text });
+    return res.status(200).json({ reply: text });
 
   } catch (error) {
     console.error("Gemini Chat Error:", error);
-    res.status(500).json({ reply: "..." });
+    return res.status(500).json({ reply: "Connection glitch. Try again." });
   }
 }
