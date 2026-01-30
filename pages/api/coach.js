@@ -1,8 +1,9 @@
-// pages/api/coach.js
+/* pages/api/coach.js - Fixed Import Name */
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { fetchPortfolio } from '../../lib/wallet';
 import { calculateScores } from '../../lib/scoring';
-import { generatePrompt, CHARACTERS } from '../../data/characters';
+// FIXED IMPORT BELOW:
+import { getCharacterPrompt, CHARACTERS } from '../../data/characters';
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -15,38 +16,47 @@ export default async function handler(req, res) {
   if (!address) return res.status(400).json({ error: "Address required" });
 
   try {
-    console.log(`🧠 AI Analysis | Wallet: ${address} | Coach: ${characterId}`);
+    console.log(`🧠 AI Analysis | Address: ${address} | Coach: ${characterId}`);
 
-    // 1. PHASE 1: GET DATA & MATH
+    // 1. GET DATA
     const portfolio = await fetchPortfolio(address);
-    const scores = calculateScores(portfolio, strategy || 'balanced');
+    // Safety check
+    const safePortfolio = portfolio || { totalValueUsd: 0, assets: [] };
+    
+    // 2. MATH
+    const scores = calculateScores(safePortfolio, strategy || 'balanced');
 
-    // 2. PREPARE THE PROMPT
-    const prompt = generatePrompt(characterId, {
+    // 3. BUILD PROMPT (Using the fixed function name)
+    const prompt = getCharacterPrompt(characterId, {
       scores: scores,
-      totalValue: portfolio.totalValueUsd,
-      topHolding: portfolio.assets[0]?.symbol
+      totalValue: safePortfolio.totalValueUsd,
+      topHolding: safePortfolio.assets[0]?.symbol
     });
 
-    // 3. CALL GEMINI (1.5 Flash is fast & cheap)
+    // 4. CALL GEMINI
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
-    // 4. RETURN THE COMBINED RESULT
+    // 5. RETURN
     return res.status(200).json({
-      character: CHARACTERS[characterId]?.name,
-      score: scores.total, // The speedometer value
-      feedback: text,      // The roast
-      breakdown: scores.breakdown // For the cards
+      character: CHARACTERS[characterId]?.name || "Alien",
+      score: scores.total, 
+      feedback: text,
+      breakdown: scores.breakdown,
+      metrics: {
+          totalValue: safePortfolio.totalValueUsd,
+          topAsset: safePortfolio.assets[0]?.symbol || "None"
+      }
     });
 
   } catch (error) {
     console.error("AI Error:", error);
     return res.status(500).json({ 
-      error: "The Coach is holding out for a contract renegotiation (AI Error)." 
+      error: "The Alien is recharging (Server Error).",
+      details: error.message
     });
   }
 }
