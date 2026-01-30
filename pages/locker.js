@@ -1,39 +1,48 @@
-/* pages/locker.js - Scrollable Fixed Version */
+/* pages/locker.js - Final Fixed Version */
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Home, Zap, Activity } from 'lucide-react';
+import { ArrowLeft, Home, Zap, Activity, Mic } from 'lucide-react'; // Imports merged
 import Link from 'next/link'; 
 import { useTron } from '../hooks/useTron';
 import ScoreGauge from '../components/ScoreGauge';
 import { CHARACTERS } from '../data/characters';
 import AlienTranslator from '../components/AlienTranslator';
-import { Mic } from 'lucide-react'; // Import Mic icon
 
 export default function LockerRoom() {
   const { address, connect } = useTron();
-  const [showTranslator, setShowTranslator] = useState(false); // NEW STATE
-
+  
+  // States
+  const [showTranslator, setShowTranslator] = useState(false);
   const [activeView, setActiveView] = useState(null); // null = Grid, "ID" = Chat
   const [equippedId, setEquippedId] = useState("PinkerTape");
-
   
+  // --- FIX: Safe Mobile Check (Prevents "window is not defined" error) ---
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // This runs only in the browser
+    const checkScreen = () => setIsMobile(window.innerWidth < 600);
+    checkScreen(); // Check immediately on load
+    window.addEventListener('resize', checkScreen); // Update if window resizes
+    return () => window.removeEventListener('resize', checkScreen);
+  }, []);
+  // -----------------------------------------------------------------------
+
   // --- STYLES ---
   const styles = {
     page: { 
       backgroundColor: '#000000', 
-      minHeight: '100vh',  // Allow it to grow larger than screen
+      minHeight: '100vh',  
       color: 'white', 
       fontFamily: 'sans-serif',
-      paddingBottom: '50px' // Space at the bottom
+      paddingBottom: '50px' 
     },
     nav: { 
-      // Keep existing
       display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
       padding: '20px', borderBottom: '1px solid #333', backgroundColor: '#111', 
       position: 'sticky', top: 0, zIndex: 50 
     },
     grid: {
-      // Keep existing
       display: 'grid', 
       gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
       gap: '24px', 
@@ -63,15 +72,33 @@ export default function LockerRoom() {
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+           
+           {/* TRANSLATOR BUTTON */}
+           <button 
+              onClick={() => setShowTranslator(!showTranslator)}
+              style={{ 
+                backgroundColor: showTranslator ? '#166534' : '#111', 
+                border: '1px solid #333', padding: '10px', borderRadius: '8px', 
+                color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' 
+              }}
+           >
+              <Mic size={18} color={showTranslator ? '#4ade80' : 'white'} />
+              <span style={{ fontSize: '12px', fontWeight: 'bold', display: isMobile ? 'none' : 'block' }}>
+                TRANSLATOR
+              </span>
+           </button>
+
            {equippedId && (
              <div style={{ 
                backgroundColor: 'rgba(34, 197, 94, 0.1)', border: '1px solid #166534', 
                padding: '5px 12px', borderRadius: '6px', fontSize: '10px', 
-               color: '#4ade80', fontWeight: 'bold', textTransform: 'uppercase' 
+               color: '#4ade80', fontWeight: 'bold', textTransform: 'uppercase',
+               display: isMobile ? 'none' : 'block'
              }}>
                 Playing As: {equippedId}
              </div>
            )}
+           
            <button 
              onClick={connect} 
              style={{ 
@@ -83,17 +110,6 @@ export default function LockerRoom() {
            >
              {address ? "Wallet Connected" : "Connect"}
            </button>
-           <button 
-            onClick={() => setShowTranslator(!showTranslator)}
-            style={{ 
-            backgroundColor: showTranslator ? '#166534' : '#111', 
-            border: '1px solid #333', padding: '10px', borderRadius: '8px', 
-           color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' 
-             }}
->
-   <Mic size={18} color={showTranslator ? '#4ade80' : 'white'} />
-   <span style={{ fontSize: '12px', fontWeight: 'bold', display: window.innerWidth < 600 ? 'none' : 'block' }}>TRASNLATOR</span>
-</button>
         </div>
       </nav>
 
@@ -132,19 +148,20 @@ export default function LockerRoom() {
             isEquipped={equippedId === activeView}
             onEquip={() => {
               setEquippedId(activeView);
-              localStorage.setItem('zogs_active_char', activeView); // Save to storage
+              localStorage.setItem('zogs_active_char', activeView); 
             }}
           />
         )}
+
         {/* TRANSLATOR OVERLAY */}
         {showTranslator && (
-        <div style={{ 
-        position: 'fixed', bottom: '20px', right: '20px', zIndex: 100,
-        backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)', borderRadius: '24px' 
-        }}>
-     <AlienTranslator onClose={() => setShowTranslator(false)} />
-  </div>
-)}
+          <div style={{ 
+            position: 'fixed', bottom: '20px', right: '20px', zIndex: 100,
+            backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)', borderRadius: '24px' 
+          }}>
+             <AlienTranslator onClose={() => setShowTranslator(false)} />
+          </div>
+        )}
       </main>
     </div>
   );
@@ -204,7 +221,7 @@ function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
     setLoading(false);
   };
 
-  // CHANGE THE LAYOUT STYLE IN ActiveCoachView
+  // LAYOUT
   const layoutStyle = {
     display: 'flex', 
     flexWrap: 'wrap', 
@@ -212,27 +229,27 @@ function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
     padding: '40px', 
     maxWidth: '1200px', 
     margin: '0 auto',
-    // REMOVED 'height: calc(100vh)' -> Now it grows naturally
-    alignItems: 'flex-start' // Align to top
+    alignItems: 'flex-start' 
   };
-  // Mobile check (you can do this cleaner with CSS, but staying inline for safety)
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  
+  // Safe mobile check for Child Component
+  const isMobileView = typeof window !== 'undefined' && window.innerWidth < 768;
 
   return (
     <div style={{ 
       ...layoutStyle, 
-      flexDirection: isMobile ? 'column' : 'row',
-      height: isMobile ? 'auto' : layoutStyle.height 
+      flexDirection: isMobileView ? 'column' : 'row',
+      height: isMobileView ? 'auto' : layoutStyle.height 
     }}>
       
       {/* SIDEBAR (Stats) - Scrollable */}
       <div style={{ 
-        width: isMobile ? '100%' : '350px', 
+        width: isMobileView ? '100%' : '350px', 
         display: 'flex', 
         flexDirection: 'column', 
         gap: '20px',
-        overflowY: 'auto', // Enable scroll here
-        maxHeight: isMobile ? 'none' : '100%'
+        overflowY: 'auto', 
+        maxHeight: isMobileView ? 'none' : '100%'
       }}>
         <div style={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '16px', padding: '30px', textAlign: 'center', position: 'relative' }}>
            <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '20px', background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}>
@@ -258,7 +275,7 @@ function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
 
         {scanData && (
           <div style={{ 
-            flexShrink: 0, // Don't squash me
+            flexShrink: 0, 
             backgroundColor: '#1a1a1a', border: '1px solid #166534', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column' 
           }}>
              <div style={{ height: '150px', marginBottom: '20px' }}><ScoreGauge score={scanData.score} /></div>
@@ -280,7 +297,7 @@ function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
         backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '16px', 
         display: 'flex', flexDirection: 'column', 
         overflow: 'hidden',
-        height: isMobile ? '500px' : 'auto' // Force height on mobile so it doesn't vanish
+        height: isMobileView ? '500px' : 'auto' 
       }}>
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }} ref={scrollRef}>
           {messages.map((m, i) => (
