@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
     // --- STEP 1: CLEAN HISTORY ---
     // Gemini CRASHES if history is not strictly User -> Model -> User -> Model.
-    // We must filter out 'system' messages and ensure correct order.
+    // We must filter out 'syste' messages and ensure correct order.
     
     // Get all messages except the very last one (which is the new input)
     const rawHistory = messages.slice(0, -1).filter(m => m.role !== 'system');
