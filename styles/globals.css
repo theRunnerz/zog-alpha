@@ -2,29 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* FORCE SCROLLING ON ALL PAGES */
-html, body {
+/* 
+   FORCE MOBILE SCROLLING 
+   We set html/body to auto height so they grow with content.
+*/
+html {
+  height: 100%;
+  overflow-y: scroll; /* Always show scrollbar track */
+}
+
+body {
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  overflow-y: auto !important; /* Forces vertical scrollbar */
-  overflow-x: hidden; /* Prevents side-scrolling */
   background-color: black;
   color: white;
-  overscroll-behavior-y: none; /* Prevents "bounce" on Mac but allows scroll */
+  
+  /* CRITICAL FOR MOBILE SCROLL */
+  overflow-y: auto !important; 
+  -webkit-overflow-scrolling: touch; /* Momentum scrolling on iOS */
+  
+  /* Prevent horizontal scroll */
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
 }
 
-/* Custom Scrollbar Styling (Optional: Makes it look cool/dark) */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #111; 
-}
-::-webkit-scrollbar-thumb {
-  background: #333; 
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #555; 
+/* Make sure Next.js root div also grows */
+#__next {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
