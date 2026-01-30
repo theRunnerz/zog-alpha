@@ -92,7 +92,7 @@ export default function LockerRoom() {
              }}
 >
    <Mic size={18} color={showTranslator ? '#4ade80' : 'white'} />
-   <span style={{ fontSize: '12px', fontWeight: 'bold', display: window.innerWidth < 600 ? 'none' : 'block' }}>TRASNLATOR</span>
+   <span style={{ fontSize: '12px', fontWeight: 'bold', display: window.innerWidth < 600 ? 'none' : 'block' }}>TRANSLATOR</span>
 </button>
         </div>
       </nav>
