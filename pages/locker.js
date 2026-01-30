@@ -13,28 +13,30 @@ export default function LockerRoom() {
   const [activeView, setActiveView] = useState(null); // null = Grid, "ID" = Chat
   const [equippedId, setEquippedId] = useState("PinkerTape");
 
+  
   // --- STYLES ---
   const styles = {
     page: { 
       backgroundColor: '#000000', 
-      minHeight: '100vh', 
+      minHeight: '100vh',  // Allow it to grow larger than screen
       color: 'white', 
       fontFamily: 'sans-serif',
-      overflowX: 'hidden' // Prevent side-scroll
+      paddingBottom: '50px' // Space at the bottom
     },
     nav: { 
+      // Keep existing
       display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
       padding: '20px', borderBottom: '1px solid #333', backgroundColor: '#111', 
       position: 'sticky', top: 0, zIndex: 50 
     },
     grid: {
+      // Keep existing
       display: 'grid', 
       gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
       gap: '24px', 
       padding: '40px',
       maxWidth: '1200px',
       margin: '0 auto',
-      paddingBottom: '100px' // Extra space at bottom for scrolling
     },
     card: {
       backgroundColor: '#1a1a1a', borderRadius: '16px', border: '1px solid #333', 
@@ -180,19 +182,17 @@ function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
     setLoading(false);
   };
 
-  // LAYOUT
+  // CHANGE THE LAYOUT STYLE IN ActiveCoachView
   const layoutStyle = {
     display: 'flex', 
-    flexWrap: 'wrap', // Allow wrapping on mobile
+    flexWrap: 'wrap', 
     gap: '30px', 
     padding: '40px', 
     maxWidth: '1200px', 
     margin: '0 auto',
-    height: 'calc(100vh - 80px)', 
-    minHeight: '600px', // Prevent it from being too small
-    alignItems: 'stretch'
+    // REMOVED 'height: calc(100vh)' -> Now it grows naturally
+    alignItems: 'flex-start' // Align to top
   };
-
   // Mobile check (you can do this cleaner with CSS, but staying inline for safety)
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
