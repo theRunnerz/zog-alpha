@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   try {
     // 1. Initialize Model
     // We use 'gemini-1.5-flash' because it is FAST and supports Audio inputs well.
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
     // 2. Prepare Audio Data
     // The client sends data like "data:audio/webm;base64,GkX..."
