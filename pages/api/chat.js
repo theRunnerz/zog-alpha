@@ -1,4 +1,4 @@
-/* pages/api/chat.js */
+/* pages/api/chat.js - Strict History Cleaning */
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { CHARACTERS } from '../../data/characters';
 
@@ -13,31 +13,49 @@ export default async function handler(req, res) {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    // 1. Prepare history (Change 'user'/'assistant' to 'user'/'model')
-    // We EXCLUDE the very last message, because we send that in step 3
-    const history = messages.slice(0, -1).map(m => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: m.content }]
-    }));
+    // --- STEP 1: CLEAN HISTORY ---
+    // Gemini CRASHES if history is not strictly User -> Model -> User -> Model.
+    // We must filter out 'system' messages and ensure correct order.
+    
+    // Get all messages except the very last one (which is the new input)
+    const rawHistory = messages.slice(0, -1).filter(m => m.role !== 'system');
+    
+    // Validation Loop: Ensure logic alternates starting with User.
+    const cleanHistory = [];
+    let expectedRole = 'user'; // We must start with user
 
-    // 2. Start Chat
+    for (const msg of rawHistory) {
+      // Map 'assistant' to 'model' for Gemini
+      const geminiRole = msg.role === 'user' ? 'user' : 'model';
+      
+      if (geminiRole === expectedRole) {
+        cleanHistory.push({
+          role: geminiRole,
+          parts: [{ text: msg.content }]
+        });
+        // Flip expectation
+        expectedRole = expectedRole === 'user' ? 'model' : 'user';
+      }
+    }
+
+    // --- STEP 2: START CHAT ---
     const chat = model.startChat({
-      history: history,
+      history: cleanHistory,
       systemInstruction: { 
         role: "system", 
-        parts: [{ text: `${char.systemPrompt}. You are talking to wallet: ${wallet || "Guest"}` }] 
+        parts: [{ text: `${char.systemPrompt} (User Wallet: ${wallet || "Guest"})` }] 
       }
     });
 
-    // 3. Send the newest message
-    const lastMsg = messages[messages.length - 1].content;
-    const result = await chat.sendMessage(lastMsg);
+    // --- STEP 3: SEND MESSAGE ---
+    const lastMsgContent = messages[messages.length - 1].content;
+    const result = await chat.sendMessage(lastMsgContent);
     const text = result.response.text();
 
     return res.status(200).json({ reply: text });
 
   } catch (error) {
-    console.error("Chat Error:", error);
-    return res.status(500).json({ reply: "My brain is buffering... try again." });
+    console.error("Gemini Error:", error);
+    return res.status(500).json({ reply: "Communications jammed. Try again." });
   }
 }
