@@ -1,6 +1,6 @@
-/* pages/locker.js - The "Unbreakable" Version */
+/* pages/locker.js - Scrollable Fixed Version */
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowLeft, Home, Zap, Activity } from 'lucide-react';
 import Link from 'next/link'; 
 import { useTron } from '../hooks/useTron';
@@ -13,9 +13,15 @@ export default function LockerRoom() {
   const [activeView, setActiveView] = useState(null); // null = Grid, "ID" = Chat
   const [equippedId, setEquippedId] = useState("PinkerTape");
 
-  // --- STYLES (Hardcoded to prevent CSS bugs) ---
+  // --- STYLES ---
   const styles = {
-    page: { backgroundColor: '#000000', minHeight: '100vh', color: 'white', fontFamily: 'sans-serif' },
+    page: { 
+      backgroundColor: '#000000', 
+      minHeight: '100vh', 
+      color: 'white', 
+      fontFamily: 'sans-serif',
+      overflowX: 'hidden' // Prevent side-scroll
+    },
     nav: { 
       display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
       padding: '20px', borderBottom: '1px solid #333', backgroundColor: '#111', 
@@ -27,7 +33,8 @@ export default function LockerRoom() {
       gap: '24px', 
       padding: '40px',
       maxWidth: '1200px',
-      margin: '0 auto'
+      margin: '0 auto',
+      paddingBottom: '100px' // Extra space at bottom for scrolling
     },
     card: {
       backgroundColor: '#1a1a1a', borderRadius: '16px', border: '1px solid #333', 
@@ -108,9 +115,9 @@ export default function LockerRoom() {
             onBack={() => setActiveView(null)}
             isEquipped={equippedId === activeView}
             onEquip={() => {
-  setEquippedId(activeView);
-  localStorage.setItem('zogs_active_char', activeView); // <--- THIS FIXES THE GAME
-}}
+              setEquippedId(activeView);
+              localStorage.setItem('zogs_active_char', activeView); // Save to storage
+            }}
           />
         )}
 
@@ -119,7 +126,7 @@ export default function LockerRoom() {
   );
 }
 
-// --- SUB-COMPONENT: Chat & Scan (Also Hardcoded Styles) ---
+// --- SUB-COMPONENT: Chat & Scan ---
 function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
   const char = CHARACTERS[charId];
   const scrollRef = useRef(null);
@@ -173,15 +180,38 @@ function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
     setLoading(false);
   };
 
+  // LAYOUT
   const layoutStyle = {
-    display: 'flex', flexDirection: 'row', gap: '30px', padding: '40px', maxWidth: '1200px', margin: '0 auto',
-    height: 'calc(100vh - 80px)', alignItems: 'stretch'
+    display: 'flex', 
+    flexWrap: 'wrap', // Allow wrapping on mobile
+    gap: '30px', 
+    padding: '40px', 
+    maxWidth: '1200px', 
+    margin: '0 auto',
+    height: 'calc(100vh - 80px)', 
+    minHeight: '600px', // Prevent it from being too small
+    alignItems: 'stretch'
   };
 
+  // Mobile check (you can do this cleaner with CSS, but staying inline for safety)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
-    <div style={layoutStyle}>
-      {/* SIDEBAR */}
-      <div style={{ width: '350px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ 
+      ...layoutStyle, 
+      flexDirection: isMobile ? 'column' : 'row',
+      height: isMobile ? 'auto' : layoutStyle.height 
+    }}>
+      
+      {/* SIDEBAR (Stats) - Scrollable */}
+      <div style={{ 
+        width: isMobile ? '100%' : '350px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '20px',
+        overflowY: 'auto', // Enable scroll here
+        maxHeight: isMobile ? 'none' : '100%'
+      }}>
         <div style={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '16px', padding: '30px', textAlign: 'center', position: 'relative' }}>
            <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '20px', background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}>
              <ArrowLeft size={24} />
@@ -205,9 +235,12 @@ function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
         </div>
 
         {scanData && (
-          <div style={{ flex: 1, backgroundColor: '#1a1a1a', border: '1px solid #166534', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ 
+            flexShrink: 0, // Don't squash me
+            backgroundColor: '#1a1a1a', border: '1px solid #166534', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column' 
+          }}>
              <div style={{ height: '150px', marginBottom: '20px' }}><ScoreGauge score={scanData.score} /></div>
-             <div style={{ overflowY: 'auto', flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 {Object.entries(scanData.breakdown).map(([k, v]) => (
                   <div key={k} style={{ backgroundColor: '#000', padding: '10px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '10px', alignItems: 'center' }}>
                     <span style={{ color: '#666', textTransform: 'uppercase' }}>{k.slice(0,4)}</span>
@@ -219,8 +252,14 @@ function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
         )}
       </div>
 
-      {/* CHAT BOX */}
-      <div style={{ flex: 1, backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '16px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* CHAT BOX - Flexes to fill space */}
+      <div style={{ 
+        flex: 1, 
+        backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '16px', 
+        display: 'flex', flexDirection: 'column', 
+        overflow: 'hidden',
+        height: isMobile ? '500px' : 'auto' // Force height on mobile so it doesn't vanish
+      }}>
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }} ref={scrollRef}>
           {messages.map((m, i) => (
              <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
