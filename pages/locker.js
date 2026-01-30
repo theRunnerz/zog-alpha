@@ -107,7 +107,10 @@ export default function LockerRoom() {
             address={address}
             onBack={() => setActiveView(null)}
             isEquipped={equippedId === activeView}
-            onEquip={() => setEquippedId(activeView)}
+            onEquip={() => {
+  setEquippedId(activeView);
+  localStorage.setItem('zogs_active_char', activeView); // <--- THIS FIXES THE GAME
+}}
           />
         )}
 
