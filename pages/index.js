@@ -88,7 +88,7 @@ export default function Home() {
 
       {/* Footer (To show scrolling works) */}
       <footer style={{ padding: '20px', textAlign: 'center', color: '#444', fontSize: '12px' }}>
-        <p>Built for TRON Hackathon Season 7</p>
+        <p>Built for Gemini 3 hackathon</p>
       </footer>
 
     </div>
