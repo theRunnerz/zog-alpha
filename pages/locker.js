@@ -1,4 +1,4 @@
-/* pages/locker.js - Restored Grid Layout */
+/* pages/locker.js - The "Unbreakable" Version */
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Home, Zap, Activity } from 'lucide-react';
@@ -13,77 +13,95 @@ export default function LockerRoom() {
   const [activeView, setActiveView] = useState(null); // null = Grid, "ID" = Chat
   const [equippedId, setEquippedId] = useState("PinkerTape");
 
+  // --- STYLES (Hardcoded to prevent CSS bugs) ---
+  const styles = {
+    page: { backgroundColor: '#000000', minHeight: '100vh', color: 'white', fontFamily: 'sans-serif' },
+    nav: { 
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+      padding: '20px', borderBottom: '1px solid #333', backgroundColor: '#111', 
+      position: 'sticky', top: 0, zIndex: 50 
+    },
+    grid: {
+      display: 'grid', 
+      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+      gap: '24px', 
+      padding: '40px',
+      maxWidth: '1200px',
+      margin: '0 auto'
+    },
+    card: {
+      backgroundColor: '#1a1a1a', borderRadius: '16px', border: '1px solid #333', 
+      overflow: 'hidden', cursor: 'pointer', transition: 'all 0.2s ease'
+    },
+    imageContainer: { width: '100%', height: '300px', overflow: 'hidden', backgroundColor: '#222' },
+    image: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
+    cardText: { padding: '20px', textAlign: 'center' }
+  };
+
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-green-500 selection:text-black">
+    <div style={styles.page}>
       
-      {/* HEADER: Matches your 'Good' screenshot */}
-      <nav className="flex sticky top-0 bg-black/90 border-b border-neutral-900 px-8 py-5 z-50 justify-between items-center backdrop-blur">
-        <div className="flex items-center gap-4">
-          <Link href="/" className="text-neutral-400 hover:text-white transition-colors">
-             <Home size={22} />
+      {/* HEADER */}
+      <nav style={styles.nav}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <Link href="/" style={{ color: '#888', textDecoration: 'none' }}>
+            <Home size={24} />
           </Link>
-          <span className="font-bold tracking-tight text-lg uppercase text-white">MY LOCKER</span>
+          <h1 style={{ fontSize: '20px', fontWeight: '900', letterSpacing: '1px', margin: 0 }}>MY LOCKER</h1>
         </div>
-        <div className="flex items-center gap-4">
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
            {equippedId && (
-             <div className="hidden md:block px-3 py-1 rounded bg-green-900/30 border border-green-500/30 text-[10px] font-bold text-green-400 uppercase tracking-widest">
-               PLAYING AS: <span className="text-white">{equippedId}</span>
+             <div style={{ 
+               backgroundColor: 'rgba(34, 197, 94, 0.1)', border: '1px solid #166534', 
+               padding: '5px 12px', borderRadius: '6px', fontSize: '10px', 
+               color: '#4ade80', fontWeight: 'bold', textTransform: 'uppercase' 
+             }}>
+                Playing As: {equippedId}
              </div>
            )}
            <button 
              onClick={connect} 
-             className={`px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all ${
-               address 
-               ? 'bg-neutral-900 text-neutral-400 cursor-default' 
-               : 'bg-white text-black hover:bg-gray-200'
-             }`}
+             style={{ 
+               backgroundColor: address ? '#333' : '#16a34a', 
+               color: address ? '#4ade80' : '#000',
+               border: 'none', padding: '10px 20px', borderRadius: '8px', 
+               fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', textTransform: 'uppercase'
+             }}
            >
-             {address ? "CONNECTED" : "CONNECT WALLET"}
+             {address ? "Wallet Connected" : "Connect"}
            </button>
         </div>
       </nav>
 
-      {/* BODY */}
-      <main className="p-8 max-w-7xl mx-auto">
+      {/* MAIN CONTENT */}
+      <main>
         
-        {/* VIEW 1: THE FOUR CARD GRID */}
         {!activeView ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          /* --- GRID VIEW --- */
+          <div style={styles.grid}>
             {Object.entries(CHARACTERS).map(([id, char]) => (
               <motion.div 
                 key={id} 
-                whileHover={{ y: -5 }}
+                whileHover={{ y: -5, borderColor: '#22c55e' }}
                 onClick={() => setActiveView(id)}
-                className={`relative group cursor-pointer bg-neutral-900 rounded-xl overflow-hidden border transition-all duration-300 ${
-                  equippedId === id 
-                    ? 'border-green-500 ring-1 ring-green-500' 
-                    : 'border-neutral-800 hover:border-neutral-600'
-                }`}
+                style={{ 
+                  ...styles.card, 
+                  border: equippedId === id ? '2px solid #22c55e' : '1px solid #333' 
+                }}
               >
-                {/* Image Container */}
-                <div className="aspect-square w-full bg-neutral-800 relative">
-                  <img 
-                    src={char.img} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                    alt={char.name}
-                  />
-                  {equippedId === id && (
-                     <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-green-500 text-black text-[10px] font-bold px-2 py-0.5 rounded uppercase">
-                       EQUIPPED
-                     </div>
-                  )}
+                <div style={styles.imageContainer}>
+                  <img src={char.img} style={styles.image} alt={char.name} />
                 </div>
-                
-                {/* Text Footer */}
-                <div className="p-4 text-center bg-neutral-900">
-                  <h3 className="font-black uppercase text-lg text-white mb-1 leading-none">{char.name}</h3>
-                  <p className="text-neutral-500 text-[10px] uppercase tracking-wider font-medium">{char.role}</p>
+                <div style={styles.cardText}>
+                  <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', fontWeight: 'black', textTransform: 'uppercase' }}>{char.name}</h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#666', textTransform: 'uppercase' }}>{char.role}</p>
                 </div>
               </motion.div>
             ))}
           </div>
         ) : (
-          /* VIEW 2: ACTIVE COACH DASHBOARD */
+          /* --- CHAT VIEW --- */
           <ActiveCoachView 
             charId={activeView} 
             address={address}
@@ -98,7 +116,7 @@ export default function LockerRoom() {
   );
 }
 
-// --- SUB-COMPONENT: Chat & Scan ---
+// --- SUB-COMPONENT: Chat & Scan (Also Hardcoded Styles) ---
 function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
   const char = CHARACTERS[charId];
   const scrollRef = useRef(null);
@@ -112,6 +130,7 @@ function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, scanData]);
 
+  // CHAT LOGIC
   const send = async () => {
     if (!input) return;
     const newMsg = { role: 'user', content: input };
@@ -128,16 +147,16 @@ function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
       const data = await res.json();
       setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
     } catch (e) { 
-        console.error(e);
-        setMessages(prev => [...prev, { role: 'assistant', content: "Error: Neural Link Failed." }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: "Error: Connection Failed." }]);
     }
     setLoading(false);
   };
 
+  // SCAN LOGIC
   const scan = async () => {
     if (!address) return alert("Connect Wallet!");
     setLoading(true);
-    setMessages(prev => [...prev, { role: 'system', content: "Scanning On-Chain Data..." }]);
+    setMessages(prev => [...prev, { role: 'system', content: "Scanning Blockchain..." }]);
     try {
       const res = await fetch('/api/coach', {
         method: 'POST',
@@ -151,49 +170,45 @@ function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
     setLoading(false);
   };
 
+  const layoutStyle = {
+    display: 'flex', flexDirection: 'row', gap: '30px', padding: '40px', maxWidth: '1200px', margin: '0 auto',
+    height: 'calc(100vh - 80px)', alignItems: 'stretch'
+  };
+
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col md:flex-row gap-8 min-h-[600px] items-stretch"
-    >
-      
-      {/* SIDEBAR: Stats & Info */}
-      <div className="w-full md:w-1/3 flex flex-col gap-4">
-        <div className="bg-neutral-900 border border-neutral-800 p-8 rounded-2xl text-center relative overflow-hidden">
-           <button onClick={onBack} className="absolute left-4 top-4 text-neutral-500 hover:text-white"><ArrowLeft size={20}/></button>
+    <div style={layoutStyle}>
+      {/* SIDEBAR */}
+      <div style={{ width: '350px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '16px', padding: '30px', textAlign: 'center', position: 'relative' }}>
+           <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '20px', background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}>
+             <ArrowLeft size={24} />
+           </button>
            
-           <img 
-             src={char.img} 
-             className="w-40 h-40 mx-auto rounded-full border-4 border-neutral-800 object-cover mb-6 shadow-2xl" 
-           />
-           <h2 className="text-3xl font-black uppercase leading-none mb-2">{char.name}</h2>
-           <p className="text-green-500 text-xs font-mono uppercase mb-6">{char.role}</p>
+           <img src={char.img} style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover', border: '4px solid #333', margin: '0 auto 20px auto' }} />
+           <h2 style={{ fontSize: '24px', fontWeight: '900', textTransform: 'uppercase', margin: '0 0 10px 0' }}>{char.name}</h2>
+           <p style={{ color: '#22c55e', fontSize: '12px', fontFamily: 'monospace', textTransform: 'uppercase', marginBottom: '20px' }}>{char.role}</p>
            
            <button 
              onClick={onEquip} 
              disabled={isEquipped}
-             className={`w-full py-3 rounded-xl font-bold uppercase text-xs tracking-wider transition-all ${
-               isEquipped 
-               ? 'bg-green-500 text-black cursor-default' 
-               : 'bg-white text-black hover:bg-neutral-200'
-             }`}
+             style={{ 
+               width: '100%', padding: '12px', borderRadius: '8px', 
+               backgroundColor: isEquipped ? '#22c55e' : '#fff', color: '#000',
+               border: 'none', fontWeight: 'bold', cursor: isEquipped ? 'default' : 'pointer', textTransform: 'uppercase' 
+             }}
            >
-             {isEquipped ? "Currently Equipped" : "Equip As Coach"}
+             {isEquipped ? "Equipped" : "Equip Coach"}
            </button>
         </div>
 
-        {/* METRICS PANEL (Shows after scan) */}
         {scanData && (
-          <div className="bg-neutral-900 border border-green-500/30 p-6 rounded-2xl flex-1 animate-pulse-once">
-             <div className="flex justify-center mb-6 h-32">
-                <ScoreGauge score={scanData.score} />
-             </div>
-             <div className="grid grid-cols-2 gap-3 text-xs">
+          <div style={{ flex: 1, backgroundColor: '#1a1a1a', border: '1px solid #166534', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column' }}>
+             <div style={{ height: '150px', marginBottom: '20px' }}><ScoreGauge score={scanData.score} /></div>
+             <div style={{ overflowY: 'auto', flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 {Object.entries(scanData.breakdown).map(([k, v]) => (
-                  <div key={k} className="flex justify-between items-center bg-black/50 p-2 rounded border border-neutral-800">
-                    <span className="text-gray-500 uppercase">{k.slice(0,4)}</span>
-                    <span className="font-mono font-bold text-white">{v}</span>
+                  <div key={k} style={{ backgroundColor: '#000', padding: '10px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '10px', alignItems: 'center' }}>
+                    <span style={{ color: '#666', textTransform: 'uppercase' }}>{k.slice(0,4)}</span>
+                    <span style={{ color: '#22c55e', fontFamily: 'monospace' }}>{v}</span>
                   </div>
                 ))}
              </div>
@@ -201,51 +216,39 @@ function ActiveCoachView({ charId, address, onBack, isEquipped, onEquip }) {
         )}
       </div>
 
-      {/* MAIN: Chat Interface */}
-      <div className="flex-1 bg-neutral-900 border border-neutral-800 rounded-2xl flex flex-col overflow-hidden">
-        
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4" ref={scrollRef}>
+      {/* CHAT BOX */}
+      <div style={{ flex: 1, backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '16px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }} ref={scrollRef}>
           {messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-               <div className={`max-w-[80%] px-5 py-3 rounded-2xl text-sm leading-relaxed ${
-                 m.role === 'user' 
-                   ? 'bg-blue-600 text-white rounded-br-none' 
-                   : m.role === 'system'
-                     ? 'w-full text-center text-[10px] text-neutral-500 font-mono  bg-transparent'
-                     : 'bg-neutral-800 border border-neutral-700 text-gray-200 rounded-bl-none'
-               }`}>
-                 {m.content}
-               </div>
-            </div>
+             <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                <div style={{ 
+                  maxWidth: '80%', padding: '12px 18px', borderRadius: '12px', fontSize: '14px', lineHeight: '1.5',
+                  backgroundColor: m.role === 'user' ? '#2563eb' : '#262626',
+                  color: m.role === 'user' ? '#fff' : '#e5e5e5',
+                  borderBottomRightRadius: m.role === 'user' ? '0' : '12px',
+                  borderBottomLeftRadius: m.role === 'system' ? '0' : (m.role === 'user' ? '12px' : '0'),
+                  width: m.role === 'system' ? '100%' : 'auto', textAlign: m.role === 'system' ? 'center' : 'left',
+                  background: m.role === 'system' ? 'transparent' : undefined, color: m.role === 'system' ? '#666' : undefined
+                }}>
+                  {m.content}
+                </div>
+             </div>
           ))}
-          {loading && <div className="text-center text-[10px] text-green-500 animate-pulse font-mono mt-2">UPLOADING TO ALIEN MIND...</div>}
+          {loading && <div style={{ textAlign: 'center', color: '#22c55e', fontSize: '12px', fontFamily: 'monospace' }}>THINKING...</div>}
         </div>
 
-        {/* Chat Input */}
-        <div className="p-4 bg-black border-t border-neutral-800 flex gap-3">
-           <button 
-             onClick={scan}
-             className="p-3 bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl hover:bg-green-500 hover:text-black transition-colors"
-             title="Run Scan"
-           >
-             <Activity size={20} />
-           </button>
+        <div style={{ padding: '20px', backgroundColor: '#000', borderTop: '1px solid #333', display: 'flex', gap: '10px' }}>
+           <button onClick={scan} style={{ width: '50px', backgroundColor: 'rgba(34, 197, 94, 0.1)', border: '1px solid #166534', borderRadius: '8px', color: '#22c55e', cursor: 'pointer' }}><Activity size={20}/></button>
            <input 
-             className="flex-1 bg-neutral-900 border-none rounded-xl px-4 text-white placeholder-neutral-600 focus:ring-1 focus:ring-green-500"
-             placeholder={`Send message to ${char.name}...`}
+             style={{ flex: 1, backgroundColor: '#111', border: '1px solid #333', borderRadius: '8px', padding: '0 15px', color: 'white', outline: 'none' }}
+             placeholder="Message..."
              value={input}
              onChange={e => setInput(e.target.value)}
              onKeyDown={e => e.key === 'Enter' && send()}
            />
-           <button 
-             onClick={send}
-             className="p-3 bg-white text-black rounded-xl hover:bg-neutral-200"
-           >
-             <Zap size={20} fill="currentColor" />
-           </button>
+           <button onClick={send} style={{ width: '50px', backgroundColor: '#fff', border: 'none', borderRadius: '8px', color: '#000', cursor: 'pointer' }}><Zap size={20} fill="black"/></button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
