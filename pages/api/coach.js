@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     });
 
     // 4. CALL GEMINI
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     
     const result = await model.generateContent(prompt);
     const response = await result.response;

@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   const { score, won, characterId } = req.body;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
     // 1. Set the Personality
     let characterName = "Coach Zog";

@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   const char = CHARACTERS[characterId] || CHARACTERS["WALL"];
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
     // --- STEP 1: CLEAN HISTORY ---
     // Gemini CRASHES if history is not strictly User -> Model -> User -> Model.
