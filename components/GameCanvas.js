@@ -1,3 +1,4 @@
+/* components/GameCanvas.js - Fixed Clipboard Logic */
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { CHARACTERS } from '../data/characters';
@@ -27,7 +28,10 @@ export default function GameCanvas() {
   // Wallet & Payout State
   const [wallet, setWallet] = useState(null);
   const [paying, setPaying] = useState(false);
-  const [payoutStatus, setPayoutStatus] = useState(null); // 'idle', 'claiming', 'success', 'error'
+  const [payoutStatus, setPayoutStatus] = useState(null); 
+  
+  // FIX: New state to handle the "Copy Link" step separately
+  const [challengeUrl, setChallengeUrl] = useState(null);
 
   // Entities
   const player = useRef({ x: 175, y: 400, size: 50 });
@@ -107,9 +111,17 @@ export default function GameCanvas() {
     if (!wallet) return connectWallet();
     const success = await handleContractInteraction(true);
     if (!success) return;
+    
+    // FIX: Don't copy here. Just generate URL and show the "Success UI"
     const url = `${window.location.origin}/play?challenger=${myCharId || 'guest'}&target=${score}&wager=${myWager}&matchId=${matchId}`;
-    navigator.clipboard.writeText(url);
-    alert(`✅ Deposit Confirmed! Challenge Link Copied.`);
+    setChallengeUrl(url); // This triggers the render update below
+  };
+
+  // FIX: The actual Copy function triggered by a fresh click
+  const handleCopyLink = () => {
+    if (!challengeUrl) return;
+    navigator.clipboard.writeText(challengeUrl);
+    alert("✅ Link Copied! Send it to your opponent.");
   };
 
   const acceptChallenge = async () => {
@@ -123,7 +135,6 @@ export default function GameCanvas() {
     setPayoutStatus('claiming');
 
     try {
-      // We call the SERVER API to release funds securely
       const res = await fetch('/api/payout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -144,7 +155,7 @@ export default function GameCanvas() {
     }
   };
 
-  // --- GAME LOOP ---
+  // --- GAME LOOP (Animation) ---
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -179,6 +190,7 @@ export default function GameCanvas() {
     return () => window.cancelAnimationFrame(animationFrameId);
   }, [isPlaying, playerImage, opponent]);
 
+  // Timer
   useEffect(() => {
     if (!isPlaying || timeLeft <= 0) return;
     const timer = setInterval(() => {
@@ -191,7 +203,7 @@ export default function GameCanvas() {
   }, [isPlaying, timeLeft]);
 
   const startGame = () => {
-    setIsPlaying(true); setScore(0); setTimeLeft(60); setGameOver(false); setAiCommentary(null); setPayoutStatus('idle');
+    setIsPlaying(true); setScore(0); setTimeLeft(60); setGameOver(false); setAiCommentary(null); setPayoutStatus('idle'); setChallengeUrl(null);
   };
 
   const handleInput = (e) => {
@@ -274,48 +286,72 @@ export default function GameCanvas() {
       {gameOver && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.95)', borderRadius: '15px', padding: '20px', textAlign: 'center' }}>
           
-          {loadingAi ? <div style={{ color: '#0f0' }}>📡 AI JUDGING...</div> : (
+          {/* FIX: If challenge URL exists, show the Success/Copy Screen instead of game over stats */}
+          {challengeUrl ? (
             <>
-              <h2 style={{ color: isWinner ? '#0f0' : 'red', fontSize: '24px', margin: '0 0 10px 0' }}>{isWinner ? "YOU WON!" : "MATCH REPORT"}</h2>
-              <div style={{ background: '#222', padding: '10px', borderRadius: '10px', width: '100%', fontSize: '13px', fontStyle: 'italic', marginBottom:'15px', border:'1px solid #444' }}>"{aiCommentary}"</div>
+              <h2 style={{ color: '#0f0', fontSize: '28px', marginBottom: '20px' }}>✅ DEPOSIT CONFIRMED!</h2>
+              <div style={{ color: '#aaa', fontSize: '14px', marginBottom: '10px' }}>Challenge created on TRON.</div>
+              <button 
+                onClick={handleCopyLink}
+                style={{ padding: '15px 30px', background: 'white', color: 'black', borderRadius: '10px', fontWeight: 'bold', fontSize: '18px', border:'none', cursor:'pointer' }}
+              >
+                 📋 COPY CHALLENGE LINK
+              </button>
+              <button 
+                onClick={startGame}
+                style={{ marginTop: '20px', border:'none', background:'none', color:'#888', textDecoration:'underline', cursor:'pointer' }}
+              >
+                Start New Game
+              </button>
+            </>
+          ) : (
+            /* STANDARD GAME OVER SCREEN */
+            <>
+              {loadingAi ? <div style={{ color: '#0f0' }}>📡 AI JUDGING...</div> : (
+                <>
+                  <h2 style={{ color: isWinner ? '#0f0' : 'red', fontSize: '24px', margin: '0 0 10px 0' }}>{isWinner ? "YOU WON!" : "MATCH REPORT"}</h2>
+                  <div style={{ background: '#222', padding: '10px', borderRadius: '10px', width: '100%', fontSize: '13px', fontStyle: 'italic', marginBottom:'15px', border:'1px solid #444' }}>"{aiCommentary}"</div>
 
-              {/* A. CLAIM WINNINGS BUTTON (If PvP Winner) */}
-              {isWinner && opponent && (
-                <div style={{marginBottom:'20px'}}>
-                  {payoutStatus === 'success' ? (
-                     <div style={{color:'#0f0', fontWeight:'bold', border:'1px solid #0f0', padding:'10px', borderRadius:'10px'}}>✅ PAID TO WALLET</div>
-                  ) : (
-                    <button 
-                      onClick={claimPrize}
-                      disabled={payoutStatus === 'claiming'}
-                      style={{ padding: '15px 30px', fontSize: '20px', background: 'yellow', border: 'none', borderRadius: '50px', cursor: 'pointer', color: 'black', fontWeight: 'bold', boxShadow:'0 0 20px yellow' }}
-                    >
-                      {payoutStatus === 'claiming' ? 'SENDING TRX...' : `CLAIM ${opponent.wager * 2} TRX`}
-                    </button>
+                  {/* A. CLAIM WINNINGS BUTTON (If PvP Winner) */}
+                  {isWinner && opponent && (
+                    <div style={{marginBottom:'20px'}}>
+                      {payoutStatus === 'success' ? (
+                        <div style={{color:'#0f0', fontWeight:'bold', border:'1px solid #0f0', padding:'10px', borderRadius:'10px'}}>✅ PAID TO WALLET</div>
+                      ) : (
+                        <button 
+                          onClick={claimPrize}
+                          disabled={payoutStatus === 'claiming'}
+                          style={{ padding: '15px 30px', fontSize: '20px', background: 'yellow', border: 'none', borderRadius: '50px', cursor: 'pointer', color: 'black', fontWeight: 'bold', boxShadow:'0 0 20px yellow' }}
+                        >
+                          {payoutStatus === 'claiming' ? 'SENDING TRX...' : `CLAIM ${opponent.wager * 2} TRX`}
+                        </button>
+                      )}
+                    </div>
                   )}
-                </div>
-              )}
 
-              {/* B. WAGER INPUT (If Creator) */}
-              {!opponent && (
-                <div style={{ marginBottom: '15px', width:'100%' }}>
-                  <label style={{fontSize:'12px', color:'#aaa'}}>WAGER (TRX)</label>
-                  <div style={{display:'flex', gap:'5px', marginTop:'5px'}}>
-                     <input type="number" placeholder="0" value={myWager} onChange={(e) => setMyWager(e.target.value)} style={{ flex:1, padding:'10px', background:'#000', border:'1px solid #0f0', color:'#fff', borderRadius:'5px', textAlign:'center', fontSize:'16px' }} />
+                  {/* B. WAGER INPUT (If Creator) */}
+                  {!opponent && (
+                    <div style={{ marginBottom: '15px', width:'100%' }}>
+                      <label style={{fontSize:'12px', color:'#aaa'}}>WAGER (TRX)</label>
+                      <div style={{display:'flex', gap:'5px', marginTop:'5px'}}>
+                        <input type="number" placeholder="0" value={myWager} onChange={(e) => setMyWager(e.target.value)} style={{ flex:1, padding:'10px', background:'#000', border:'1px solid #0f0', color:'#fff', borderRadius:'5px', textAlign:'center', fontSize:'16px' }} />
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div style={{ display:'flex', gap:'10px'}}>
+                    <button onClick={startGame} style={{ padding: '10px 20px', background: '#333', color: '#fff', border: 'none', borderRadius: '30px', cursor: 'pointer' }}>RETRY</button>
+                    {!opponent && (
+                      <button onClick={createChallenge} disabled={paying} style={{ padding: '10px 20px', background: '#0f0', color: '#000', border: 'none', borderRadius: '30px', cursor: 'pointer', fontWeight:'bold' }}>
+                        {paying ? 'CONFIRMING...' : `STAKE & SHARE`}
+                      </button>
+                    )}
                   </div>
-                </div>
+                </>
               )}
-              
-              <div style={{ display:'flex', gap:'10px'}}>
-                <button onClick={startGame} style={{ padding: '10px 20px', background: '#333', color: '#fff', border: 'none', borderRadius: '30px', cursor: 'pointer' }}>RETRY</button>
-                {!opponent && (
-                  <button onClick={createChallenge} disabled={paying} style={{ padding: '10px 20px', background: '#0f0', color: '#000', border: 'none', borderRadius: '30px', cursor: 'pointer', fontWeight:'bold' }}>
-                    {paying ? 'CONFIRMING...' : `STAKE & SHARE`}
-                  </button>
-                )}
-              </div>
             </>
           )}
+
         </div>
       )}
     </div>
