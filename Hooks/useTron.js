@@ -1,34 +1,34 @@
-// hooks/useTron.js
+/* hooks/useTron.js */
 import { useState, useEffect } from 'react';
 
 export function useTron() {
   const [address, setAddress] = useState(null);
 
   useEffect(() => {
-    // Check if TronLink is injected
-    const checkTron = async () => {
-      if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
+    // 1. Check if TronLink is already connected on load
+    const checkTron = () => {
+      if (window.tronWeb && window.tronWeb.ready && window.tronWeb.defaultAddress.base58) {
         setAddress(window.tronWeb.defaultAddress.base58);
       }
     };
 
-    // Listen for TronLink load
-    window.addEventListener('message', (e) => {
-      if (e.data.message && e.data.message.action == "setAccount") {
-        checkTron();
-      }
-    });
-    
     // Initial check
-    const timer = setTimeout(checkTron, 1000);
-    return () => clearTimeout(timer);
+    checkTron();
+
+    // 2. Poll for account changes (TronLink doesn't have great event listeners)
+    const interval = setInterval(checkTron, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const connect = async () => {
     if (window.tronWeb) {
-      const res = await window.tronWeb.request({ method: 'tron_requestAccounts' });
-      if (res.code === 200) {
-        setAddress(window.tronWeb.defaultAddress.base58);
+      try {
+        await window.tronWeb.request({ method: 'tron_requestAccounts' });
+        if(window.tronWeb.ready) {
+             setAddress(window.tronWeb.defaultAddress.base58);
+        }
+      } catch (e) {
+        console.error("Connection failed", e);
       }
     } else {
       alert("Please install TronLink!");
