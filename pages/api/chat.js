@@ -1,4 +1,4 @@
-/* pages/api/chat.js - Fixed for Gemini 2.0 */
+/* pages/api/chat.js */
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { CHARACTERS } from '../../data/characters';
 
@@ -13,35 +13,31 @@ export default async function handler(req, res) {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    // 1. Format History for Gemini (It expects 'user' and 'model' roles)
-    // We remove the last message because that is the 'new' message we send via sendMessage
+    // 1. Prepare history (Change 'user'/'assistant' to 'user'/'model')
+    // We EXCLUDE the very last message, because we send that in step 3
     const history = messages.slice(0, -1).map(m => ({
       role: m.role === 'user' ? 'user' : 'model',
       parts: [{ text: m.content }]
     }));
 
-    // 2. Start Chat Session
+    // 2. Start Chat
     const chat = model.startChat({
       history: history,
-      generationConfig: { maxOutputTokens: 200 }, // Keep it short
       systemInstruction: { 
         role: "system", 
-        parts: [{ text: `${char.systemPrompt}\nContext: User Wallet is ${wallet || "Unknown"}` }] 
+        parts: [{ text: `${char.systemPrompt}. You are talking to wallet: ${wallet || "Guest"}` }] 
       }
     });
 
-    // 3. Send the NEW message
-    const lastMsgContent = messages[messages.length - 1].content;
-    const result = await chat.sendMessage(lastMsgContent);
-    
-    // 4. Get Response
-    const response = await result.response;
-    const text = response.text();
+    // 3. Send the newest message
+    const lastMsg = messages[messages.length - 1].content;
+    const result = await chat.sendMessage(lastMsg);
+    const text = result.response.text();
 
     return res.status(200).json({ reply: text });
 
   } catch (error) {
-    console.error("Gemini Chat Error:", error);
-    return res.status(500).json({ reply: "Connection glitch. Try again." });
+    console.error("Chat Error:", error);
+    return res.status(500).json({ reply: "My brain is buffering... try again." });
   }
 }
