@@ -6,10 +6,13 @@ import Link from 'next/link';
 import { useTron } from '../hooks/useTron';
 import ScoreGauge from '../components/ScoreGauge';
 import { CHARACTERS } from '../data/characters';
+import AlienTranslator from '../components/AlienTranslator';
+import { Mic } from 'lucide-react'; // Import Mic icon
 
 export default function LockerRoom() {
   const { address, connect } = useTron();
-  
+  const [showTranslator, setShowTranslator] = useState(false); // NEW STATE
+
   const [activeView, setActiveView] = useState(null); // null = Grid, "ID" = Chat
   const [equippedId, setEquippedId] = useState("PinkerTape");
 
@@ -80,6 +83,17 @@ export default function LockerRoom() {
            >
              {address ? "Wallet Connected" : "Connect"}
            </button>
+           <button 
+            onClick={() => setShowTranslator(!showTranslator)}
+            style={{ 
+            backgroundColor: showTranslator ? '#166534' : '#111', 
+            border: '1px solid #333', padding: '10px', borderRadius: '8px', 
+           color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' 
+             }}
+>
+   <Mic size={18} color={showTranslator ? '#4ade80' : 'white'} />
+   <span style={{ fontSize: '12px', fontWeight: 'bold', display: window.innerWidth < 600 ? 'none' : 'block' }}>TRASNLATOR</span>
+</button>
         </div>
       </nav>
 
@@ -122,7 +136,15 @@ export default function LockerRoom() {
             }}
           />
         )}
-
+        {/* TRANSLATOR OVERLAY */}
+        {showTranslator && (
+        <div style={{ 
+        position: 'fixed', bottom: '20px', right: '20px', zIndex: 100,
+        backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)', borderRadius: '24px' 
+        }}>
+     <AlienTranslator onClose={() => setShowTranslator(false)} />
+  </div>
+)}
       </main>
     </div>
   );
