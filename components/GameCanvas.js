@@ -1,4 +1,4 @@
-/* components/GameCanvas.js - Fixed Clipboard Logic */
+/* components/GameCanvas.js - Final AI Referee Version */
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { CHARACTERS } from '../data/characters';
@@ -6,13 +6,14 @@ import { CHARACTERS } from '../data/characters';
 // ⚠️ REPLACE WITH YOUR DEPLOYED CONTRACT ADDRESS
 const CONTRACT_ADDRESS = "TDYtR58aj5iQcCS7etZ1GwomY8QyxStu3x"; 
 
-export default function GameCanvas() {
+export default function GameCanvas({ targetScore, onEvent }) {
   const canvasRef = useRef(null);
   const router = useRouter();
   
   // Game State
   const [isPlaying, setIsPlaying] = useState(false);
   const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0); // NEW: Track Streak for AI
   const [timeLeft, setTimeLeft] = useState(60);
   const [gameOver, setGameOver] = useState(false);
   const [aiCommentary, setAiCommentary] = useState(null);
@@ -30,7 +31,7 @@ export default function GameCanvas() {
   const [paying, setPaying] = useState(false);
   const [payoutStatus, setPayoutStatus] = useState(null); 
   
-  // FIX: New state to handle the "Copy Link" step separately
+  // Link Logic
   const [challengeUrl, setChallengeUrl] = useState(null);
 
   // Entities
@@ -48,11 +49,11 @@ export default function GameCanvas() {
     }
 
     if (router.isReady) {
-      const { challenger, target, wager, matchId: urlMatchId } = router.query;
-      if (challenger && target) {
+      const { challenger, target: targetParam, wager, matchId: urlMatchId } = router.query;
+      if (challenger && targetParam) {
         setOpponent({
           id: challenger,
-          score: parseInt(target),
+          score: parseInt(targetParam),
           name: CHARACTERS[challenger]?.name || "Unknown Alien",
           wager: wager ? parseFloat(wager) : 0
         });
@@ -112,12 +113,10 @@ export default function GameCanvas() {
     const success = await handleContractInteraction(true);
     if (!success) return;
     
-    // FIX: Don't copy here. Just generate URL and show the "Success UI"
     const url = `${window.location.origin}/play?challenger=${myCharId || 'guest'}&target=${score}&wager=${myWager}&matchId=${matchId}`;
-    setChallengeUrl(url); // This triggers the render update below
+    setChallengeUrl(url); 
   };
 
-  // FIX: The actual Copy function triggered by a fresh click
   const handleCopyLink = () => {
     if (!challengeUrl) return;
     navigator.clipboard.writeText(challengeUrl);
@@ -155,7 +154,7 @@ export default function GameCanvas() {
     }
   };
 
-  // --- GAME LOOP (Animation) ---
+  // --- GAME LOOP ---
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -203,9 +202,12 @@ export default function GameCanvas() {
   }, [isPlaying, timeLeft]);
 
   const startGame = () => {
-    setIsPlaying(true); setScore(0); setTimeLeft(60); setGameOver(false); setAiCommentary(null); setPayoutStatus('idle'); setChallengeUrl(null);
+    setIsPlaying(true); setScore(0); setStreak(0); setTimeLeft(60); 
+    setGameOver(false); setAiCommentary(null); setPayoutStatus('idle'); setChallengeUrl(null);
+    if (onEvent) onEvent("START_GAME", 0, 0); // AI Trigger
   };
 
+  // --- INPUT & SCORING (With AI Triggers) ---
   const handleInput = (e) => {
     if (!isPlaying) return;
     const rect = canvasRef.current.getBoundingClientRect();
@@ -214,20 +216,43 @@ export default function GameCanvas() {
     const dist = Math.sqrt(Math.pow(touchX - target.current.x, 2) + Math.pow(touchY - target.current.y, 2));
 
     if (dist < 60) {
-      setScore(s => s + 10);
+      // SUCCESS: Hit the target
+      const newScore = score + 10;
+      setScore(newScore);
+      
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+
+      // Trigger AI Referee (GOAL SCORED)
+      if (onEvent) onEvent("GOAL_SCORED", newScore, newStreak);
+
+      // Move Target
       target.current.x = Math.random() * (350 - 40) + 20;
       target.current.y = Math.random() * (500 - 40) + 20;
       target.current.dx *= 1.1; target.current.dy *= 1.1;
+    } else {
+      // FAIL: Missed the target
+      setStreak(0);
+      
+      // Trigger AI Referee (MISS)
+      if (onEvent) onEvent("MISS", score, 0);
     }
   };
 
   const endGame = async () => {
-    setIsPlaying(false); setGameOver(true); setLoadingAi(true);
+    setIsPlaying(false); 
+    setGameOver(true); 
+    setLoadingAi(true);
+
+    // Trigger AI Referee (GAME OVER) for the overlay
+    if (onEvent) onEvent("GAME_OVER", score, streak);
+
+    // --- Standard End Game Roast (Bottom Screen) ---
     const isWin = opponent ? score > opponent.score : true;
-    const endpoint = opponent ? '/api/referee' : '/api/roast';
+    const endpoint = '/api/referee'; // Use unified referee
     const payload = opponent 
       ? { playerScore: score, opponentScore: opponent.score, playerCharId: myCharId, opponentCharId: opponent.id, won: isWin, matchId }
-      : { score, won: true, characterId: myCharId };
+      : { score, won: true, characterId: myCharId }; // Solo roast
 
     try {
       const res = await fetch(endpoint, {
@@ -243,7 +268,7 @@ export default function GameCanvas() {
     setLoadingAi(false);
   };
 
-  // --- RENDER UI ---
+  // --- RENDER UI (unchanged) ---
   const isWinner = opponent && score > opponent.score;
 
   return (
@@ -286,7 +311,6 @@ export default function GameCanvas() {
       {gameOver && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.95)', borderRadius: '15px', padding: '20px', textAlign: 'center' }}>
           
-          {/* FIX: If challenge URL exists, show the Success/Copy Screen instead of game over stats */}
           {challengeUrl ? (
             <>
               <h2 style={{ color: '#0f0', fontSize: '28px', marginBottom: '20px' }}>✅ DEPOSIT CONFIRMED!</h2>
@@ -305,14 +329,12 @@ export default function GameCanvas() {
               </button>
             </>
           ) : (
-            /* STANDARD GAME OVER SCREEN */
             <>
               {loadingAi ? <div style={{ color: '#0f0' }}>📡 AI JUDGING...</div> : (
                 <>
                   <h2 style={{ color: isWinner ? '#0f0' : 'red', fontSize: '24px', margin: '0 0 10px 0' }}>{isWinner ? "YOU WON!" : "MATCH REPORT"}</h2>
                   <div style={{ background: '#222', padding: '10px', borderRadius: '10px', width: '100%', fontSize: '13px', fontStyle: 'italic', marginBottom:'15px', border:'1px solid #444' }}>"{aiCommentary}"</div>
 
-                  {/* A. CLAIM WINNINGS BUTTON (If PvP Winner) */}
                   {isWinner && opponent && (
                     <div style={{marginBottom:'20px'}}>
                       {payoutStatus === 'success' ? (
@@ -329,7 +351,6 @@ export default function GameCanvas() {
                     </div>
                   )}
 
-                  {/* B. WAGER INPUT (If Creator) */}
                   {!opponent && (
                     <div style={{ marginBottom: '15px', width:'100%' }}>
                       <label style={{fontSize:'12px', color:'#aaa'}}>WAGER (TRX)</label>

@@ -1,4 +1,4 @@
-/* pages/api/translate.js - FULL UPDATE */
+/* pages/api/translate.js - Fixed for Hallucinations */
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -6,45 +6,45 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { audio, text, targetLang } = req.body; // Accept 'text' too
-
-  if (!audio && !text) return res.status(400).json({ error: "No input received" });
+  const { audio, text, targetLang } = req.body;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-    let prompt = "";
-    let parts = [];
+    // RECOMMENDATION: Use 'gemini-1.5-flash' for max speed/stability
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    let result;
 
-    // --- CASE 1: AUDIO ---
     if (audio) {
       const base64Data = audio.split(',')[1] || audio; 
-      prompt = `
-        Listen to the audio. 
-        Detect the language.
-        Translate it directly into ${targetLang || "English"}.
-        Rules: Return ONLY the final text in ${targetLang}. No quotes.
+      // STRICT PROMPT TO STOP HALLUCINATIONS
+      const prompt = `
+        You are a translation tool. 
+        1. Listen to the audio.
+        2. If the audio is just silence, breathing, background noise, or unintelligible: Return exactly "SILENCE".
+        3. If there is clear speech: Detect language and translate to ${targetLang}.
+        4. Return ONLY the translation. No other text.
       `;
-      parts = [
+      
+      result = await model.generateContent([
         prompt,
         { inlineData: { mimeType: "audio/webm", data: base64Data } }
-      ];
-    } 
-    // --- CASE 2: TEXT (Fallback) ---
-    else if (text) {
-      prompt = `
-        Translate the following text into ${targetLang || "English"}: "${text}".
-        Rules: Return ONLY the final translation. No quotes.
-      `;
-      parts = [  prompt ];
+      ]);
+    
+    } else if (text) {
+      const prompt = `Translate this to ${targetLang}: "${text}". Return only the translated text.`;
+      result = await model.generateContent(prompt);
     }
 
-    const result = await model.generateContent(parts);
-    const str = result.response.text();
+    const translation = result.response.text().trim();
 
-    return res.status(200).json({ translation: str });
+    // Check for our failure keyword
+    if (translation.includes("SILENCE")) {
+       return res.status(200).json({ translation: "..." }); // UI shows dots instead of weird text
+    }
+
+    return res.status(200).json({ translation });
 
   } catch (error) {
     console.error("Gemini Error:", error);
-    return res.status(500).json({ error: "Translation Failed" });
+    return res.status(500).json({ error: "Processing failed" });
   }
 }
