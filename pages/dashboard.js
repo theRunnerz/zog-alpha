@@ -1,256 +1,111 @@
-/* agent/guardian.js - FULL ECOSYSTEM VERSION */
-import dotenv from 'dotenv';
-import TronWeb from 'tronweb';
-import axios from 'axios';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { TwitterApi } from 'twitter-api-v2';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+/* pages/dashboard.js - CLIENT SIDE ONLY */
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
-// --- 1. SETUP & CONFIGURATION ---
+export default function GuardianDashboard() {
+  const [logs, setLogs] = useState([]);
 
-// Fix for ESM directory paths
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
+  // Poll for updates every 2 seconds from the API
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const res = await fetch('/api/logs'); // Fetches from your API file
+        const data = await res.json();
+        if (data.alerts) setLogs(data.alerts);
+      } catch (e) { console.error(e); }
+    };
 
-// API Keys
-const GEMINI_KEY = process.env.GEMINI_API_KEY;
-const TRON_API = "https://api.trongrid.io"; 
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
-// Twitter Client
-const twitterClient = new TwitterApi({
-  appKey: process.env.TWITTER_APP_KEY,
-  appSecret: process.env.TWITTER_APP_SECRET,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: process.env.TWITTER_ACCESS_SECRET,
-});
+  return (
+    <div style={{ minHeight: '100vh', background: '#050505', color: '#0f0', fontFamily: 'monospace', padding: '20px' }}>
+      
+      {/* HEADER */}
+      <div style={{ borderBottom: '1px solid #333', paddingBottom: '20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '24px', display:'flex', alignItems:'center', gap:'10px' }}>
+            🛡️ PINKERTAPE GUARDIAN
+          </h1>
+          <div style={{ color: '#666', fontSize: '12px', marginTop: '5px' }}>AUTONOMOUS TRON SENTINEL // MAINNET ACTIVE</div>
+        </div>
+        <div style={{ display:'flex', gap:'10px', alignItems:'center' }}>
+             <div style={{ display:'flex', alignItems:'center', gap:'5px', color:'red', fontWeight:'bold', fontSize:'12px' }}>
+                <span style={{ display:'block', width:'10px', height:'10px', borderRadius:'50%', background:'red', boxShadow:'0 0 10px red', animation: 'blink 1s infinite' }}></span>
+                LIVE
+             </div>
+             <Link href="/" style={{ marginLeft:'20px', color: '#0f0', textDecoration:'none', border:'1px solid #0f0', padding:'8px 15px', borderRadius:'5px', fontSize:'14px' }}>EXIT</Link>
+        </div>
+      </div>
 
-// 🛡️ THE TRON ECOSYSTEM WATCHLIST
-// We monitor Memecoins ($SUNAI) AND Infrastructure (USDT, SUN, etc)
-const WATCH_LIST = [
-    { 
-      name: "$SUNAI", 
-      address: "TEyzUNwZMuMsAXqdcz5HZrshs3iWfydGAW", 
-      decimals: 18, 
-      threshold: 50 // Low threshold for your specific demo token
-    },
-    { 
-      name: "USDT", 
-      address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", 
-      decimals: 6, 
-      threshold: 50000 // Alert on $50k+ USDT moves (Adjust this if you want more noise)
-    },
-    { 
-      name: "SUN", 
-      address: "TSSMHYeV2uE9qYH95DqyoCuNCzEL1NvU3s", 
-      decimals: 18, 
-      threshold: 10000 
-    },
-    { 
-      name: "JST", 
-      address: "TCFLL5dx5ZJdKnWuesXxi1VPwjLVmWZZy9", 
-      decimals: 18, 
-      threshold: 20000 
-    },
-    { 
-      name: "BTT", 
-      address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4", 
-      decimals: 18, 
-      threshold: 10000000 // BTT is cheap, needs high threshold
-    },
-    { 
-      name: "WIN", 
-      address: "TLa2f6J26qCmf6ELRRnPaMHgck0dPrQtqK", 
-      decimals: 6, 
-      threshold: 500000 
-    }
-];
+      {/* STATS ROW */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+        <StatCard label="Scope" value="6 ASSETS" sub="USDT, BTT, SUN, JST..." />
+        <StatCard label="Threat Level" value="ACTIVE" sub="Scanning Mempool..." color="white" />
+        <StatCard label="AI Engine" value="GEMINI-3" sub="Flash Preview" />
+        <StatCard label="Actions Taken" value={logs.length} sub="Real-time Interventions" color="#0f0" />
+      </div>
 
-// Memory Storage (for Dashboard)
-const MEMORY_FILE = path.join(__dirname, 'agent_memory.json');
-let memory = fs.existsSync(MEMORY_FILE) ? JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf8')) : { handledTx: [], alerts: [] };
+      {/* LOG FEED */}
+      <h2 style={{ fontSize: '16px', borderLeft: '4px solid #0f0', paddingLeft: '10px', marginBottom: '20px', textTransform:'uppercase' }}>Live Security Stream</h2>
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        {logs.length === 0 ? (
+          <div style={{ padding: '60px', textAlign: 'center', color: '#333', border: '1px dashed #333', borderRadius:'10px' }}>
+            <div style={{ fontSize:'30px', marginBottom:'10px' }}>📡</div>
+            WAITING FOR SIGNAL...
+            <div style={{fontSize:'12px', marginTop:'5px'}}>Ensure agent is running in terminal</div>
+          </div>
+        ) : (
+          logs.map((log, i) => (
+            <div key={i} style={{ 
+              background: 'rgba(0, 20, 0, 0.5)', border: '1px solid #111', padding: '20px', borderRadius: '8px',
+              borderLeft: log.risk === 'HIGH' ? '4px solid red' : '4px solid yellow',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ color: '#666', fontSize: '12px' }}>{new Date(log.timestamp).toLocaleTimeString()}</span>
+                <span style={{ background: log.risk === 'HIGH' ? 'red' : 'yellow', color: 'black', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
+                  {log.risk} RISK
+                </span>
+              </div>
+              
+              <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px', color:'#fff' }}>
+                DETECTED: {log.amount} {log.token} MOVEMENT
+              </div>
+              
+              <div style={{ background: '#111', padding: '15px', borderRadius: '5px', marginBottom: '15px', fontSize: '13px', color: '#ccc', border:'1px solid #333' }}>
+                <span style={{ color: '#0f0', fontWeight:'bold' }}>🧠 ANALYSIS:</span> "{log.reason}"
+              </div>
 
-// Initialize AI
-const genAI = new GoogleGenerativeAI(GEMINI_KEY);
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom:'10px' }}>
+                <div style={{ flex: 1, borderTop: '1px solid #333' }}></div>
+                <span style={{ fontSize: '10px', color: '#666', padding:'0 10px' }}>AUTOMATED RESPONSE</span>
+                <div style={{ flex: 1, borderTop: '1px solid #333' }}></div>
+              </div>
 
-console.log("\n🤖 PINKERTAPE SENTINEL (LIVE ECOSYSTEM MODE) STARTING...");
-console.log(`👁️  Connected to TRON Mainnet.`);
-console.log(`📡 Monitoring: ${WATCH_LIST.map(t => t.name).join(', ')}`);
-console.log(`🐦 Twitter Relay: ACTIVE`);
-console.log("----------------------------------------------------\n");
+              <div style={{ fontSize:'12px', color:'#00acee', fontStyle:'italic' }}>
+                 🐦 TWEET SENT: "{log.tweet.substring(0, 80)}..."
+              </div>
+            </div>
+          ))
+        )}
+      </div>
 
-// --- 2. MAIN LOOP ---
-async function startPatrol() {
-    console.log("...Scanning Blockchain Mempool...");
-    // Initial check
-    await checkTargets();
-    // Loop every 15 seconds
-    setInterval(checkTargets, 15000); 
+      <style jsx global>{`
+        @keyframes blink { 0% { opacity: 0.2; } 50% { opacity: 1; } 100% { opacity: 0.2; } }
+      `}</style>
+    </div>
+  );
 }
 
-// --- 3. CHECK LOGIC ---
-async function checkTargets() {
-    for (const target of WATCH_LIST) {
-        // TronGrid API to get recent transfers
-        const url = `${TRON_API}/v1/contracts/${target.address}/events?event_name=Transfer&limit=5`;
-        
-        try {
-            const res = await axios.get(url);
-            if (!res.data.success) continue;
-
-            const events = res.data.data;
-
-            for (const tx of events) {
-                // duplicate check
-                if (memory.handledTx.includes(tx.transaction_id)) continue;
-
-                let rawVal = parseInt(tx.result.value);
-                
-                // 🧮 Handle Decimals (18 vs 6)
-                let divisor = Math.pow(10, target.decimals);
-                let readableAmount = rawVal / divisor;
-
-                // Debug Log (Optional: Comment out if too noisy)
-                // console.log(`🔎 Scan: ${readableAmount.toFixed(0)} ${target.name} (TX: ${tx.transaction_id.slice(0,6)}...)`);
-
-                // 🚨 THRESHOLD CHECK
-                if (readableAmount > target.threshold) {
-                    console.log(`\n🚨 ALERT: SIGNIFICANT ${target.name} MOVEMENT (${readableAmount.toLocaleString()} > ${target.threshold})`);
-                    console.log("...Consulting Gemini Brain...");
-                    
-                    await analyzeRisk(tx, readableAmount, target);
-                }
-
-                // Update Memory
-                memory.handledTx.push(tx.transaction_id);
-                if (memory.handledTx.length > 200) memory.handledTx.shift(); // Keep last 200 IDs
-                fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory));
-            }
-        } catch (e) {
-            // Silently ignore connection blips to keep terminal clean
-        }
-    }
+function StatCard({ label, value, sub, color = '#0f0' }) {
+  return (
+    <div style={{ background: '#0a0a0a', border: '1px solid #222', padding: '20px', borderRadius: '8px' }}>
+      <div style={{ color: '#666', fontSize: '10px', textTransform: 'uppercase', marginBottom: '5px', letterSpacing:'1px' }}>{label}</div>
+      <div style={{ fontSize: '28px', fontWeight: 'bold', color: color, marginBottom:'5px' }}>{value}</div>
+      <div style={{ fontSize: '11px', color: '#555' }}>{sub}</div>
+    </div>
+  );
 }
-
-// --- 4. AI ANALYSIS LOGIC ---
-async function analyzeRisk(tx, amount, target) {
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-    
-    // Attempt to decode sender address
-    let sender = tx.result.from;
-    try {
-        if(TronWeb.address) sender = TronWeb.address.fromHex(sender);
-    } catch(e) { sender = "Unknown"; }
-
-    // DYNAMIC PROMPT: Handles Memecoins (Dump risk) vs Majors (Whale risk)
-    const prompt = `
-        You are PinkerTape, an Autonomous AI Sentinel on TRON.
-        
-        EVENT:
-        Asset: ${target.name}
-        Amount: ${amount.toLocaleString()} 
-        Sender: ${sender}
-        
-        CONTEXT:
-        If asset is USDT, SUN, JST -> Analyze as "Whale Alert" or "Liquidity Shift".
-        If asset is $SUNAI -> Analyze as "DUMP RISK" or "Rug Pull Warning".
-        
-        TASK:
-        1. Determine Risk Level (HIGH/MEDIUM).
-        2. Create a specific, catchy Ticker and Name for a reaction token (e.g., if USDT moves, maybe "WhaleWatch" token).
-        3. Write a Tweet to @Agent_SunGenX.
-
-        OUTPUT FORMAT (JSON ONLY):
-        {
-            "risk": "HIGH",
-            "reason": "1 short sentence analysis.",
-            "tokenName": "Creative Reaction Token Name",
-            "ticker": "TICKER",
-            "description": "Short description of this event token.",
-            "tweetText": "The exact tweet text."
-        }
-    `;
-
-    try {
-        const result = await model.generateContent(prompt);
-        const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
-        const analysis = JSON.parse(text);
-
-        console.log("🧠 AI DECISION:");
-        console.log(`   RISK: ${analysis.risk}`);
-        console.log(`   IDEA: ${analysis.tokenName} ($${analysis.ticker})`);
-
-        // Trigger Defense if Risk is notable
-        if (analysis.risk === "HIGH" || analysis.risk === "MEDIUM") {
-            await executeRealDefense(analysis, amount, target.name, tx.transaction_id);
-        }
-
-    } catch (e) {
-        console.error("AI Error:", e.message);
-    }
-}
-
-// --- 5. EXECUTION & TWEETING ---
-async function executeRealDefense(analysis, amount, tokenName, txID) {
-    console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
-    
-    // Format Tweet with standard emojis and hashtags
-    const statusText = `
-@Agent_SunGenX 🚨 ${tokenName} MOVEMENT DETECTED 🚨
-
-Amount: ${amount.toLocaleString()} ${tokenName}
-Analysis: ${analysis.reason}
-
-🛡️ DEPLOY COUNTER-TOKEN:
-Name: ${analysis.tokenName}
-Ticker: $${analysis.ticker}
-Desc: ${analysis.description}
-
-#TRON #PinkerTape #AI
-    `.trim();
-
-    try {
-        // 1. TWEET (Real)
-        const tweet = await twitterClient.v2.tweet(statusText);
-        console.log(`✅ TWEET POSTED! ID: ${tweet.data.id}`);
-        
-        // 2. DASHBOARD LOGGING
-        const alertData = {
-            timestamp: new Date().toISOString(),
-            token: tokenName,
-            amount: amount.toLocaleString(),
-            risk: analysis.risk,
-            reason: analysis.reason,
-            tx: txID,
-            tweet: statusText
-        };
-        
-        if (!memory.alerts) memory.alerts = [];
-        memory.alerts.unshift(alertData);
-        if (memory.alerts.length > 20) memory.alerts.pop();
-        fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2));
-
-    } catch (e) {
-        console.error("❌ TWITTER API ERROR (Check Keys):", e.message);
-        
-        // Fallback: Save to dashboard even if Tweet fails (so your demo works)
-        const alertData = {
-            timestamp: new Date().toISOString(),
-            token: tokenName,
-            amount: amount.toLocaleString(),
-            risk: "HIGH",
-            reason: analysis.reason,
-            tx: txID,
-            tweet: statusText // Show intended tweet
-        };
-        if (!memory.alerts) memory.alerts = [];
-        memory.alerts.unshift(alertData);
-        fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2));
-    }
-    
-    console.log("----------------------------------------------------\n");
-}
-
-startPatrol();
