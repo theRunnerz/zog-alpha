@@ -49,6 +49,8 @@ export default function GuardianDashboard() {
 
       {/* STATS ROW */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+        /* In pages/dashboard.js */
+        <StatCard label="Token Watched" value="6" sub="USDT, SUN, JST, BTT..." />
         <StatCard label="Token Watched" value="$SUNAI" sub="Asset ID: T9y...3jz" />
         <StatCard label="Threat Level" value="CRITICAL" sub="High Volatility Detected" color="red" />
         <StatCard label="AI Engine" value="GEMINI-3" sub="Flash Preview Mode" />
