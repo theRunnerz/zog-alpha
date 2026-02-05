@@ -1,4 +1,4 @@
-/* agent/guardian.js - FULL ECOSYSTEM VERSION */
+/* agent/guardian.js - FULL ECOSYSTEM VERSION (+ DUPLICATE FIX) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -28,19 +28,18 @@ const twitterClient = new TwitterApi({
 });
 
 // 🛡️ THE TRON ECOSYSTEM WATCHLIST
-// We monitor Memecoins ($SUNAI) AND Infrastructure (USDT, SUN, etc)
 const WATCH_LIST = [
     { 
       name: "$SUNAI", 
       address: "TEyzUNwZMuMsAXqdcz5HZrshs3iWfydGAW", 
       decimals: 18, 
-      threshold: 5000000 // Low threshold for your specific demo token
+      threshold: 5000000 
     },
     { 
       name: "USDT", 
       address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", 
       decimals: 6, 
-      threshold: 50000 // Alert on $50k+ USDT moves (Adjust this if you want more noise)
+      threshold: 50000 
     },
     { 
       name: "SUN", 
@@ -58,7 +57,7 @@ const WATCH_LIST = [
       name: "BTT", 
       address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4", 
       decimals: 18, 
-      threshold: 10000000 // BTT is cheap, needs high threshold
+      threshold: 10000000 
     },
     { 
       name: "WIN", 
@@ -68,7 +67,7 @@ const WATCH_LIST = [
     }
 ];
 
-// Memory Storage (for Dashboard)
+// Memory Storage
 const MEMORY_FILE = path.join(__dirname, 'agent_memory.json');
 let memory = fs.existsSync(MEMORY_FILE) ? JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf8')) : { handledTx: [], alerts: [] };
 
@@ -84,16 +83,13 @@ console.log("----------------------------------------------------\n");
 // --- 2. MAIN LOOP ---
 async function startPatrol() {
     console.log("...Scanning Blockchain Mempool...");
-    // Initial check
     await checkTargets();
-    // Loop every 15 seconds
     setInterval(checkTargets, 15000); 
 }
 
 // --- 3. CHECK LOGIC ---
 async function checkTargets() {
     for (const target of WATCH_LIST) {
-        // TronGrid API to get recent transfers
         const url = `${TRON_API}/v1/contracts/${target.address}/events?event_name=Transfer&limit=5`;
         
         try {
@@ -103,34 +99,23 @@ async function checkTargets() {
             const events = res.data.data;
 
             for (const tx of events) {
-                // duplicate check
                 if (memory.handledTx.includes(tx.transaction_id)) continue;
 
                 let rawVal = parseInt(tx.result.value);
-                
-                // 🧮 Handle Decimals (18 vs 6)
                 let divisor = Math.pow(10, target.decimals);
                 let readableAmount = rawVal / divisor;
 
-                // Debug Log (Optional: Comment out if too noisy)
-                // console.log(`🔎 Scan: ${readableAmount.toFixed(0)} ${target.name} (TX: ${tx.transaction_id.slice(0,6)}...)`);
-
-                // 🚨 THRESHOLD CHECK
                 if (readableAmount > target.threshold) {
                     console.log(`\n🚨 ALERT: SIGNIFICANT ${target.name} MOVEMENT (${readableAmount.toLocaleString()} > ${target.threshold})`);
                     console.log("...Consulting Gemini Brain...");
-                    
                     await analyzeRisk(tx, readableAmount, target);
                 }
 
-                // Update Memory
                 memory.handledTx.push(tx.transaction_id);
-                if (memory.handledTx.length > 200) memory.handledTx.shift(); // Keep last 200 IDs
+                if (memory.handledTx.length > 200) memory.handledTx.shift(); 
                 fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory));
             }
-        } catch (e) {
-            // Silently ignore connection blips to keep terminal clean
-        }
+        } catch (e) { /* ignore blips */ }
     }
 }
 
@@ -144,22 +129,16 @@ async function analyzeRisk(tx, amount, target) {
         if(TronWeb.address) sender = TronWeb.address.fromHex(sender);
     } catch(e) { sender = "Unknown"; }
 
-    // DYNAMIC PROMPT: Handles Memecoins (Dump risk) vs Majors (Whale risk)
     const prompt = `
         You are PinkerTape, an Autonomous AI Sentinel on TRON.
-        
-        EVENT:
-        Asset: ${target.name}
-        Amount: ${amount.toLocaleString()} 
-        Sender: ${sender}
-        
+        EVENT: Asset: ${target.name}, Amount: ${amount.toLocaleString()}, Sender: ${sender}
         CONTEXT:
         If asset is USDT, SUN, JST -> Analyze as "Whale Alert" or "Liquidity Shift".
         If asset is $SUNAI -> Analyze as "DUMP RISK" or "Rug Pull Warning".
         
         TASK:
         1. Determine Risk Level (HIGH/MEDIUM).
-        2. Create a specific, catchy Ticker and Name for a reaction token (e.g., if USDT moves, maybe "WhaleWatch" token).
+        2. Create a specific, catchy Ticker and Name for a reaction token.
         3. Write a Tweet to @Agent_SunGenX.
 
         OUTPUT FORMAT (JSON ONLY):
@@ -182,7 +161,6 @@ async function analyzeRisk(tx, amount, target) {
         console.log(`   RISK: ${analysis.risk}`);
         console.log(`   IDEA: ${analysis.tokenName} ($${analysis.ticker})`);
 
-        // Trigger Defense if Risk is notable
         if (analysis.risk === "HIGH" || analysis.risk === "MEDIUM") {
             await executeRealDefense(analysis, amount, target.name, tx.transaction_id);
         }
@@ -196,7 +174,9 @@ async function analyzeRisk(tx, amount, target) {
 async function executeRealDefense(analysis, amount, tokenName, txID) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     
-    // Format Tweet with standard emojis and hashtags
+    // ✅ GENERATE UNIQUE ID to prevent Twitter 403 Duplicate Error
+    const uniqueID = Math.floor(Math.random() * 90000) + 10000;
+
     const statusText = `
 @Agent_SunGenX 🚨 ${tokenName} MOVEMENT DETECTED 🚨
 
@@ -208,7 +188,7 @@ Name: ${analysis.tokenName}
 Ticker: $${analysis.ticker}
 Desc: ${analysis.description}
 
-#TRON #PinkerTape #AI
+#TRON #PinkerTape #AI #ID${uniqueID}
     `.trim();
 
     try {
@@ -233,21 +213,9 @@ Desc: ${analysis.description}
         fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2));
 
     } catch (e) {
-        console.error("❌ TWITTER API ERROR (Check Keys):", e.message);
-        
-        // Fallback: Save to dashboard even if Tweet fails (so your demo works)
-        const alertData = {
-            timestamp: new Date().toISOString(),
-            token: tokenName,
-            amount: amount.toLocaleString(),
-            risk: "HIGH",
-            reason: analysis.reason,
-            tx: txID,
-            tweet: statusText // Show intended tweet
-        };
-        if (!memory.alerts) memory.alerts = [];
-        memory.alerts.unshift(alertData);
-        fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2));
+        console.error("❌ TWITTER API ERROR:", e.message);
+        // If error, log e.data to see if it's 403 Duplicate
+        if(e.data) console.log(JSON.stringify(e.data));
     }
     
     console.log("----------------------------------------------------\n");
