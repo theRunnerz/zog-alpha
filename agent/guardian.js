@@ -1,4 +1,4 @@
-/* agent/guardian.js - FINAL "TAG & LAUNCH" VERSION */
+/* agent/guardian.js - MATRIX VISUAL MODE (TAG & LAUNCH) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -12,6 +12,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+// Ensure we load the .env.local file
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
 // API Keys
@@ -28,42 +29,12 @@ const twitterClient = new TwitterApi({
 
 // 🛡️ THE TRON ECOSYSTEM WATCHLIST
 const WATCH_LIST = [
-    { 
-      name: "$SUNAI", 
-      address: "TEyzUNwZMuMsAXqdcz5HZrshs3iWfydGAW", 
-      decimals: 18, 
-      threshold: 5000000 
-    },
-    { 
-      name: "USDT", 
-      address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", 
-      decimals: 6, 
-      threshold: 50000 
-    },
-    { 
-      name: "SUN", 
-      address: "TSSMHYeV2uE9qYH95DqyoCuNCzEL1NvU3s", 
-      decimals: 18, 
-      threshold: 10000 
-    },
-    { 
-      name: "JST", 
-      address: "TCFLL5dx5ZJdKnWuesXxi1VPwjLVmWZZy9", 
-      decimals: 18, 
-      threshold: 20000 
-    },
-    { 
-      name: "BTT", 
-      address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4", 
-      decimals: 18, 
-      threshold: 10000000 
-    },
-    { 
-      name: "WIN", 
-      address: "TLa2f6J26qCmf6ELRRnPaMHgck0dPrQtqK", 
-      decimals: 6, 
-      threshold: 500000 
-    }
+    { name: "$SUNAI", address: "TEyzUNwZMuMsAXqdcz5HZrshs3iWfydGAW", decimals: 18, threshold: 5000000 },
+    { name: "USDT", address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", decimals: 6, threshold: 50000 },
+    { name: "SUN", address: "TSSMHYeV2uE9qYH95DqyoCuNCzEL1NvU3s", decimals: 18, threshold: 10000 },
+    { name: "JST", address: "TCFLL5dx5ZJdKnWuesXxi1VPwjLVmWZZy9", decimals: 18, threshold: 20000 },
+    { name: "BTT", address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4", decimals: 18, threshold: 10000000 },
+    { name: "WIN", address: "TLa2f6J26qCmf6ELRRnPaMHgck0dPrQtqK", decimals: 6, threshold: 500000 }
 ];
 
 // Memory Storage
@@ -73,7 +44,7 @@ let memory = fs.existsSync(MEMORY_FILE) ? JSON.parse(fs.readFileSync(MEMORY_FILE
 // Initialize AI
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
-console.log("\n🤖 PINKERTAPE SENTINEL (LIVE ECOSYSTEM MODE) STARTING...");
+console.log("\n🤖 PINKERTAPE SENTINEL (MATRIX VISUAL MODE) STARTING...");
 console.log(`👁️  Connected to TRON Mainnet.`);
 console.log(`📡 Monitoring: ${WATCH_LIST.map(t => t.name).join(', ')}`);
 console.log(`🐦 Twitter Relay: ACTIVE`);
@@ -103,6 +74,10 @@ async function checkTargets() {
                 let divisor = Math.pow(10, target.decimals);
                 let readableAmount = rawVal / divisor;
 
+                // ✅ MATRIX LOG: VISUAL CONFIRMATION OF EVERY SCAN
+                // This makes the terminal look "alive" showing every transaction it checks
+                console.log(`🔎 Scan: ${readableAmount.toLocaleString()} ${target.name} (TX: ${tx.transaction_id.slice(0,6)}...)`);
+
                 if (readableAmount > target.threshold) {
                     console.log(`\n🚨 ALERT: SIGNIFICANT ${target.name} MOVEMENT (${readableAmount.toLocaleString()} > ${target.threshold})`);
                     console.log("...Consulting Gemini Brain...");
@@ -113,7 +88,7 @@ async function checkTargets() {
                 if (memory.handledTx.length > 200) memory.handledTx.shift(); 
                 fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory));
             }
-        } catch (e) { /* ignore blips */ }
+        } catch (e) { /* ignore network blips */ }
     }
 }
 
@@ -174,8 +149,7 @@ async function executeRealDefense(analysis, amount, tokenName, txID) {
     // ✅ UNIQUE ID avoids duplicate error
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
 
-    // 🔥 VITAL FIX: @Agent_SunGenX is now in the BODY, not the start.
-    // This allows the tweet to post (Status 200) AND triggers the launch agent.
+    // 🔥 "TAG & LAUNCH" FORMAT (Tag is in body to allow posting)
     const statusText = `
 🚨 ${tokenName} MOVEMENT DETECTED 🚨
 
