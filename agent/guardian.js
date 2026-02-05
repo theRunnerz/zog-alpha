@@ -1,4 +1,4 @@
-/* agent/guardian.js - MATRIX VISUAL MODE (TAG & LAUNCH) */
+/* agent/guardian.js - FINAL ROBUST VERSION (Auto-Fix + Visuals) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -12,7 +12,6 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// Ensure we load the .env.local file
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
 // API Keys
@@ -37,27 +36,40 @@ const WATCH_LIST = [
     { name: "WIN", address: "TLa2f6J26qCmf6ELRRnPaMHgck0dPrQtqK", decimals: 6, threshold: 500000 }
 ];
 
-// Memory Storage
+// --- 2. MEMORY SYSTEM (Self-Healing) ---
 const MEMORY_FILE = path.join(__dirname, 'agent_memory.json');
-let memory = fs.existsSync(MEMORY_FILE) ? JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf8')) : { handledTx: [], alerts: [] };
+let memory = { handledTx: [], alerts: [] };
+
+// Robust Load: If file is corrupt or empty, this resets it automatically
+// so you never have to manually delete 'agent_memory.json'
+try {
+    if (fs.existsSync(MEMORY_FILE)) {
+        const rawData = fs.readFileSync(MEMORY_FILE, 'utf8');
+        if (rawData.trim()) {
+            memory = JSON.parse(rawData);
+        }
+    }
+} catch (e) {
+    console.log("⚠️ Memory File Corrupt. Auto-healing...");
+    memory = { handledTx: [], alerts: [] };
+}
 
 // Initialize AI
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
-console.log("\n🤖 PINKERTAPE SENTINEL (MATRIX VISUAL MODE) STARTING...");
+console.log("\n🤖 PINKERTAPE SENTINEL (STABLE MODE) ONLINE");
 console.log(`👁️  Connected to TRON Mainnet.`);
-console.log(`📡 Monitoring: ${WATCH_LIST.map(t => t.name).join(', ')}`);
 console.log(`🐦 Twitter Relay: ACTIVE`);
 console.log("----------------------------------------------------\n");
 
-// --- 2. MAIN LOOP ---
+// --- 3. MAIN LOOP ---
 async function startPatrol() {
     console.log("...Scanning Blockchain Mempool...");
     await checkTargets();
     setInterval(checkTargets, 15000); 
 }
 
-// --- 3. CHECK LOGIC ---
+// --- 4. CHECK LOGIC ---
 async function checkTargets() {
     for (const target of WATCH_LIST) {
         const url = `${TRON_API}/v1/contracts/${target.address}/events?event_name=Transfer&limit=5`;
@@ -68,32 +80,38 @@ async function checkTargets() {
             const events = res.data.data;
 
             for (const tx of events) {
-                if (memory.handledTx.includes(tx.transaction_id)) continue;
+                // VISUAL HEARTBEAT: Checks if we already processed this.
+                if (memory.handledTx.includes(tx.transaction_id)) {
+                    // This log proves the bot is running, even if it does nothing
+                    console.log(`➡️  [SKIP] Known TX: ${target.name} (${tx.transaction_id.slice(0,5)}...)`);
+                    continue;
+                }
 
                 let rawVal = parseInt(tx.result.value);
                 let divisor = Math.pow(10, target.decimals);
                 let readableAmount = rawVal / divisor;
 
-                // ✅ MATRIX LOG: VISUAL CONFIRMATION OF EVERY SCAN
-                // This makes the terminal look "alive" showing every transaction it checks
-                console.log(`🔎 Scan: ${readableAmount.toLocaleString()} ${target.name} (TX: ${tx.transaction_id.slice(0,6)}...)`);
+                // NEW TRANSACTION FOUND
+                console.log(`🔎 NEW TRANSACTION: ${readableAmount.toLocaleString()} ${target.name}`);
 
                 if (readableAmount > target.threshold) {
                     console.log(`\n🚨 ALERT: SIGNIFICANT ${target.name} MOVEMENT (${readableAmount.toLocaleString()} > ${target.threshold})`);
-                    console.log("...Consulting Gemini Brain...");
                     await analyzeRisk(tx, readableAmount, target);
                 }
 
+                // Add to memory immediately
                 memory.handledTx.push(tx.transaction_id);
+                // Keep file size healthy (last 200 items)
                 if (memory.handledTx.length > 200) memory.handledTx.shift(); 
-                fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory));
+                fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2));
             }
         } catch (e) { /* ignore network blips */ }
     }
 }
 
-// --- 4. AI ANALYSIS LOGIC ---
+// --- 5. AI ANALYSIS LOGIC ---
 async function analyzeRisk(tx, amount, target) {
+    console.log("...Consulting Gemini Brain...");
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     
     let sender = tx.result.from;
@@ -111,7 +129,7 @@ async function analyzeRisk(tx, amount, target) {
         TASK:
         1. Determine Risk Level (HIGH/MEDIUM).
         2. Create a specific, catchy Ticker and Name for a reaction token.
-        3. Write a Tweet to @Agent_SunGenX.
+        3. Write a Tweet requesting action from Agent_SunGenX.
 
         OUTPUT FORMAT (JSON ONLY):
         {
@@ -119,8 +137,7 @@ async function analyzeRisk(tx, amount, target) {
             "reason": "1 short sentence analysis.",
             "tokenName": "Creative Reaction Token Name",
             "ticker": "TICKER",
-            "description": "Short description of this event token.",
-            "tweetText": "The exact tweet text."
+            "description": "Short description of this event token."
         }
     `;
 
@@ -142,7 +159,7 @@ async function analyzeRisk(tx, amount, target) {
     }
 }
 
-// --- 5. EXECUTION & TWEETING ---
+// --- 6. EXECUTION & TWEETING ---
 async function executeRealDefense(analysis, amount, tokenName, txID) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     
