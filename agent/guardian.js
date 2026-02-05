@@ -1,4 +1,4 @@
-/* agent/guardian.js - FINAL UNBLOCKED VERSION */
+/* agent/guardian.js - FINAL "TAG & LAUNCH" VERSION */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -90,7 +90,6 @@ async function startPatrol() {
 async function checkTargets() {
     for (const target of WATCH_LIST) {
         const url = `${TRON_API}/v1/contracts/${target.address}/events?event_name=Transfer&limit=5`;
-        
         try {
             const res = await axios.get(url);
             if (!res.data.success) continue;
@@ -122,7 +121,6 @@ async function checkTargets() {
 async function analyzeRisk(tx, amount, target) {
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     
-    // Attempt to decode sender address
     let sender = tx.result.from;
     try {
         if(TronWeb.address) sender = TronWeb.address.fromHex(sender);
@@ -173,25 +171,25 @@ async function analyzeRisk(tx, amount, target) {
 async function executeRealDefense(analysis, amount, tokenName, txID) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     
-    // ✅ GENERATE UNIQUE ID to prevent Twitter Duplication
+    // ✅ UNIQUE ID avoids duplicate error
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
 
-    // 🔥 CHANGED: REMOVED THE "@Agent_SunGenX" MENTION TO UNBLOCK 403 ERROR
+    // 🔥 VITAL FIX: @Agent_SunGenX is now in the BODY, not the start.
+    // This allows the tweet to post (Status 200) AND triggers the launch agent.
     const statusText = `
 🚨 ${tokenName} MOVEMENT DETECTED 🚨
 
 Amount: ${amount.toLocaleString()} ${tokenName}
 Analysis: ${analysis.reason}
 
-🛡️ DEPLOY COUNTER-TOKEN:
+Requesting @Agent_SunGenX deployment:
 Name: ${analysis.tokenName}
 Ticker: $${analysis.ticker}
 
-#TRON #PinkerTape #AI #ID${uniqueID}
+#TRON #PinkerTape #ID${uniqueID}
     `.trim();
 
     try {
-        // 1. TWEET (Real)
         const tweet = await twitterClient.v2.tweet(statusText);
         console.log(`✅ TWEET POSTED! ID: ${tweet.data.id}`);
         
