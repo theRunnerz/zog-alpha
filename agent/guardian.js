@@ -1,4 +1,4 @@
-/* agent/guardian.js - FULL ECOSYSTEM VERSION (+ DUPLICATE FIX) */
+/* agent/guardian.js - FINAL UNBLOCKED VERSION */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -10,7 +10,6 @@ import { fileURLToPath } from 'url';
 
 // --- 1. SETUP & CONFIGURATION ---
 
-// Fix for ESM directory paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
@@ -174,11 +173,12 @@ async function analyzeRisk(tx, amount, target) {
 async function executeRealDefense(analysis, amount, tokenName, txID) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     
-    // ✅ GENERATE UNIQUE ID to prevent Twitter 403 Duplicate Error
+    // ✅ GENERATE UNIQUE ID to prevent Twitter Duplication
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
 
+    // 🔥 CHANGED: REMOVED THE "@Agent_SunGenX" MENTION TO UNBLOCK 403 ERROR
     const statusText = `
-@Agent_SunGenX 🚨 ${tokenName} MOVEMENT DETECTED 🚨
+🚨 ${tokenName} MOVEMENT DETECTED 🚨
 
 Amount: ${amount.toLocaleString()} ${tokenName}
 Analysis: ${analysis.reason}
@@ -186,7 +186,6 @@ Analysis: ${analysis.reason}
 🛡️ DEPLOY COUNTER-TOKEN:
 Name: ${analysis.tokenName}
 Ticker: $${analysis.ticker}
-Desc: ${analysis.description}
 
 #TRON #PinkerTape #AI #ID${uniqueID}
     `.trim();
@@ -214,7 +213,6 @@ Desc: ${analysis.description}
 
     } catch (e) {
         console.error("❌ TWITTER API ERROR:", e.message);
-        // If error, log e.data to see if it's 403 Duplicate
         if(e.data) console.log(JSON.stringify(e.data));
     }
     
