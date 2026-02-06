@@ -246,3 +246,19 @@ Requesting @Girl_SunLumi analytics:
             isVIP: !!vipMatch,
             amount: amount.toLocaleString(),
             risk: analysis.risk,
+            tweet: statusText
+        };
+        
+        if (!memory.alerts) memory.alerts = [];
+        memory.alerts.unshift(alertData);
+        if (memory.alerts.length > 20) memory.alerts.pop();
+        saveMemory();
+
+    } catch (e) {
+        console.error("❌ TWITTER ERROR:", e.message);
+    }
+    
+    console.log("----------------------------------------------------\n");
+}
+
+startPatrol();
