@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: LIVE FIRE (Ready for Post-Break) */
+/* agent/guardian.js - VERSION: LIVE FIRE + TAGS RESTORED */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -55,8 +55,7 @@ let memory = {
     alerts: [] 
 };
 
-// ⏳ GLOBAL COOLDOWN
-// We force a 2-minute wait between tweets to be extra safe
+// ⏳ GLOBAL COOLDOWN (2 Minutes Safety)
 let lastTweetTime = 0; 
 
 try {
@@ -71,8 +70,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (LIVE FIRE) ONLINE");
-console.log("🔥 Status: Twitter Publishing ENABLED");
+console.log("\n🤖 PINKERTAPE SENTINEL (FULL LIVE MODE) ONLINE");
+console.log("🔥 Status: Twitter Active + Mentions Restored");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -164,10 +163,11 @@ async function checkDailyBriefing() {
         const scans = memory.stats.totalScans || 0;
         
         const briefingText = `
-DAILY REPORT
+DAILY SECURITY REPORT
 System: ONLINE
 Scans: ${scans.toLocaleString()}
 Threat Level: STABLE
+CC: @Agent_SunGenX @Girl_SunLumi
 ID: ${uniqueID}
         `.trim();
 
@@ -272,7 +272,7 @@ async function analyzeMarketVol(price, percent) {
 
 // --- 9. AI ANALYSIS: WHALES ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
-    if (Date.now() - lastTweetTime < 120000) { // 2 Minute Cooldown for Safety
+    if (Date.now() - lastTweetTime < 120000) { 
         console.log(`⏳ Cooldown (Safety). Skipping ${target} analysis.`);
         return;
     }
@@ -325,7 +325,7 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
 
 // --- 10. EXECUTION ---
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
-    if (Date.now() - lastTweetTime < 120000) return; // 2 Min check
+    if (Date.now() - lastTweetTime < 120000) return;
 
     console.log("\n⚡ EXECUTING DEFENSE...");
     lastTweetTime = Date.now(); 
@@ -334,11 +334,13 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
     const displayName = analysis.tokenName || "Protocol Alpha";
 
-    // 🔄 RANDOMIZED TEMPLATES (Prevents Duplicate Detection)
+    // 🔄 RANDOMIZED TEMPLATES + MENTIONS
     const templates = [
-        `[LOG: ${nowLog}]\nTarget: ${tokenName}\nVolume: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\n[Unit: ${displayName} | $${analysis.ticker}]\nRef: ${uniqueID}`,
-        `[SCAN_COMPLETE]\nAsset: ${tokenName}\nMoved: ${amount.toLocaleString()}\nIntel: "${analysis.reason}"\n\nDeployed: ${displayName} ($${analysis.ticker})\nTX: ${uniqueID}`,
-        `:: PinkerTape Sentinel ::\nDetected: ${amount.toLocaleString()} ${tokenName}\nAnalysis: ${analysis.reason}\n\nUnit: ${displayName} ($${analysis.ticker})\nID: ${uniqueID}`
+        `[LOG: ${nowLog}]\nTarget: ${tokenName}\nVolume: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\nDeploying @Agent_SunGenX | Monitor: @Girl_SunLumi\n[Unit: ${displayName} | $${analysis.ticker}]\nRef: ${uniqueID}`,
+        
+        `[SCAN_COMPLETE]\nAsset: ${tokenName}\nMoved: ${amount.toLocaleString()}\nIntel: "${analysis.reason}"\n\nActive: ${displayName} ($${analysis.ticker})\nCC: @Agent_SunGenX @Girl_SunLumi\nTX: ${uniqueID}`,
+        
+        `:: PinkerTape Sentinel ::\nDetected: ${amount.toLocaleString()} ${tokenName}\nAnalysis: ${analysis.reason}\n\nReporting to @Agent_SunGenX & @Girl_SunLumi\nUnit: ${displayName} ($${analysis.ticker})\nID: ${uniqueID}`
     ];
 
     const statusText = templates[Math.floor(Math.random() * templates.length)];
