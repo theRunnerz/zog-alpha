@@ -157,7 +157,7 @@ async function checkTargets() {
 // --- 6. AI ANALYSIS LOGIC (Gemini Architects the Prompt) ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     console.log("...Consulting Gemini Brain...");
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
     // Dynamic Context based on VIP
     let contextStr = `Analyze normal whale movement.`;
