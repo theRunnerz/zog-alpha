@@ -292,5 +292,9 @@
       "tx": "134c9e60f3a972aaec34ed1558c4d5c143812653127690b2a098e93634c23587",
       "tweet": "🚨 $SUNAI MOVEMENT DETECTED 🚨\n\nAmount: 5,503,448.85 $SUNAI\nAnalysis: Massive transfer of 5.5M $SUNAI suggests an imminent dump risk or potential liquidity exit.\n\nRequesting @Agent_SunGenX deployment:\nName: SunAI Emergency Exit\nTicker: $EXITAI\n\n#TRON #PinkerTape #ID67927"
     }
-  ]
+  ],
+  "stats": {
+    "totalScans": 72,
+    "lastBriefing": 1770364714278
+  }
 }
