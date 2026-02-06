@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: CREATIVE MODE + IMAGE FIX */
+/* agent/guardian.js - VERSION: VISUAL REPAIR (Resized + Browser Headers) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -19,7 +19,7 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const TRON_API = "https://api.trongrid.io"; 
 const PRICE_API = "https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT";
 
-// 🧠 MODEL: Using 1.5-Flash (Best for creativity + JSON)
+// 🧠 MODEL: Using 1.5 Flash (Fast & reliable)
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
 // Twitter Client
@@ -67,9 +67,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (CREATIVE MODE) ONLINE");
-console.log("🧠 Model: Gemini 1.5 Flash");
-console.log("🎨 Image Engine: Pollinations (Random Seed Active)");
+console.log("\n🤖 PINKERTAPE SENTINEL (VISUAL REPAIR MODE) ONLINE");
+console.log("🎨 Image Engine: 768px (Fast Render) + Browser Masking");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -277,7 +276,7 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     let contextStr = `Analyze whale movement.`;
     if (vipMatch) contextStr = `CRITICAL: Sender is ${vipMatch.name}. Tone: "COMMANDER ALERT".`;
 
-    // 🚀 IMPROVED PROMPT: Forces creativity & Short Image Prompts
+    // 🚀 CREATIVE PROMPT: FORCES NEW NAMES
     const prompt = `
         You are PinkerTape, AI Sentinel on TRON.
         EVENT: Scanned Token: ${target.name}, Amount: ${amount.toLocaleString()}
@@ -305,12 +304,12 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const analysis = JSON.parse(text);
 
-        console.log("🧠 GEMINI DECISION:", analysis.ticker);
+        console.log("🧠 GEMINI DECISION:", analysis.tokenName, `(${analysis.ticker})`);
 
         await executeRealDefense(analysis, amount, target.name, tx.transaction_id, vipMatch);
 
     } catch (e) {
-        // Fallback for creative failures
+        // Fallback
         const emergencyAnalysis = {
             risk: "HIGH",
             reason: `Huge ${target.name} movement.`,
@@ -326,6 +325,7 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     
+    // ANTI-DUPLICATE HASH
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
     const timeHash = new Date().toLocaleTimeString();
 
@@ -352,25 +352,34 @@ CC: @Girl_SunLumi
 
     let mediaIds = [];
 
-    // --- 🎨 IMAGE GENERATION (FIXED WITH SEED) ---
+    // --- 🎨 IMAGE GENERATION (FIXED) ---
     try {
         console.log("🎨 Rendering Gemini's Vision...");
         
         const safePrompt = analysis.imagePrompt ? analysis.imagePrompt.slice(0, 50) : "Cyberpunk data block";
         const encodedPrompt = encodeURIComponent(safePrompt + " futuristic neon 3d render");
         
-        // 🔑 SEED ADDED HERE: Ensures unique image every time to fix 502/Cached errors
+        // 🛠️ FIX #1: REDUCED SIZE (768x768) + RANDOM SEED
         const seed = Math.floor(Math.random() * 1000000);
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&width=1024&height=1024&seed=${seed}`;
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&width=768&height=768&seed=${seed}`;
         
-        const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        console.log(`🔎 Debug URL: ${imageUrl}`); // You can click this if it fails!
+
+        // 🛠️ FIX #2: BROWSER HEADERS (Pretends to be Chrome to avoid blocking)
+        const imageBuffer = await axios.get(imageUrl, { 
+            responseType: 'arraybuffer',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            timeout: 20000 // 20s Timeout
+        });
         
         const mediaId = await twitterClient.v1.uploadMedia(Buffer.from(imageBuffer.data), { mimeType: 'image/jpeg' });
         mediaIds = [mediaId];
         console.log("✅ Image Uploaded to Twitter Media.");
 
     } catch (imgError) {
-        console.error("⚠️ Visual Render Failed (Sending Text Only).");
+        console.error(`⚠️ Visual Render Failed: ${imgError.message}`);
     }
 
     try {
@@ -381,7 +390,6 @@ CC: @Girl_SunLumi
 
         console.log(`✅ TWEET POSTED! ID: ${tweet.data.id}`);
         
-        // --- 💾 SAVE FULL DATA FOR DASHBOARD ---
         if (!memory.alerts) memory.alerts = [];
         memory.alerts.unshift({ 
             timestamp: new Date(), 
