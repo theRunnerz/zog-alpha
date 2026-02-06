@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: ROBO-DEFENSE (100% Uptime Images) */
+/* agent/guardian.js - VERSION: INTELLIGENCE UPGRADE (Smarter Analysis) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -19,7 +19,7 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const TRON_API = "https://api.trongrid.io"; 
 const PRICE_API = "https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT";
 
-// 🧠 MODEL: Using 3 Flash (Fast & reliable)
+// 🧠 MODEL: Using 1.5 Flash (Fast & reliable)
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
 // Twitter Client
@@ -67,8 +67,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (ROBO-DEFENSE MODE) ONLINE");
-console.log("🎨 Image Engine: RoboHash (100% Uptime)");
+console.log("\n🤖 PINKERTAPE SENTINEL (INTELLIGENCE MODE) ONLINE");
+console.log("🧠 Status: Tactical Analysis Active");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -133,7 +133,7 @@ async function checkMentions(botId) {
 }
 
 async function generateAIReply(userText) {
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const lastPrice = memory.market.lastPrice || "Unknown";
     
     const prompt = `
@@ -251,12 +251,12 @@ async function checkTargets() {
 
 // --- 8. AI ANALYSIS: MARKET ---
 async function analyzeMarketVol(price, percent) {
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const direction = percent > 0 ? "SURGE" : "CRASH";
     const prompt = `
         You are PinkerTape. TRX Price ${direction}! Moved ${percent.toFixed(2)}%.
         TASK: JSON Response Only.
-        { "risk": "VOLATILITY", "reason": "...", "tokenName": "Market Alert", "ticker": "GAP" }
+        { "risk": "VOLATILITY", "reason": "Market turbulence detected.", "tokenName": "Market Watch", "ticker": "VOL" }
     `;
 
     try {
@@ -270,28 +270,31 @@ async function analyzeMarketVol(price, percent) {
 // --- 9. AI ANALYSIS: WHALES ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     console.log(`🚨 WHALE DETECTED: ${target.name}`);
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
     let contextStr = `Analyze whale movement.`;
     if (vipMatch) contextStr = `CRITICAL: Sender is ${vipMatch.name}. Tone: "COMMANDER ALERT".`;
 
+    // 🚀 NEW PROMPT: Forces TACTICAL ANALYSIS
     const prompt = `
-        You are PinkerTape, AI Sentinel on TRON.
+        You are PinkerTape, an Advanced Military AI on TRON.
         EVENT: Scanned Token: ${target.name}, Amount: ${amount.toLocaleString()}
         SENDER: ${sender} ${vipMatch ? `(IDENTITY: ${vipMatch.name})` : ""}
         CONTEXT: ${contextStr}
         
         TASK:
-        1. INVENT a Defensive Token Name. DO NOT USE "${target.name}".
-           Examples: "Whale Shield", "Cyber Aegis", "Iron Wall", "Sun Guard".
-        2. Create a 4-letter Ticker (e.g., $SHLD, $WALL).
+        1. ANALYZE the move. Do not just say "Whale moved". 
+           - SPECULATE INTENT: Is it "Accumulation", "Liquidity Injection", "Panic Sell", "Cold Storage", or "Testing"?
+           - Use cool Cyberpunk/Military phrasing.
+        2. INVENT a unique Defense Unit Name that sounds advanced (e.g., "Aegis-7", "Iron_Sentinel", "Ghost-Protocol").
+        3. CREATE a unique ticker (e.g., $AEGIS, $IRON, $GHST).
         
         OUTPUT JSON ONLY:
         { 
             "risk": "HIGH", 
-            "reason": "Whale moved ${amount.toLocaleString()} ${target.name}", 
-            "tokenName": "INVENT A NEW NAME HERE", 
-            "ticker": "TICKER"
+            "reason": "Tactical liquidity injection detected. Preparing for market shift.", 
+            "tokenName": "Aegis-7 Protocol", 
+            "ticker": "AEGIS"
         }
     `;
 
@@ -307,8 +310,8 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         // Fallback
         const emergencyAnalysis = {
             risk: "HIGH",
-            reason: `Huge ${target.name} movement.`,
-            tokenName: "PinkerGuard Protocol",
+            reason: `Large volumetric shift detected on ${target.name}. Monitoring.`,
+            tokenName: "PinkerGuard Alpha",
             ticker: "GUARD"
         };
         await executeRealDefense(emergencyAnalysis, amount, target.name, tx.transaction_id, vipMatch);
@@ -319,7 +322,6 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     
-    // ANTI-DUPLICATE HASH
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
     const timeHash = new Date().toLocaleTimeString();
 
@@ -329,7 +331,7 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
 
     const displayName = analysis.tokenName || "Protocol Alpha";
 
-    // ✅ STATUS TEXT
+    // ✅ NEW STATUS TEXT FORMAT
     const statusText = `
 ${header}
 
@@ -337,7 +339,7 @@ Amount: ${amount.toLocaleString()}
 Intel: ${analysis.reason}
 
 Deploying @Agent_SunGenX:
-Protocol: ${displayName}
+Unit Name: ${displayName}
 Ticker: $${analysis.ticker}
 
 CC: @Girl_SunLumi
@@ -346,22 +348,21 @@ CC: @Girl_SunLumi
 
     let mediaIds = [];
 
-    // --- 🎨 IMAGE GENERATION: ROBO-HASH (100% UPTIME) ---
+    // --- 🎨 IMAGE GENERATION: ROBO-HASH ---
     try {
-        console.log("🎨 Rendering Guardian Avatar...");
+        console.log("🎨 Generating Unit Avatar...");
         
-        // Use the Unique Ticker to generate a Unique Robot
-        const uniqueKey = analysis.ticker + uniqueID;
+        // Use Ticker+ID to ensure unique robot look
+        const uniqueKey = `${analysis.ticker}-${uniqueID}`;
         const imageUrl = `https://robohash.org/${uniqueKey}.png?set=set1&bgset=bg1&size=600x600`;
         
         console.log(`🔎 Generated: ${imageUrl}`); 
 
         const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' });
         
-        // ⚠️ NOTE: RoboHash returns PNG, so we tell Twitter it is PNG
         const mediaId = await twitterClient.v1.uploadMedia(Buffer.from(imageBuffer.data), { mimeType: 'image/png' });
         mediaIds = [mediaId];
-        console.log("✅ Robot Avatar Uploaded.");
+        console.log("✅ Avatar Uploaded.");
 
     } catch (imgError) {
         console.error(`⚠️ Visual Render Failed: ${imgError.message}`);
