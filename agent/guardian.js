@@ -134,7 +134,7 @@ async function checkMentions(botId) {
 }
 
 async function generateAIReply(userText) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const lastPrice = memory.market.lastPrice || "Unknown";
     
     const prompt = `
@@ -252,7 +252,7 @@ async function checkTargets() {
 
 // --- 8. AI ANALYSIS: MARKET ---
 async function analyzeMarketVol(price, percent) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const direction = percent > 0 ? "SURGE" : "CRASH";
     const prompt = `
         You are PinkerTape. TRX Price ${direction}! Moved ${percent.toFixed(2)}%.
@@ -271,7 +271,7 @@ async function analyzeMarketVol(price, percent) {
 // --- 9. AI ANALYSIS: WHALES ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     console.log(`🚨 WHALE DETECTED: ${target.name}`);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     
     let contextStr = `Analyze whale movement.`;
     if (vipMatch) contextStr = `CRITICAL: Sender is ${vipMatch.name}. Tone: "COMMANDER ALERT".`;
