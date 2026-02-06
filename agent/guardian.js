@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: STABLE (Typo Fixed + 403 Helper) */
+/* agent/guardian.js - VERSION: STABLE (Image Fix + 502 Handler) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -80,7 +80,6 @@ async function startPatrol() {
         console.log(`🆔 Identity Confirmed: @${me.data.username}`);
     } catch (e) {
         console.error("❌ TWITTER KEY ERROR. Check .env.local");
-        if(e.code === 403) console.log("🚨 HINT: You might need to change App Permissions to 'Read & Write' and REGENERATE keys.");
         return;
     }
 
@@ -308,7 +307,6 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     if (vipMatch) header = `👑 COMMANDER ALERT: ${vipMatch.name} ACTIVE 👑`;
     if (tokenName === "TRX PRICE") header = `📉 MARKET VOLATILITY ALERT 📈`;
 
-    // ✅ FIXED: Use analysis.tokenName correctly to avoid crash
     const displayName = analysis.tokenName || "Unknown Alert";
 
     const statusText = `
@@ -330,7 +328,10 @@ Requesting @Girl_SunLumi analytics:
     // --- 🎨 IMAGE GENERATION ---
     try {
         console.log("🎨 Rendering Gemini's Vision...");
-        const encodedPrompt = encodeURIComponent(analysis.imagePrompt + ", 3D render, futuristic, tron legacy style, neon, 4k");
+        
+        // 🚨 SAFETY FIX: Cut the prompt length to prevent 502 errors
+        const safePrompt = analysis.imagePrompt.slice(0, 150); 
+        const encodedPrompt = encodeURIComponent(safePrompt + ", 3D render, futuristic, tron style");
         const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&width=1024&height=1024`;
         
         const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' });
@@ -340,7 +341,8 @@ Requesting @Girl_SunLumi analytics:
         console.log("✅ Image Uploaded to Twitter Media.");
 
     } catch (imgError) {
-        console.error("⚠️ Visual Render Failed (Skipping Image):", imgError.message);
+        // If image fails, we continue! Don't crash.
+        console.error("⚠️ Visual Render Failed (Sending Text Only).");
     }
 
     try {
@@ -358,7 +360,8 @@ Requesting @Girl_SunLumi analytics:
 
     } catch (e) {
         console.error(`❌ TWITTER ERROR: ${e.code || e.message}`);
-        if(e.code === 403) console.log("🚨 FIX: Go to Twitter Dev Portal -> App Settings -> 'Read and Write' -> Regenerate Keys.");
+        // Log Duplicate error specifically for debugging
+        if(e.code === 403) console.log("🚨 403: Likely duplicate content or Access Key needs Regenerating.");
     }
     
     console.log("----------------------------------------------------\n");
