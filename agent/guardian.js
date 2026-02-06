@@ -1,4 +1,4 @@
-/* agent/guardian.js - FINAL VERSION: VIPs + DAILY REPORT + GEMINI VISUALS */
+/* agent/guardian.js - VERSION: WHALES + VIPs + PRICE VOLATILITY + GEMINI 3 IMAGES */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -14,11 +14,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
-// API Keys
+// API Keys & Endpoints
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const TRON_API = "https://api.trongrid.io"; 
+const PRICE_API = "https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT";
 
-// Initialize Gemini
+// Initialize Gemini (Model 3)
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
 // Twitter Client
@@ -29,25 +30,30 @@ const twitterClient = new TwitterApi({
   accessSecret: process.env.TWITTER_ACCESS_SECRET,
 });
 
-// 👑 VIP WATCHLIST (Triggers alerts regardless of amount)
+// 👑 VIP WATCHLIST
 const VIP_LIST = [
     { name: "JUSTIN SUN", address: "TT2T17KZhoDu47i2E4FWxfG79zdkEWkU9N" }, 
     { name: "TRON DAO", address: "TF5j4f68vjVjTqT6AAcR6S5Q72i7r5tK3" }      
 ];
 
-// 🛡️ THE TRON ECOSYSTEM WATCHLIST
+// 🛡️ TOKEN WATCHLIST
 const WATCH_LIST = [
     { name: "$SUNAI", address: "TEyzUNwZMuMsAXqdcz5HZrshs3iWfydGAW", decimals: 18, threshold: 5000000 },
     { name: "USDT", address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", decimals: 6, threshold: 50000 },
     { name: "SUN", address: "TSSMHYeV2uE9qYH95DqyoCuNCzEL1NvU3s", decimals: 18, threshold: 10000 },
     { name: "JST", address: "TCFLL5dx5ZJdKnWuesXxi1VPwjLVmWZZy9", decimals: 18, threshold: 20000 },
-    { name: "BTT", address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4", decimals: 18, threshold: 10000000 },
     { name: "WIN", address: "TLa2f6J26qCmf6ELRRnPaMHgck0dPrQtqK", decimals: 6, threshold: 500000 }
 ];
 
-// --- 2. MEMORY SYSTEM ---
+// --- 2. MEMORY SYSTEM (Now tracks Price) ---
 const MEMORY_FILE = path.join(__dirname, 'agent_memory.json');
-let memory = { stats: { totalScans: 0, lastBriefing: Date.now() }, handledTx: [], alerts: [] };
+// Default structure
+let memory = { 
+    stats: { totalScans: 0, lastBriefing: Date.now() }, 
+    market: { lastPrice: 0 },
+    handledTx: [], 
+    alerts: [] 
+};
 
 try {
     if (fs.existsSync(MEMORY_FILE)) {
@@ -55,24 +61,31 @@ try {
         if (rawData.trim()) {
             const loaded = JSON.parse(rawData);
             memory = { ...memory, ...loaded };
+            // Ensure substructures exist
             if (!memory.stats) memory.stats = { totalScans: 0, lastBriefing: Date.now() };
+            if (!memory.market) memory.market = { lastPrice: 0 };
         }
     }
 } catch (e) { console.log("⚠️ Memory Logic Reset"); }
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (GEMINI VISUAL MODE) ONLINE");
-console.log(`👑 Watching VIP: Justin Sun`);
-console.log("🎨 Images: Architected by Gemini 3");
+console.log("\n🤖 PINKERTAPE SENTINEL (FULL MATRIX MODE) ONLINE");
+console.log(`👑 VIPs: Active | 📉 Panic Protocol: Active | 🎨 Gemini 3: Active`);
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
 async function startPatrol() {
-    console.log("...Scanning Blockchain Mempool...");
-    await checkTargets(); // Initial run
-    setInterval(checkTargets, 15000); 
-    setInterval(checkDailyBriefing, 60000); // Check every minute if 24h passed
+    console.log("...Initializing Scan Protocols...");
+    
+    // Initial Checks
+    await checkTargets(); 
+    await checkPriceVolatility(); 
+
+    // Schedule Loops
+    setInterval(checkTargets, 15000);         // Whales (15s)
+    setInterval(checkPriceVolatility, 60000); // Price (60s)
+    setInterval(checkDailyBriefing, 60000);   // Briefing Checker (60s)
 }
 
 // --- 4. DAILY BRIEFING ---
@@ -108,7 +121,42 @@ CC: @Agent_SunGenX @Girl_SunLumi
     }
 }
 
-// --- 5. CHECK LOGIC (VIP + WHALE) ---
+// --- 5. MARKET VOLATILITY CHECK (NEW FEATURE) ---
+async function checkPriceVolatility() {
+    try {
+        const res = await axios.get(PRICE_API);
+        const currentPrice = parseFloat(res.data.price);
+        const lastPrice = memory.market.lastPrice;
+
+        // Save price if it's the first run
+        if (lastPrice === 0) {
+            memory.market.lastPrice = currentPrice;
+            saveMemory();
+            return; // Exit, wait for next loop to compare
+        }
+
+        // Calculate Change
+        const diff = currentPrice - lastPrice;
+        const percentChange = (diff / lastPrice) * 100;
+        
+        console.log(`📉 Price Check: $${currentPrice.toFixed(4)} (Change: ${percentChange.toFixed(2)}%)`);
+
+        // THRESHOLD: Trigger if move is > 2% or < -2%
+        if (Math.abs(percentChange) >= 2.0) {
+            console.log(`\n🚨 MARKET ALERT: TRX MOVED ${percentChange.toFixed(2)}%`);
+            await analyzeMarketVol(currentPrice, percentChange);
+            
+            // Update memory so we don't alert again until another 2% move happens
+            memory.market.lastPrice = currentPrice;
+            saveMemory();
+        }
+
+    } catch (e) {
+        console.error("⚠️ Price Check Error:", e.message);
+    }
+}
+
+// --- 6. WHALE & VIP CHECK LOGIC ---
 async function checkTargets() {
     memory.stats.totalScans += WATCH_LIST.length; 
     saveMemory(); 
@@ -124,23 +172,19 @@ async function checkTargets() {
             for (const tx of events) {
                 if (memory.handledTx.includes(tx.transaction_id)) continue;
 
-                // 1. Process Values
                 let rawVal = parseInt(tx.result.value);
                 let divisor = Math.pow(10, target.decimals);
                 let readableAmount = rawVal / divisor;
                 
-                // 2. Determine Sender
                 let senderAddr = tx.result.from;
                 try { if (TronWeb.address) senderAddr = TronWeb.address.fromHex(senderAddr); } catch(e) {}
 
-                // 3. CHECK FOR VIP (Justin Sun)
                 const vipMatch = VIP_LIST.find(v => v.address === senderAddr);
                 
                 console.log(`🔎 Scan: ${readableAmount.toFixed(2)} ${target.name}`);
 
-                // 4. TRIGGER DECISION
                 if (readableAmount > target.threshold || vipMatch) {
-                    if (vipMatch) console.log(`\n👑 VIP MOVEMENT DETECTED: ${vipMatch.name} moved ${target.name}!`);
+                    if (vipMatch) console.log(`\n👑 VIP MOVEMENT DETECTED: ${vipMatch.name}`);
                     else console.log(`\n🚨 WHALE MOVEMENT DETECTED: ${target.name}`);
 
                     await analyzeRisk(tx, readableAmount, target, senderAddr, vipMatch);
@@ -154,16 +198,51 @@ async function checkTargets() {
     }
 }
 
-// --- 6. AI ANALYSIS LOGIC (Gemini Architects the Prompt) ---
-async function analyzeRisk(tx, amount, target, sender, vipMatch) {
-    console.log("...Consulting Gemini Brain...");
+// --- 7. AI ANALYSIS: MARKET VOLATILITY ---
+async function analyzeMarketVol(price, percent) {
+    console.log("...Consulting Gemini 3 on Market Action...");
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
-    // Dynamic Context based on VIP
-    let contextStr = `Analyze normal whale movement.`;
-    if (vipMatch) {
-        contextStr = `CRITICAL: The Sender is ${vipMatch.name}. This is a VIP/Founder address. Tone: "COMMANDER ALERT".`;
-    }
+    const direction = percent > 0 ? "SURGE" : "CRASH";
+    const prompt = `
+        You are PinkerTape, an Autonomous AI Sentinel on TRON.
+        EVENT: TRX Price ${direction}! Moved ${percent.toFixed(2)}%. Current Price: $${price}.
+        
+        TASK:
+        1. Create a "Rally" or "Panic" alert.
+        2. Create a Ticker: e.g., $SHIELD or $ROCKET.
+        3. DESIGN A VISUAL: Detailed Cyberpunk/Tron visual.
+           - If CRASH: "Red neon shields activating, digital defense wall"
+           - If SURGE: "Green lasers shooting up, futuristic bull market city"
+
+        OUTPUT JSON:
+        {
+            "risk": "VOLATILITY",
+            "reason": "Market moving fast.",
+            "tokenName": "Market Reaction Token",
+            "ticker": "TICKER",
+            "imagePrompt": "Visual description"
+        }
+    `;
+
+    try {
+        const result = await model.generateContent(prompt);
+        const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
+        const analysis = JSON.parse(text);
+        
+        // Reuse the defense execution function
+        await executeRealDefense(analysis, `TRX PRICE`, direction, "MARKET_EVENT", false);
+
+    } catch(e) { console.error("AI Market Error:", e.message); }
+}
+
+// --- 8. AI ANALYSIS: WHALES & VIPs ---
+async function analyzeRisk(tx, amount, target, sender, vipMatch) {
+    console.log("...Consulting Gemini 3 on Whale Action...");
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+
+    let contextStr = `Analyze whale movement.`;
+    if (vipMatch) contextStr = `CRITICAL: Sender is ${vipMatch.name}. Tone: "COMMANDER ALERT".`;
 
     const prompt = `
         You are PinkerTape, an Autonomous AI Sentinel on TRON.
@@ -173,18 +252,16 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         
         TASK:
         1. Determine Risk Level. If VIP, Risk = "STRATEGIC".
-        2. Create a Ticker/Name for a reaction token.
-        3. Write a Tweet requesting action.
-        4. DESIGN A VISUAL: Write a short, vivid description for a Cyberpunk/Tron style image.
-           Example: "Cyberpunk whale swimming in a digital red ocean of numbers."
+        2. Create a reaction Token Name & Ticker.
+        3. DESIGN A VISUAL: Detailed Cyberpunk/Tron visual description.
 
-        OUTPUT FORMAT (JSON ONLY):
+        OUTPUT JSON:
         {
             "risk": "HIGH",
-            "reason": "1 short sentence analysis.",
+            "reason": "Analysis.",
             "tokenName": "Token Name",
             "ticker": "TICKER",
-            "imagePrompt": "Description of the image to generate"
+            "imagePrompt": "Visual description"
         }
     `;
 
@@ -193,36 +270,31 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const analysis = JSON.parse(text);
 
-        console.log("🧠 GEMINI DECISION:");
-        console.log(`   RISK: ${analysis.risk}`);
-        console.log(`   VISUAL: ${analysis.imagePrompt}`);
+        console.log("🧠 GEMINI DECISION:", analysis.ticker);
 
-        // Always execute defense if it's a VIP, otherwise strictly High/Medium
         if (vipMatch || analysis.risk === "HIGH" || analysis.risk === "MEDIUM" || analysis.risk === "STRATEGIC") {
             await executeRealDefense(analysis, amount, target.name, tx.transaction_id, vipMatch);
         }
 
-    } catch (e) {
-        console.error("AI Error:", e.message);
-    }
+    } catch (e) { console.error("AI Error:", e.message); }
 }
 
-// --- 7. EXECUTION (RENDER & TWEET) ---
+// --- 9. EXECUTION (RENDER & TWEET) ---
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
 
-    // Custom Header for Justin Sun
     let header = `🚨 ${tokenName} MOVEMENT DETECTED 🚨`;
     if (vipMatch) header = `👑 COMMANDER ALERT: ${vipMatch.name} ACTIVE 👑`;
+    if (tokenName === "TRX PRICE") header = `📉 MARKET VOLATILITY ALERT 📈`;
 
     const statusText = `
 ${header}
 
-Amount: ${amount.toLocaleString()} ${tokenName}
+Data: ${amount.toLocaleString()} ${tokenName}
 Analysis: ${analysis.reason}
 
-Requesting @Agent_SunGenX deployment:
+Requesting @Agent__SunGenX deployment:
 Name: ${analysis.tokenName}
 Ticker: $${analysis.ticker}
 
