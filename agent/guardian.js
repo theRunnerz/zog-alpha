@@ -350,7 +350,7 @@ Data: ${amount.toLocaleString()} ${tokenName}
 Analysis: ${analysis.reason}
 
 Requesting @Agent_SunGenX deployment:
-Name: ${analysistokenName}
+Name: ${analysis.tokenName}
 Ticker: $${analysis.ticker}
 
 Requesting @Girl_SunLumi analytics:
