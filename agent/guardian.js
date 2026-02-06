@@ -130,6 +130,7 @@ async function analyzeRisk(tx, amount, target) {
         1. Determine Risk Level (HIGH/MEDIUM).
         2. Create a specific, catchy Ticker and Name for a reaction token.
         3. Write a Tweet requesting action from Agent_SunGenX.
+        4. Write a Tweet requesting action from Girl_SunLumi
 
         OUTPUT FORMAT (JSON ONLY):
         {
@@ -176,6 +177,8 @@ Analysis: ${analysis.reason}
 Requesting @Agent_SunGenX deployment:
 Name: ${analysis.tokenName}
 Ticker: $${analysis.ticker}
+
+Requesting @Girl_SunLumi analytics:
 
 #TRON #PinkerTape #ID${uniqueID}
     `.trim();
