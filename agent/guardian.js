@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: LIVE FIRE + TAGS RESTORED */
+/* agent/guardian.js - VERSION: IRONCLAD (Anti-Crash System) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -7,6 +7,17 @@ import { TwitterApi } from 'twitter-api-v2';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// --- 0. ANTI-CRASH SYSTEM (NEW) ---
+// This prevents the bot from dying if the internet blips
+process.on('uncaughtException', (err) => {
+    console.log(`\n⚠️ CRITICAL ERROR (IGNORED): ${err.message}`);
+    // console.log(err); // Uncomment if you need deep debug
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.log(`\n⚠️ UNHANDLED PROMISE (IGNORED): ${reason}`);
+});
 
 // --- 1. SETUP & CONFIGURATION ---
 
@@ -55,7 +66,7 @@ let memory = {
     alerts: [] 
 };
 
-// ⏳ GLOBAL COOLDOWN (2 Minutes Safety)
+// ⏳ GLOBAL COOLDOWN (Safety)
 let lastTweetTime = 0; 
 
 try {
@@ -70,8 +81,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (FULL LIVE MODE) ONLINE");
-console.log("🔥 Status: Twitter Active + Mentions Restored");
+console.log("\n🤖 PINKERTAPE SENTINEL (IRONCLAD MODE) ONLINE");
+console.log("🛡️ Status: Global Error Handler Active (Won't Crash)");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -352,13 +363,21 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
         console.log("🎨 Generating Unit Avatar...");
         const uniqueKey = `${analysis.ticker}-${uniqueID}`;
         const imageUrl = `https://robohash.org/${uniqueKey}.png?set=set1&bgset=bg1&size=600x600`;
-        const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        
+        // Increased Timeout for slower connections
+        const imageBuffer = await axios.get(imageUrl, { 
+            responseType: 'arraybuffer',
+            timeout: 20000 
+        });
+        
         const mediaId = await twitterClient.v1.uploadMedia(Buffer.from(imageBuffer.data), { mimeType: 'image/png' });
         mediaIds = [mediaId];
         console.log("✅ Avatar Uploaded.");
 
     } catch (imgError) {
-        console.error(`⚠️ Visual Render Failed: ${imgError.message}`);
+        // If image fails, we just log it but CONTINUE to post the text.
+        // The global handler prevents the crash, but we handle it locally to proceed gracefully.
+        console.error(`⚠️ Visual Render Failed (Continuing with Text Only): ${imgError.message}`);
     }
 
     // ⭐ LIVE TWEET ⭐
