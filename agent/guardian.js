@@ -1,4 +1,4 @@
-/* agent/guardian.js - FINAL 5.0: THE SENTINEL INTERFACE (Replies Enabled) */
+/* agent/guardian.js - VERSION: MATRIX MODE (Visuals Restored + Interaction) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -45,12 +45,12 @@ const WATCH_LIST = [
     { name: "WIN", address: "TLa2f6J26qCmf6ELRRnPaMHgck0dPrQtqK", decimals: 6, threshold: 500000 }
 ];
 
-// --- 2. MEMORY SYSTEM (Now tracks Mentions) ---
+// --- 2. MEMORY SYSTEM ---
 const MEMORY_FILE = path.join(__dirname, 'agent_memory.json');
 let memory = { 
     stats: { totalScans: 0, lastBriefing: Date.now() }, 
     market: { lastPrice: 0 },
-    mentions: { lastId: null }, // Track last replied tweet
+    mentions: { lastId: null }, 
     handledTx: [], 
     alerts: [] 
 };
@@ -61,7 +61,6 @@ try {
         if (rawData.trim()) {
             const loaded = JSON.parse(rawData);
             memory = { ...memory, ...loaded };
-            // Ensure substructures exist
             if (!memory.mentions) memory.mentions = { lastId: null };
             if (!memory.market) memory.market = { lastPrice: 0 };
         }
@@ -70,13 +69,12 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (INTERACTIVE MODE) ONLINE");
+console.log("\n🤖 PINKERTAPE SENTINEL (MATRIX MODE) ONLINE");
 console.log("🔊 Neural Interface: Listening for Mentions...");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
 async function startPatrol() {
-    // 1. Identification: Who am I? (Get Bot ID for listening)
     let botId = null;
     try {
         const me = await twitterClient.v2.me();
@@ -89,53 +87,41 @@ async function startPatrol() {
 
     console.log("...Initializing Scan Protocols...");
     
-    // Initial Checks
+    // Initial run
     await checkTargets(); 
     await checkPriceVolatility();
-    
-    // ⚠️ Start Listening (Initial check)
     await checkMentions(botId);
 
-    // Schedule Loops
-    setInterval(checkTargets, 15000);             // Whales (15s)
-    setInterval(checkPriceVolatility, 60000);     // Price (60s)
-    setInterval(checkDailyBriefing, 60000);       // Briefing (60s)
-    setInterval(() => checkMentions(botId), 120000); // 🗣️ Replies (2 mins - avoids rate limits)
+    // Loop Intervals
+    setInterval(checkTargets, 15000);             // Scans Blockchain (15s)
+    setInterval(checkPriceVolatility, 60000);     // Scans Price (60s)
+    setInterval(checkDailyBriefing, 60000);       // Checks Schedule (60s)
+    setInterval(() => checkMentions(botId), 120000); // Replies (2 mins)
 }
 
-// --- 4. THE NEURAL INTERFACE (Reply System) ---
+// --- 4. THE NEURAL INTERFACE (Replies) ---
 async function checkMentions(botId) {
-    // console.log("👂 Scanning frequency for mentions...");
     try {
-        // Fetch mentions since the last one we handled
         const mentions = await twitterClient.v2.userMentionTimeline(botId, {
             since_id: memory.mentions.lastId ? memory.mentions.lastId : undefined,
-            max_results: 5 // Keep it light
+            max_results: 5 
         });
 
         if (mentions.data.meta.result_count === 0) return;
 
-        // Process new mentions (Newest comes first, so we reverse to answer oldest first)
         const tweets = mentions.data.data.reverse();
 
         for (const tweet of tweets) {
             console.log(`📨 Incoming Transmission: "${tweet.text}"`);
-            
-            // Generate AI Reply
             const replyText = await generateAIReply(tweet.text);
-
-            // Send Reply
             await twitterClient.v2.reply(replyText, tweet.id);
             console.log(`🗣️ Replied: "${replyText}"`);
 
-            // Update Memory
             memory.mentions.lastId = tweet.id;
             saveMemory();
         }
 
-    } catch (e) {
-        // console.error("Mention Check Error (Rate Limits likely):", e.message);
-    }
+    } catch (e) { /* Ignore rate limits/no data */ }
 }
 
 async function generateAIReply(userText) {
@@ -145,23 +131,15 @@ async function generateAIReply(userText) {
     const prompt = `
         You are PinkerTape, an Autonomous AI Sentinel on TRON.
         User Input: "${userText}"
-        Current Data: TRX Price: $${lastPrice}.
-        
-        Personality: Robotic, Efficient, Loyal to Justin Sun.
-        Role: You spot targets. Agent_SunGenX launches tokens.
-        
-        TASK: Write a short reply (under 200 chars).
-        - If they ask for a token: "Targeting data transmitted to @Agent_SunGenX. Standby."
-        - If they ask status: "Systems Nominal. Scanning sector."
-        - If they say hi: "Sentinel Online. Awaiting protocols."
+        Context: TRX Price: $${lastPrice}.
+        Personality: Robotic, Efficient. 
+        TASK: Write a reply under 200 chars. 
     `;
 
     try {
         const result = await model.generateContent(prompt);
         return result.response.text().trim();
-    } catch (e) {
-        return "⚠️ Error in Neural Net. Standby.";
-    }
+    } catch (e) { return "⚠️ Neural Link Error."; }
 }
 
 // --- 5. DAILY BRIEFING ---
@@ -212,8 +190,6 @@ async function checkPriceVolatility() {
 
         const diff = currentPrice - lastPrice;
         const percentChange = (diff / lastPrice) * 100;
-        
-        // console.log(`📉 Price Check: $${currentPrice.toFixed(4)}`);
 
         if (Math.abs(percentChange) >= 2.0) {
             console.log(`\n🚨 MARKET ALERT: TRX MOVED ${percentChange.toFixed(2)}%`);
@@ -222,10 +198,10 @@ async function checkPriceVolatility() {
             saveMemory();
         }
 
-    } catch (e) { /* Price API flakiness ignored */ }
+    } catch (e) { /* ignore */ }
 }
 
-// --- 7. WHALE & VIP CHECK LOGIC ---
+// --- 7. WHALE & VIP CHECK LOGIC (FIXED TERMINAL LOGS) ---
 async function checkTargets() {
     memory.stats.totalScans += WATCH_LIST.length; 
     saveMemory(); 
@@ -239,19 +215,29 @@ async function checkTargets() {
             const events = res.data.data;
 
             for (const tx of events) {
-                if (memory.handledTx.includes(tx.transaction_id)) continue;
-
+                // CALC VALUE
                 let rawVal = parseInt(tx.result.value);
                 let divisor = Math.pow(10, target.decimals);
                 let readableAmount = rawVal / divisor;
+                let senderAddr = tx.result.from || "";
                 
-                let senderAddr = tx.result.from;
                 try { if (TronWeb.address) senderAddr = TronWeb.address.fromHex(senderAddr); } catch(e) {}
+
+                // CHECK IF KNOWN (BUT LOG IT ANYWAY FOR MATRIX EFFECT)
+                const isKnown = memory.handledTx.includes(tx.transaction_id);
+                
+                // 🖥️ VISUAL HEARTBEAT (Fixed)
+                // If it's old, we just log "👁️ Scan", else "🆕 Scan"
+                // This ensures scrolling text always appears
+                const logSymbol = isKnown ? "👁️" : "🆕";
+                process.stdout.write(`${logSymbol} Scan: ${readableAmount.toFixed(0).padEnd(5)} ${target.name} \r`);
+                
+                if (isKnown) continue; // Skip analysis, but we already showed the log!
+
+                console.log(`\n🆕 NEW SIGNAL: ${readableAmount.toFixed(2)} ${target.name}`);
 
                 const vipMatch = VIP_LIST.find(v => v.address === senderAddr);
                 
-                console.log(`🔎 Scan: ${readableAmount.toFixed(2)} ${target.name}`);
-
                 if (readableAmount > target.threshold || vipMatch) {
                     if (vipMatch) console.log(`\n👑 VIP MOVEMENT DETECTED: ${vipMatch.name}`);
                     else console.log(`\n🚨 WHALE MOVEMENT DETECTED: ${target.name}`);
@@ -274,12 +260,11 @@ async function analyzeMarketVol(price, percent) {
     const prompt = `
         You are PinkerTape, an Autonomous AI Sentinel on TRON.
         EVENT: TRX Price ${direction}! Moved ${percent.toFixed(2)}%. Current Price: $${price}.
-        
         TASK:
         1. Create a "Rally" or "Panic" alert.
         2. Create a Ticker: e.g., $SHIELD or $ROCKET.
-        3. DESIGN A VISUAL: detailed Cyberpunk/Tron visual description.
-
+        3. DESIGN A VISUAL for Pollinations.
+        
         OUTPUT JSON:
         {
             "risk": "VOLATILITY",
@@ -315,7 +300,7 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         TASK:
         1. Determine Risk Level. If VIP, Risk = "STRATEGIC".
         2. Create a reaction Token Name & Ticker.
-        3. DESIGN A VISUAL: detailed Cyberpunk/Tron visual description.
+        3. DESIGN A VISUAL for Pollinations.
 
         OUTPUT JSON:
         {
@@ -356,7 +341,7 @@ ${header}
 Data: ${amount.toLocaleString()} ${tokenName}
 Analysis: ${analysis.reason}
 
-Requesting @Agent_SunGenX deployment:
+Requesting @Agent__SunGenX deployment:
 Name: ${analysis.tokenName}
 Ticker: $${analysis.ticker}
 
