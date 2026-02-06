@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: GHOST MODE (Clean Tweets + Deep Debug) */
+/* agent/guardian.js - VERSION: LIVE FIRE (Ready for Post-Break) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -19,7 +19,7 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const TRON_API = "https://api.trongrid.io"; 
 const PRICE_API = "https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT";
 
-// 🧠 MODEL: Gemini 3 Flash Preview (As requested)
+// 🧠 MODEL: Gemini 3 Flash Preview (Smartest)
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
 // Twitter Client
@@ -56,6 +56,7 @@ let memory = {
 };
 
 // ⏳ GLOBAL COOLDOWN
+// We force a 2-minute wait between tweets to be extra safe
 let lastTweetTime = 0; 
 
 try {
@@ -70,8 +71,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (GHOST MODE) ONLINE");
-console.log("👻 Status: Hashtags removed to bypass filters");
+console.log("\n🤖 PINKERTAPE SENTINEL (LIVE FIRE) ONLINE");
+console.log("🔥 Status: Twitter Publishing ENABLED");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -271,8 +272,8 @@ async function analyzeMarketVol(price, percent) {
 
 // --- 9. AI ANALYSIS: WHALES ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
-    if (Date.now() - lastTweetTime < 60000) {
-        console.log(`⏳ Tweet Cooldown Active. Skipping ${target} analysis.`);
+    if (Date.now() - lastTweetTime < 120000) { // 2 Minute Cooldown for Safety
+        console.log(`⏳ Cooldown (Safety). Skipping ${target} analysis.`);
         return;
     }
 
@@ -324,21 +325,19 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
 
 // --- 10. EXECUTION ---
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
-    if (Date.now() - lastTweetTime < 60000) return;
+    if (Date.now() - lastTweetTime < 120000) return; // 2 Min check
 
-    console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
+    console.log("\n⚡ EXECUTING DEFENSE...");
     lastTweetTime = Date.now(); 
     
     const nowLog = new Date().toISOString().split('T')[1].split('.')[0]; 
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
     const displayName = analysis.tokenName || "Protocol Alpha";
 
-    // 👻 GHOST TEMPLATES (No Hashtags, No Mentions - Pure Data)
+    // 🔄 RANDOMIZED TEMPLATES (Prevents Duplicate Detection)
     const templates = [
-        `System Log [${nowLog}]\nTarget: ${tokenName}\nVolume: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\n[Unit: ${displayName} | $${analysis.ticker}]\nRef: ${uniqueID}`,
-        
+        `[LOG: ${nowLog}]\nTarget: ${tokenName}\nVolume: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\n[Unit: ${displayName} | $${analysis.ticker}]\nRef: ${uniqueID}`,
         `[SCAN_COMPLETE]\nAsset: ${tokenName}\nMoved: ${amount.toLocaleString()}\nIntel: "${analysis.reason}"\n\nDeployed: ${displayName} ($${analysis.ticker})\nTX: ${uniqueID}`,
-        
         `:: PinkerTape Sentinel ::\nDetected: ${amount.toLocaleString()} ${tokenName}\nAnalysis: ${analysis.reason}\n\nUnit: ${displayName} ($${analysis.ticker})\nID: ${uniqueID}`
     ];
 
@@ -360,6 +359,7 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
         console.error(`⚠️ Visual Render Failed: ${imgError.message}`);
     }
 
+    // ⭐ LIVE TWEET ⭐
     try {
         const tweet = await twitterClient.v2.tweet({
             text: statusText,
@@ -382,17 +382,9 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     } catch (e) {
         console.error(`❌ TWITTER ERROR: ${e.code || e.message}`);
         
-        // 🔬 DEEP DEBUG LOGGING
-        if (e.data) {
-            console.log("------------------------------------------");
-            console.log("🔍 DETAILED ERROR FROM TWITTER:");
-            console.log(JSON.stringify(e.data, null, 2));
-            console.log("------------------------------------------");
-        }
-        
         if(e.code === 403) {
-            console.log("🚨 403. Extending cooldown.");
-            lastTweetTime = Date.now() + 60000;
+            console.log("🚨 403: Bot is still in Timeout. Check back later.");
+            lastTweetTime = Date.now() + 600000; // Wait 10 mins if flagged
         }
     }
     
