@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: VIP WATCHLIST (JUSTIN SUN MODE) */
+/* agent/guardian.js - FINAL VERSION: VIPs + DAILY REPORT + GEMINI VISUALS */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -18,6 +18,9 @@ dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const TRON_API = "https://api.trongrid.io"; 
 
+// Initialize Gemini
+const genAI = new GoogleGenerativeAI(GEMINI_KEY);
+
 // Twitter Client
 const twitterClient = new TwitterApi({
   appKey: process.env.TWITTER_APP_KEY,
@@ -28,8 +31,8 @@ const twitterClient = new TwitterApi({
 
 // 👑 VIP WATCHLIST (Triggers alerts regardless of amount)
 const VIP_LIST = [
-    { name: "JUSTIN SUN", address: "TT2T17KZhoDu47i2E4FWxfG79zdkEWkU9N" }, // Main JS Wallet
-    { name: "TRON DAO", address: "TF5j4f68vjVjTqT6AAcR6S5Q72i7r5tK3" }      // Example DAO Wallet
+    { name: "JUSTIN SUN", address: "TT2T17KZhoDu47i2E4FWxfG79zdkEWkU9N" }, 
+    { name: "TRON DAO", address: "TF5j4f68vjVjTqT6AAcR6S5Q72i7r5tK3" }      
 ];
 
 // 🛡️ THE TRON ECOSYSTEM WATCHLIST
@@ -59,10 +62,9 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-const genAI = new GoogleGenerativeAI(GEMINI_KEY);
-
-console.log("\n🤖 PINKERTAPE SENTINEL (VIP MODE ACTIVE) ONLINE");
+console.log("\n🤖 PINKERTAPE SENTINEL (GEMINI VISUAL MODE) ONLINE");
 console.log(`👑 Watching VIP: Justin Sun`);
+console.log("🎨 Images: Architected by Gemini 1.5");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -106,7 +108,7 @@ CC: @Agent_SunGenX @Girl_SunLumi
     }
 }
 
-// --- 5. CHECK LOGIC (UPDATED WITH VIP CHECK) ---
+// --- 5. CHECK LOGIC (VIP + WHALE) ---
 async function checkTargets() {
     memory.stats.totalScans += WATCH_LIST.length; 
     saveMemory(); 
@@ -127,26 +129,19 @@ async function checkTargets() {
                 let divisor = Math.pow(10, target.decimals);
                 let readableAmount = rawVal / divisor;
                 
-                // 2. Determine Sender (Handle Hex conversion)
+                // 2. Determine Sender
                 let senderAddr = tx.result.from;
-                try {
-                    if (TronWeb.address) senderAddr = TronWeb.address.fromHex(senderAddr);
-                } catch(e) {}
+                try { if (TronWeb.address) senderAddr = TronWeb.address.fromHex(senderAddr); } catch(e) {}
 
                 // 3. CHECK FOR VIP (Justin Sun)
                 const vipMatch = VIP_LIST.find(v => v.address === senderAddr);
                 
-                console.log(`🔎 Scan: ${readableAmount.toFixed(2)} ${target.name} (from ${senderAddr.slice(0,6)}...)`);
+                console.log(`🔎 Scan: ${readableAmount.toFixed(2)} ${target.name}`);
 
                 // 4. TRIGGER DECISION
-                // Trigger if: (Amount > Threshold) OR (Sender is VIP)
                 if (readableAmount > target.threshold || vipMatch) {
-                    
-                    if (vipMatch) {
-                        console.log(`\n👑 VIP MOVEMENT DETECTED: ${vipMatch.name} moved ${target.name}!`);
-                    } else {
-                        console.log(`\n🚨 WHALE MOVEMENT DETECTED: ${target.name}`);
-                    }
+                    if (vipMatch) console.log(`\n👑 VIP MOVEMENT DETECTED: ${vipMatch.name} moved ${target.name}!`);
+                    else console.log(`\n🚨 WHALE MOVEMENT DETECTED: ${target.name}`);
 
                     await analyzeRisk(tx, readableAmount, target, senderAddr, vipMatch);
                 }
@@ -159,36 +154,37 @@ async function checkTargets() {
     }
 }
 
-// --- 6. AI ANALYSIS LOGIC (UPDATED FOR VIP) ---
+// --- 6. AI ANALYSIS LOGIC (Gemini Architects the Prompt) ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     console.log("...Consulting Gemini Brain...");
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Dynamic Context based on VIP
     let contextStr = `Analyze normal whale movement.`;
     if (vipMatch) {
-        contextStr = `CRITICAL: The Sender is ${vipMatch.name}. This is a VIP/Founder address. 
-        Tone must be: "COMMANDER ALERT". Assume strategic deployment.`;
+        contextStr = `CRITICAL: The Sender is ${vipMatch.name}. This is a VIP/Founder address. Tone: "COMMANDER ALERT".`;
     }
 
     const prompt = `
         You are PinkerTape, an Autonomous AI Sentinel on TRON.
         EVENT: Asset: ${target.name}, Amount: ${amount.toLocaleString()}
         SENDER: ${sender} ${vipMatch ? `(IDENTITY: ${vipMatch.name})` : ""}
-        
         CONTEXT: ${contextStr}
         
         TASK:
         1. Determine Risk Level. If VIP, Risk = "STRATEGIC".
         2. Create a Ticker/Name for a reaction token.
         3. Write a Tweet requesting action.
+        4. DESIGN A VISUAL: Write a short, vivid description for a Cyberpunk/Tron style image.
+           Example: "Cyberpunk whale swimming in a digital red ocean of numbers."
 
         OUTPUT FORMAT (JSON ONLY):
         {
             "risk": "HIGH",
             "reason": "1 short sentence analysis.",
             "tokenName": "Token Name",
-            "ticker": "TICKER"
+            "ticker": "TICKER",
+            "imagePrompt": "Description of the image to generate"
         }
     `;
 
@@ -197,9 +193,9 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const analysis = JSON.parse(text);
 
-        console.log("🧠 AI DECISION:");
+        console.log("🧠 GEMINI DECISION:");
         console.log(`   RISK: ${analysis.risk}`);
-        console.log(`   IDEA: ${analysis.tokenName} ($${analysis.ticker})`);
+        console.log(`   VISUAL: ${analysis.imagePrompt}`);
 
         // Always execute defense if it's a VIP, otherwise strictly High/Medium
         if (vipMatch || analysis.risk === "HIGH" || analysis.risk === "MEDIUM" || analysis.risk === "STRATEGIC") {
@@ -211,16 +207,14 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     }
 }
 
-// --- 7. EXECUTION ---
+// --- 7. EXECUTION (RENDER & TWEET) ---
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
 
     // Custom Header for Justin Sun
     let header = `🚨 ${tokenName} MOVEMENT DETECTED 🚨`;
-    if (vipMatch) {
-        header = `👑 COMMANDER ALERT: ${vipMatch.name} ACTIVE 👑`;
-    }
+    if (vipMatch) header = `👑 COMMANDER ALERT: ${vipMatch.name} ACTIVE 👑`;
 
     const statusText = `
 ${header}

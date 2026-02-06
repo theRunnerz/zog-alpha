@@ -21,6 +21,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.7.0",
+    "sharp": "^0.34.5",
     "tailwind-merge": "^3.4.0",
     "tron": "^0.2.4",
     "tronweb": "^6.1.1",

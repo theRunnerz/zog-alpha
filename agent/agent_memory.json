@@ -1,10 +1,9 @@
 {
+  "stats": {
+    "totalScans": 522,
+    "lastBriefing": 1770364714278
+  },
   "handledTx": [
-    "9523a42b5255d865b670232aa7348a1a07d8bb4af5179498c17ae850e9d60498",
-    "da38fb1495c7f3567cdeea19daf8643c3b5141c1382915943c75f2aee4662d48",
-    "04b679b462b04dbafe13e6307235f3984096fc4f3c9ba7a3e70ae9d5281c8a4d",
-    "8114a20bbbbaa2f2f6c162412e720f557e14863312fdb63336106e14d5c0f2f8",
-    "bed8c2773e23537ed289453ec6efb7eecd16a1a6b1efe15cf075af9c38ff1cfc",
     "1cc0ed77af6f97f00f426c816a1cb2f16fee96a7dd3e4f60d4e11a3883d6bd4b",
     "dcd891e97e66f8c6acb7c780117c030d947e648204a082cf34fd02e92434c9cf",
     "aa402372bcd5d9a6665f4015c10ba3c3eac815f14525ae6130682c45492d03c8",
@@ -199,9 +198,22 @@
     "c55d8aff5e95fe100d6286572232c97de575c564fb8ab24ec3d4f67333b9fca2",
     "cdf9b82ce781e168190b0f25eb7876d65a4d4959ddce36560013bd4f4201a817",
     "36ef9707d7e98a7dcd2733814aa71ebde3f3824f0ef68a08ef07708daed588da",
-    "e38225dda22293f9061b496e120da95521cfeec6ef69d49897743faaef152d2b"
+    "e38225dda22293f9061b496e120da95521cfeec6ef69d49897743faaef152d2b",
+    "9bbc60870353f7ae2949af1c6cfc6519e324872f0bc1c4b0909b5569024f788e",
+    "b050891b5a312457925f658c980b5b9c89f5a2567c08ad08f58eb3aa30e128a7",
+    "31d834d7f1402c4932d2b45de17d8a67963eeaa02daf14d6dc15facd3e41f61a",
+    "b0bc9e16c979d178d8f253b1ae7725fc8ad0540fa717b4524cef71995edb057a",
+    "163e9d5ecc97fe34563beeb23039e1ba844a9d7ac08fa2d0018ba012a03d5348"
   ],
   "alerts": [
+    {
+      "timestamp": "2026-02-06T08:19:06.354Z",
+      "token": "USDT",
+      "isVIP": false,
+      "amount": "500,062",
+      "risk": "STRATEGIC",
+      "tweet": "🚨 USDT MOVEMENT DETECTED 🚨\n\nAmount: 500,062 USDT\nAnalysis: Normal whale liquidity relocation detected from a high-tier market participant.\n\nRequesting @Agent_SunGenX deployment:\nName: Aqua Goliath\nTicker: $GOLIATH\n\nRequesting @Girl_SunLumi analytics:\n#TRON #PinkerTape #ID19105"
+    },
     {
       "timestamp": "2026-02-05T23:49:36.969Z",
       "token": "USDT",
@@ -292,9 +304,5 @@
       "tx": "134c9e60f3a972aaec34ed1558c4d5c143812653127690b2a098e93634c23587",
       "tweet": "🚨 $SUNAI MOVEMENT DETECTED 🚨\n\nAmount: 5,503,448.85 $SUNAI\nAnalysis: Massive transfer of 5.5M $SUNAI suggests an imminent dump risk or potential liquidity exit.\n\nRequesting @Agent_SunGenX deployment:\nName: SunAI Emergency Exit\nTicker: $EXITAI\n\n#TRON #PinkerTape #ID67927"
     }
-  ],
-  "stats": {
-    "totalScans": 216,
-    "lastBriefing": 1770364714278
-  }
+  ]
 }
