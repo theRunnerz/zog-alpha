@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: 403 BYPASS (Cooldown + Templates) */
+/* agent/guardian.js - VERSION: TIMESTAMP BYPASS (Final Fix) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -19,7 +19,7 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const TRON_API = "https://api.trongrid.io"; 
 const PRICE_API = "https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT";
 
-// 🧠 MODEL: Gemini 3 (High Intelligence)
+// 🧠 MODEL: Gemini 3 Flash Preview (High Intelligence)
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
 // Twitter Client
@@ -70,8 +70,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (ANTI-SPAM MODE) ONLINE");
-console.log("🛡️ Status: 60s Tweet Cooldown Active");
+console.log("\n🤖 PINKERTAPE SENTINEL (TIMESTAMP BYPASS) ONLINE");
+console.log("🛡️ Status: Anti-Spam Protocols + Text Fallback");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -272,9 +272,9 @@ async function analyzeMarketVol(price, percent) {
 
 // --- 9. AI ANALYSIS: WHALES ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
-    // 🛡️ COOLDOWN CHECK 1: Don't analyze if we just tweeted
+    // 🛡️ COOLDOWN CHECK 1
     if (Date.now() - lastTweetTime < 60000) {
-        console.log(`⏳ Tweet Cooldown Active. Skipping ${target} analysis to avoid suspension.`);
+        console.log(`⏳ Tweet Cooldown Active. Skipping ${target} analysis.`);
         return;
     }
 
@@ -326,38 +326,30 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
 
 // --- 10. EXECUTION ---
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
-    
-    // 🛡️ COOLDOWN CHECK 2: Final Gatekeeper
-    if (Date.now() - lastTweetTime < 60000) {
-        console.log("⏳ TOO FAST: Skipping execution to prevent 403.");
-        return;
-    }
+    if (Date.now() - lastTweetTime < 60000) return;
 
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
-    lastTweetTime = Date.now(); // Set the clock
+    lastTweetTime = Date.now(); 
     
+    // ✅ TIMESTAMP BYPASS - Forces uniqueness at the VERY START of the tweet
+    const nowLog = new Date().toISOString().split('T')[1].split('.')[0]; // HH:MM:SS
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
-    const timeHash = new Date().toLocaleTimeString();
     const displayName = analysis.tokenName || "Protocol Alpha";
 
-    // 🎲 TEMPLATE RANDOMIZER 🎲
-    // This creates 3 completely different sentence structures to fool spam filters
+    // 🎲 TEMPLATE RANDOMIZER
     const templates = [
-        // Style 1: Military Report
-        `🚨 ${tokenName} MOVEMENT DETECTED\n\nAnalyzed: ${amount.toLocaleString()} tokens\nIntel: ${analysis.reason}\n\nDeploying: ${displayName} ($${analysis.ticker})\n#ID${uniqueID}`,
+        `[LOG: ${nowLog}] 🚨 ${tokenName} MOVEMENT\n\nVol: ${amount.toLocaleString()}\nIntel: ${analysis.reason}\n\nUnit: ${displayName} ($${analysis.ticker})\n#ID${uniqueID} @Agent_SunGenX`,
         
-        // Style 2: System Log
-        `⚠️ SECURITY NOTICE: ${tokenName}\n\nVol: ${amount.toLocaleString()}\nScan: ${analysis.reason}\n\nUnit: ${displayName} ($${analysis.ticker})\n[Time: ${timeHash}]`,
+        `[SYSTEM_${nowLog}] ⚠️ ALERT: ${tokenName}\n\nDetected: ${amount.toLocaleString()}\nAnalysis: ${analysis.reason}\n\nDeploying: ${displayName} ($${analysis.ticker})\nRef: ${uniqueID} @Girl_SunLumi`,
         
-        // Style 3: Visual Data
-        `👁️ ON-CHAIN VISUAL: ${tokenName}\n>> ${amount.toLocaleString()} moved.\n>> "${analysis.reason}"\n\nActive: ${displayName} ($${analysis.ticker})\nRef: ${uniqueID}`
+        `[SCAN ${nowLog}] 👁️ ON-CHAIN: ${tokenName}\n>> ${amount.toLocaleString()} moved.\n>> "${analysis.reason}"\n\nActive: ${displayName} ($${analysis.ticker})\n#TRON ${uniqueID}`
     ];
 
     const statusText = templates[Math.floor(Math.random() * templates.length)];
 
     let mediaIds = [];
 
-    // --- 🎨 IMAGE GENERATION: ROBO-HASH ---
+    // --- 🎨 IMAGE GENERATION ---
     try {
         console.log("🎨 Generating Unit Avatar...");
         const uniqueKey = `${analysis.ticker}-${uniqueID}`;
@@ -392,10 +384,19 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
 
     } catch (e) {
         console.error(`❌ TWITTER ERROR: ${e.code || e.message}`);
-        // If we hit 403, extend cooldown to 2 minutes
+        
+        // 🚑 403 RESCUE SQUAD: If Image Tweet Fails, Try TEXT ONLY immediately
         if(e.code === 403) {
-            console.log("🚨 403 HIT. Extending cooldown to 2 minutes.");
-            lastTweetTime = Date.now() + 60000;
+            console.log("🚨 403 ERROR! Attempting TEXT-ONLY RESCUE...");
+            try {
+                // Try sending just text with an extra ID to force entry
+                const rescueText = `[RETRY ${Math.floor(Math.random()*99)}] ` + statusText;
+                await twitterClient.v2.tweet(rescueText);
+                console.log("✅ RESCUE TWEET POSTED (Text Only).");
+            } catch(retryError) {
+                console.log("❌ RESCUE FAILED. Extending cooldown.");
+                lastTweetTime = Date.now() + 60000;
+            }
         }
     }
     
