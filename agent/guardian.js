@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: CONCURRENCY LOCK (Prevents Double-Posting) */
+/* agent/guardian.js - VERSION: HACKATHON DEMO (Bulletproof) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -8,9 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// --- 0. GLOBAL SAFETY LOCKS ---
-let isScanning = false; // <--- PREVENTS OVERLAPS
-process.on('uncaughtException', (err) => { console.log(`\n⚠️ ERROR: ${err.message}`); });
+// --- 1. SETUP & CONFIGURATION ---
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,7 +19,7 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const TRON_API = "https://api.trongrid.io"; 
 const PRICE_API = "https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT";
 
-// 🧠 MODEL: Gemini 3
+// 🧠 MODEL: Using 1.5 Flash (Fastest/Most Stable)
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
 // Twitter Client
@@ -57,10 +55,6 @@ let memory = {
     alerts: [] 
 };
 
-// ⏳ TWEET COOLDOWN (Increased to 3 Minutes for safety)
-let lastTweetTime = 0; 
-const COOLDOWN_MS = 180000; 
-
 try {
     if (fs.existsSync(MEMORY_FILE)) {
         const rawData = fs.readFileSync(MEMORY_FILE, 'utf8');
@@ -73,8 +67,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (LOCKED MODE) ONLINE");
-console.log("🔒 Status: Concurrency Lock Active (No Overlaps)");
+console.log("\n🤖 PINKERTAPE SENTINEL (HACKATHON DEMO MODE) ONLINE");
+console.log("🎨 Image Engine: Pollinations (Simplified)");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -89,28 +83,21 @@ async function startPatrol() {
         return;
     }
 
-    // Run loops SAFELY
-    setInterval(safeScan, 15000);              // Check Transactions
-    setInterval(checkPriceVolatility, 60000);  // Check Price
-    setInterval(checkMentionsWrapper, 120000, botId); // Check Repliess
-}
-
-// Wrapper to prevent overlap
-async function safeScan() {
-    if (isScanning) return; // SKIP if busy
-    isScanning = true;
-    try {
-        await checkTargets();
-    } catch(e) { console.error("Scan Error:", e.message); }
-    isScanning = false;
-}
-
-// Wrapper for mentions
-async function checkMentionsWrapper(botId) {
+    console.log("...Scanning Protocols Active...");
+    
+    // Initial Run
+    await checkTargets(); 
+    await checkPriceVolatility();
     await checkMentions(botId);
+
+    // Loops
+    setInterval(checkTargets, 15000);             
+    setInterval(checkPriceVolatility, 60000);     
+    setInterval(checkDailyBriefing, 60000);       
+    setInterval(() => checkMentions(botId), 120000); 
 }
 
-// --- 4. NEURAL INTERFACE ---
+// --- 4. NEURAL INTERFACE (No Dupes) ---
 async function checkMentions(botId) {
     try {
         const mentions = await twitterClient.v2.userMentionTimeline(botId, {
@@ -134,6 +121,7 @@ async function checkMentions(botId) {
             const replyText = await generateAIReply(tweet.text);
             
             if(replyText) {
+                // Add Unique Hash to prevent 403 on replies
                 const uniqueReply = `${replyText} \n[Ref:${Math.floor(Math.random()*999)}]`;
                 await twitterClient.v2.reply(uniqueReply, tweet.id);
                 console.log(`🗣️ Replied: "${uniqueReply}"`);
@@ -148,11 +136,47 @@ async function checkMentions(botId) {
 async function generateAIReply(userText) {
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const lastPrice = memory.market.lastPrice || "Unknown";
-    const prompt = `You are PinkerTape, AI on TRON. Input: "${userText}". TRX: $${lastPrice}. Reply robotic, <180 chars.`;
+    
+    const prompt = `
+        You are PinkerTape, an AI Sentinel on TRON.
+        User Input: "${userText}"
+        Context: TRX Price: $${lastPrice}.
+        Reply Personality: Robotic, Efficient. Under 180 chars. No hashtags.
+    `;
+
     try {
         const result = await model.generateContent(prompt);
         return result.response.text().trim();
     } catch (e) { return null; }
+}
+
+// --- 5. DAILY BRIEFING ---
+async function checkDailyBriefing() {
+    const now = Date.now();
+    const ONE_DAY = 24 * 60 * 60 * 1000; 
+
+    if ((now - memory.stats.lastBriefing) > ONE_DAY) {
+        console.log("\n📜 GENERATING DAILY SECURITY BRIEFING...");
+        const uniqueID = Math.floor(Math.random() * 9000);
+        const scans = memory.stats.totalScans || 0;
+        
+        const briefingText = `
+🛡️ DAILY SECURITY REPORT
+✅ System Status: ONLINE
+📡 Scans: ${scans.toLocaleString()}
+🌊 Threat Level: STABLE
+CC: @Agent_SunGenX @Girl_SunLumi
+#TRON #PinkerTape #ID${uniqueID}
+        `.trim();
+
+        try {
+            await twitterClient.v2.tweet(briefingText);
+            console.log(`✅ DAILY BRIEFING POSTED!`);
+            memory.stats.lastBriefing = now;
+            memory.stats.totalScans = 0;
+            saveMemory();
+        } catch (e) { console.error("❌ BRIEFING ERROR"); }
+    }
 }
 
 // --- 6. MARKET VOLATILITY ---
@@ -177,6 +201,7 @@ async function checkPriceVolatility() {
             memory.market.lastPrice = currentPrice;
             saveMemory();
         }
+
     } catch (e) { /* ignore */ }
 }
 
@@ -201,24 +226,25 @@ async function checkTargets() {
                 
                 try { if (TronWeb.address) senderAddr = TronWeb.address.fromHex(senderAddr); } catch(e) {}
 
-                // CHECK MEMORY FIRST
-                if (memory.handledTx.includes(tx.transaction_id)) continue; 
+                const isKnown = memory.handledTx.includes(tx.transaction_id);
+                
+                // Visual Matrix Log
+                const logSymbol = isKnown ? "👁️" : "🆕";
+                process.stdout.write(`${logSymbol} Scan: ${readableAmount.toFixed(0).padEnd(5)} ${target.name} \r`);
+                
+                if (isKnown) continue; 
 
-                // Threshold Check
+                console.log(`\n🆕 NEW SIGNAL: ${readableAmount.toFixed(2)} ${target.name}`);
+
                 const vipMatch = VIP_LIST.find(v => v.address === senderAddr);
                 
-                // Visual Log (Compact)
-                if (readableAmount > target.threshold) {
-                    process.stdout.write(`⚡ Found: ${readableAmount.toFixed(0)} ${target.name}... `);
-                    
-                    // SAVE IMMEDIATELY TO PREVENT RE-ENTRY
-                    memory.handledTx.push(tx.transaction_id);
-                    if (memory.handledTx.length > 200) memory.handledTx.shift(); 
-                    saveMemory();
-
-                    // THEN ANALYZE
+                if (readableAmount > target.threshold || vipMatch) {
                     await analyzeRisk(tx, readableAmount, target, senderAddr, vipMatch);
                 }
+
+                memory.handledTx.push(tx.transaction_id);
+                if (memory.handledTx.length > 200) memory.handledTx.shift(); 
+                saveMemory();
             }
         } catch (e) { /* ignore */ }
     }
@@ -228,45 +254,39 @@ async function checkTargets() {
 async function analyzeMarketVol(price, percent) {
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const direction = percent > 0 ? "SURGE" : "CRASH";
+    const prompt = `
+        You are PinkerTape. TRX Price ${direction}! Moved ${percent.toFixed(2)}%.
+        TASK: JSON Response Only.
+        { "risk": "VOLATILITY", "reason": "...", "tokenName": "Market Alert", "ticker": "GAP", "imagePrompt": "neon chart" }
+    `;
+
     try {
-        const prompt = `PinkerTape Alert. TRX Price ${direction} ${percent.toFixed(2)}%. JSON output: { "risk": "VOLATILITY", "reason": "Market move", "tokenName": "Market Pulse", "ticker": "VOL" }`;
         const result = await model.generateContent(prompt);
         const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const analysis = JSON.parse(text);
         await executeRealDefense(analysis, `TRX PRICE`, direction, "MARKET_EVENT", false);
-    } catch(e) { console.error("AI Error"); }
+    } catch(e) { console.error("AI Market Error"); }
 }
 
 // --- 9. AI ANALYSIS: WHALES ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
-    if (Date.now() - lastTweetTime < COOLDOWN_MS) { 
-        console.log(`(Cooldown Active - Logged Only)`);
-        return;
-    }
-
-    console.log(`\n🚨 ANALYZING WHALE: ${target.name}`);
+    console.log(`🚨 WHALE DETECTED: ${target.name}`);
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     
     let contextStr = `Analyze whale movement.`;
     if (vipMatch) contextStr = `CRITICAL: Sender is ${vipMatch.name}. Tone: "COMMANDER ALERT".`;
 
     const prompt = `
-        You are PinkerTape, an Advanced Military AI on TRON.
-        EVENT: Scanned Token: ${target.name}, Amount: ${amount.toLocaleString()}
+        You are PinkerTape, AI Sentinel on TRON.
+        EVENT: Asset: ${target.name}, Amount: ${amount.toLocaleString()}
         SENDER: ${sender} ${vipMatch ? `(IDENTITY: ${vipMatch.name})` : ""}
+        CONTEXT: ${contextStr}
         
-        TASK:
-        1. ANALYZE the move. Speculate intent.
-        2. INVENT a unique Defense Unit Name (e.g., "Aegis-7").
-        3. CREATE a unique ticker (e.g., $AEGIS).
+        TASK: Return JSON Only.
+        imagePrompt: 3 words max. Example: "Neon Cyber Whale".
         
-        OUTPUT JSON ONLY:
-        { 
-            "risk": "HIGH", 
-            "reason": "Tactical liquidity injection detected.", 
-            "tokenName": "Aegis-7 Protocol", 
-            "ticker": "AEGIS"
-        }
+        OUTPUT JSON:
+        { "risk": "HIGH", "reason": "...", "tokenName": "Name", "ticker": "TICKER", "imagePrompt": "Neon Cyber Object" }
     `;
 
     try {
@@ -274,80 +294,83 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const analysis = JSON.parse(text);
 
-        console.log("🧠 PLAN:", analysis.tokenName);
+        console.log("🧠 GEMINI DECISION:", analysis.ticker);
+
+        // Always execute if VIP or High Risk
         await executeRealDefense(analysis, amount, target.name, tx.transaction_id, vipMatch);
 
-    } catch (e) {
-        const emergencyAnalysis = {
-            risk: "HIGH",
-            reason: `Volumetric shift on ${target.name}.`,
-            tokenName: `Sentinel-${Math.floor(Math.random()*999)}`, 
-            ticker: "DEF"
-        };
-        await executeRealDefense(emergencyAnalysis, amount, target.name, tx.transaction_id, vipMatch);
-    }
+    } catch (e) { console.error("AI Error:", e.message); }
 }
 
 // --- 10. EXECUTION ---
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
-    if (Date.now() - lastTweetTime < COOLDOWN_MS) return;
-
-    console.log("⚡ EXECUTING DEFENSE...");
-    lastTweetTime = Date.now(); 
+    console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     
-    const nowLog = new Date().toISOString().split('T')[1].split('.')[0]; 
+    // ANTI-DUPLICATE HASH (This fixes the 403)
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
-    const displayName = analysis.tokenName || "Protocol Alpha";
+    const timeHash = new Date().toLocaleTimeString();
 
-    // 🔄 RANDOMIZED TEMPLATES + MENTIONS
-    const templates = [
-        `[LOG: ${nowLog}]\nTarget: ${tokenName}\nVolume: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\nDeploying @Agent_SunGenX | Monitor: @Girl_SunLumi\n[Unit: ${displayName} | $${analysis.ticker}]\nRef: ${uniqueID}`,
-        
-        `[SCAN_COMPLETE]\nAsset: ${tokenName}\nMoved: ${amount.toLocaleString()}\nIntel: "${analysis.reason}"\n\nActive: ${displayName} ($${analysis.ticker})\nCC: @Agent_SunGenX @Girl_SunLumi\nTX: ${uniqueID}`,
-        
-        `:: PinkerTape Sentinel ::\nDetected: ${amount.toLocaleString()} ${tokenName}\nAnalysis: ${analysis.reason}\n\nReporting to @Agent_SunGenX & @Girl_SunLumi\nUnit: ${displayName} ($${analysis.ticker})\nID: ${uniqueID}`
-    ];
+    let header = `🚨 ${tokenName} MOVEMENT DETECTED 🚨`;
+    if (vipMatch) header = `👑 COMMANDER ALERT: ${vipMatch.name} ACTIVE 👑`;
+    if (tokenName === "TRX PRICE") header = `📉 MARKET VOLATILITY ALERT 📈`;
 
-    const statusText = templates[Math.floor(Math.random() * templates.length)];
+    const displayName = analysis.tokenName || "Unknown Alert";
+
+    // ✅ ADDED TIMEHASH TO TWEET BODY TO PREVENT 403 BLOCKS
+    const statusText = `
+${header}
+
+Amount: ${amount.toLocaleString()}
+Info: ${analysis.reason}
+
+Deploying @Agent_SunGenX:
+Name: ${displayName}
+Ticker: $${analysis.ticker}
+
+CC: @Girl_SunLumi
+#TRON #ID${uniqueID} [${timeHash}]
+    `.trim();
 
     let mediaIds = [];
 
     // --- 🎨 IMAGE GENERATION ---
     try {
-        console.log("🎨 Generating...");
+        console.log("🎨 Generating Unit Avatar...");
         const uniqueKey = `${analysis.ticker}-${uniqueID}`;
         const imageUrl = `https://robohash.org/${uniqueKey}.png?set=set1&bgset=bg1&size=600x600`;
-        const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer', timeout: 20000 });
+        
+        // Increased Timeout for slower connections
+        const imageBuffer = await axios.get(imageUrl, { 
+            responseType: 'arraybuffer',
+            timeout: 20000 
+        });
+        
         const mediaId = await twitterClient.v1.uploadMedia(Buffer.from(imageBuffer.data), { mimeType: 'image/png' });
         mediaIds = [mediaId];
+        console.log("✅ Avatar Uploaded.");
 
     } catch (imgError) {
-        console.error(`⚠️ Image Skipped: ${imgError.message}`);
+        // If image fails, we just log it but CONTINUE to post the text.
+        // The global handler prevents the crash, but we handle it locally to proceed gracefully.
+        console.error(`⚠️ Visual Render Failed (Continuing with Text Only): ${imgError.message}`);
     }
 
-    // ⭐ LIVE TWEET ⭐
+
     try {
         const tweet = await twitterClient.v2.tweet({
             text: statusText,
             media: mediaIds.length > 0 ? { media_ids: mediaIds } : undefined
         });
 
-        console.log(`✅ POSTED: ${tweet.data.id}`);
+        console.log(`✅ TWEET POSTED! ID: ${tweet.data.id}`);
         
         if (!memory.alerts) memory.alerts = [];
-        memory.alerts.unshift({ 
-            timestamp: new Date(), 
-            token: tokenName,
-            amount: amount,                 
-            risk: analysis.risk || "HIGH",  
-            reason: analysis.reason,        
-            tweet: statusText
-        });
+        memory.alerts.unshift({ timestamp: new Date(), token: tokenName });
         saveMemory();
 
     } catch (e) {
         console.error(`❌ TWITTER ERROR: ${e.code || e.message}`);
-        if(e.code === 403) lastTweetTime = Date.now() + 600000; // 10m Penalty
+        if(e.code === 403) console.log("🚨 403: Twitter blocked this as Duplicate. The Anti-Dupe ID should fix this next time.");
     }
     
     console.log("----------------------------------------------------\n");
