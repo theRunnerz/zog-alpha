@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: MATRIX MODE + NO SELF-TALK FIX */
+/* agent/guardian.js - VERSION: ALL SYSTEMS GO (Typo Fixed) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -70,7 +70,7 @@ try {
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
 console.log("\n🤖 PINKERTAPE SENTINEL (MATRIX MODE) ONLINE");
-console.log("🔊 Neural Interface: Listening (Self-Talk Filter Active)");
+console.log("🔊 Neural Interface: Active (Self-Talk Filter ON)");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -105,7 +105,7 @@ async function checkMentions(botId) {
         const mentions = await twitterClient.v2.userMentionTimeline(botId, {
             since_id: memory.mentions.lastId ? memory.mentions.lastId : undefined,
             max_results: 5,
-            'tweet.fields': ['author_id', 'text'] // ✅ Request Author ID
+            'tweet.fields': ['author_id', 'text'] 
         });
 
         if (mentions.data.meta.result_count === 0) return;
@@ -113,9 +113,8 @@ async function checkMentions(botId) {
         const tweets = mentions.data.data.reverse();
 
         for (const tweet of tweets) {
-            // 🛑 STOP: IF AUTHOR IS ME, IGNORIT!
+            // 🛑 STOP: IF AUTHOR IS ME, SKIP!
             if (tweet.author_id === botId) {
-                // Update memory to skip this one next time, but DO NOT REPLY
                 memory.mentions.lastId = tweet.id;
                 saveMemory();
                 continue;
@@ -143,7 +142,7 @@ async function generateAIReply(userText) {
         User Input: "${userText}"
         Context: TRX Price: $${lastPrice}.
         Personality: Robotic, Efficient. 
-        TASK: Write a reply under 200 chars. Do not use hashtags if not needed.
+        TASK: Write a reply under 200 chars. Do not use hashtags.
     `;
 
     try {
@@ -211,7 +210,7 @@ async function checkPriceVolatility() {
     } catch (e) { /* ignore */ }
 }
 
-// --- 7. WHALE & VIP CHECK LOGIC (MATRIX VISUALS ACTIVE) ---
+// --- 7. WHALE & VIP CHECK LOGIC ---
 async function checkTargets() {
     memory.stats.totalScans += WATCH_LIST.length; 
     saveMemory(); 
@@ -331,7 +330,9 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
             await executeRealDefense(analysis, amount, target.name, tx.transaction_id, vipMatch);
         }
 
-    } catch (e) { console.error("AI Error:", e.message); }
+    } catch (e) {
+        console.error("AI Error:", e.message);
+    }
 }
 
 // --- 10. EXECUTION ---
@@ -343,6 +344,7 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     if (vipMatch) header = `👑 COMMANDER ALERT: ${vipMatch.name} ACTIVE 👑`;
     if (tokenName === "TRX PRICE") header = `📉 MARKET VOLATILITY ALERT 📈`;
 
+    // ✅ FIXED THE TYPO HERE: analysis.tokenName
     const statusText = `
 ${header}
 
