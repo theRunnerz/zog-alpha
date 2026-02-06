@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: WHALES + VIPs + PRICE VOLATILITY + GEMINI 3 IMAGES */
+/* agent/guardian.js - FINAL 5.0: THE SENTINEL INTERFACE (Replies Enabled) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -45,12 +45,12 @@ const WATCH_LIST = [
     { name: "WIN", address: "TLa2f6J26qCmf6ELRRnPaMHgck0dPrQtqK", decimals: 6, threshold: 500000 }
 ];
 
-// --- 2. MEMORY SYSTEM (Now tracks Price) ---
+// --- 2. MEMORY SYSTEM (Now tracks Mentions) ---
 const MEMORY_FILE = path.join(__dirname, 'agent_memory.json');
-// Default structure
 let memory = { 
     stats: { totalScans: 0, lastBriefing: Date.now() }, 
     market: { lastPrice: 0 },
+    mentions: { lastId: null }, // Track last replied tweet
     handledTx: [], 
     alerts: [] 
 };
@@ -62,7 +62,7 @@ try {
             const loaded = JSON.parse(rawData);
             memory = { ...memory, ...loaded };
             // Ensure substructures exist
-            if (!memory.stats) memory.stats = { totalScans: 0, lastBriefing: Date.now() };
+            if (!memory.mentions) memory.mentions = { lastId: null };
             if (!memory.market) memory.market = { lastPrice: 0 };
         }
     }
@@ -70,25 +70,101 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (FULL MATRIX MODE) ONLINE");
-console.log(`👑 VIPs: Active | 📉 Panic Protocol: Active | 🎨 Gemini 3: Active`);
+console.log("\n🤖 PINKERTAPE SENTINEL (INTERACTIVE MODE) ONLINE");
+console.log("🔊 Neural Interface: Listening for Mentions...");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
 async function startPatrol() {
+    // 1. Identification: Who am I? (Get Bot ID for listening)
+    let botId = null;
+    try {
+        const me = await twitterClient.v2.me();
+        botId = me.data.id;
+        console.log(`🆔 Identity Confirmed: @${me.data.username} (${botId})`);
+    } catch (e) {
+        console.error("❌ Twitter Auth Failed. Check Keys.");
+        return;
+    }
+
     console.log("...Initializing Scan Protocols...");
     
     // Initial Checks
     await checkTargets(); 
-    await checkPriceVolatility(); 
+    await checkPriceVolatility();
+    
+    // ⚠️ Start Listening (Initial check)
+    await checkMentions(botId);
 
     // Schedule Loops
-    setInterval(checkTargets, 15000);         // Whales (15s)
-    setInterval(checkPriceVolatility, 60000); // Price (60s)
-    setInterval(checkDailyBriefing, 60000);   // Briefing Checker (60s)
+    setInterval(checkTargets, 15000);             // Whales (15s)
+    setInterval(checkPriceVolatility, 60000);     // Price (60s)
+    setInterval(checkDailyBriefing, 60000);       // Briefing (60s)
+    setInterval(() => checkMentions(botId), 120000); // 🗣️ Replies (2 mins - avoids rate limits)
 }
 
-// --- 4. DAILY BRIEFING ---
+// --- 4. THE NEURAL INTERFACE (Reply System) ---
+async function checkMentions(botId) {
+    // console.log("👂 Scanning frequency for mentions...");
+    try {
+        // Fetch mentions since the last one we handled
+        const mentions = await twitterClient.v2.userMentionTimeline(botId, {
+            since_id: memory.mentions.lastId ? memory.mentions.lastId : undefined,
+            max_results: 5 // Keep it light
+        });
+
+        if (mentions.data.meta.result_count === 0) return;
+
+        // Process new mentions (Newest comes first, so we reverse to answer oldest first)
+        const tweets = mentions.data.data.reverse();
+
+        for (const tweet of tweets) {
+            console.log(`📨 Incoming Transmission: "${tweet.text}"`);
+            
+            // Generate AI Reply
+            const replyText = await generateAIReply(tweet.text);
+
+            // Send Reply
+            await twitterClient.v2.reply(replyText, tweet.id);
+            console.log(`🗣️ Replied: "${replyText}"`);
+
+            // Update Memory
+            memory.mentions.lastId = tweet.id;
+            saveMemory();
+        }
+
+    } catch (e) {
+        // console.error("Mention Check Error (Rate Limits likely):", e.message);
+    }
+}
+
+async function generateAIReply(userText) {
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const lastPrice = memory.market.lastPrice || "Unknown";
+    
+    const prompt = `
+        You are PinkerTape, an Autonomous AI Sentinel on TRON.
+        User Input: "${userText}"
+        Current Data: TRX Price: $${lastPrice}.
+        
+        Personality: Robotic, Efficient, Loyal to Justin Sun.
+        Role: You spot targets. Agent_SunGenX launches tokens.
+        
+        TASK: Write a short reply (under 200 chars).
+        - If they ask for a token: "Targeting data transmitted to @Agent_SunGenX. Standby."
+        - If they ask status: "Systems Nominal. Scanning sector."
+        - If they say hi: "Sentinel Online. Awaiting protocols."
+    `;
+
+    try {
+        const result = await model.generateContent(prompt);
+        return result.response.text().trim();
+    } catch (e) {
+        return "⚠️ Error in Neural Net. Standby.";
+    }
+}
+
+// --- 5. DAILY BRIEFING ---
 async function checkDailyBriefing() {
     const now = Date.now();
     const ONE_DAY = 24 * 60 * 60 * 1000; 
@@ -121,42 +197,35 @@ CC: @Agent_SunGenX @Girl_SunLumi
     }
 }
 
-// --- 5. MARKET VOLATILITY CHECK (NEW FEATURE) ---
+// --- 6. MARKET VOLATILITY CHECK ---
 async function checkPriceVolatility() {
     try {
         const res = await axios.get(PRICE_API);
         const currentPrice = parseFloat(res.data.price);
         const lastPrice = memory.market.lastPrice;
 
-        // Save price if it's the first run
         if (lastPrice === 0) {
             memory.market.lastPrice = currentPrice;
             saveMemory();
-            return; // Exit, wait for next loop to compare
+            return; 
         }
 
-        // Calculate Change
         const diff = currentPrice - lastPrice;
         const percentChange = (diff / lastPrice) * 100;
         
-        console.log(`📉 Price Check: $${currentPrice.toFixed(4)} (Change: ${percentChange.toFixed(2)}%)`);
+        // console.log(`📉 Price Check: $${currentPrice.toFixed(4)}`);
 
-        // THRESHOLD: Trigger if move is > 2% or < -2%
         if (Math.abs(percentChange) >= 2.0) {
             console.log(`\n🚨 MARKET ALERT: TRX MOVED ${percentChange.toFixed(2)}%`);
             await analyzeMarketVol(currentPrice, percentChange);
-            
-            // Update memory so we don't alert again until another 2% move happens
             memory.market.lastPrice = currentPrice;
             saveMemory();
         }
 
-    } catch (e) {
-        console.error("⚠️ Price Check Error:", e.message);
-    }
+    } catch (e) { /* Price API flakiness ignored */ }
 }
 
-// --- 6. WHALE & VIP CHECK LOGIC ---
+// --- 7. WHALE & VIP CHECK LOGIC ---
 async function checkTargets() {
     memory.stats.totalScans += WATCH_LIST.length; 
     saveMemory(); 
@@ -198,11 +267,9 @@ async function checkTargets() {
     }
 }
 
-// --- 7. AI ANALYSIS: MARKET VOLATILITY ---
+// --- 8. AI ANALYSIS: MARKET ---
 async function analyzeMarketVol(price, percent) {
-    console.log("...Consulting Gemini 3 on Market Action...");
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-
     const direction = percent > 0 ? "SURGE" : "CRASH";
     const prompt = `
         You are PinkerTape, an Autonomous AI Sentinel on TRON.
@@ -211,9 +278,7 @@ async function analyzeMarketVol(price, percent) {
         TASK:
         1. Create a "Rally" or "Panic" alert.
         2. Create a Ticker: e.g., $SHIELD or $ROCKET.
-        3. DESIGN A VISUAL: Detailed Cyberpunk/Tron visual.
-           - If CRASH: "Red neon shields activating, digital defense wall"
-           - If SURGE: "Green lasers shooting up, futuristic bull market city"
+        3. DESIGN A VISUAL: detailed Cyberpunk/Tron visual description.
 
         OUTPUT JSON:
         {
@@ -230,17 +295,14 @@ async function analyzeMarketVol(price, percent) {
         const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const analysis = JSON.parse(text);
         
-        // Reuse the defense execution function
         await executeRealDefense(analysis, `TRX PRICE`, direction, "MARKET_EVENT", false);
 
     } catch(e) { console.error("AI Market Error:", e.message); }
 }
 
-// --- 8. AI ANALYSIS: WHALES & VIPs ---
+// --- 9. AI ANALYSIS: WHALES ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
-    console.log("...Consulting Gemini 3 on Whale Action...");
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-
     let contextStr = `Analyze whale movement.`;
     if (vipMatch) contextStr = `CRITICAL: Sender is ${vipMatch.name}. Tone: "COMMANDER ALERT".`;
 
@@ -253,7 +315,7 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         TASK:
         1. Determine Risk Level. If VIP, Risk = "STRATEGIC".
         2. Create a reaction Token Name & Ticker.
-        3. DESIGN A VISUAL: Detailed Cyberpunk/Tron visual description.
+        3. DESIGN A VISUAL: detailed Cyberpunk/Tron visual description.
 
         OUTPUT JSON:
         {
@@ -279,7 +341,7 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     } catch (e) { console.error("AI Error:", e.message); }
 }
 
-// --- 9. EXECUTION (RENDER & TWEET) ---
+// --- 10. EXECUTION ---
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
@@ -294,23 +356,45 @@ ${header}
 Data: ${amount.toLocaleString()} ${tokenName}
 Analysis: ${analysis.reason}
 
-Requesting @Agent__SunGenX deployment:
+Requesting @Agent_SunGenX deployment:
 Name: ${analysis.tokenName}
 Ticker: $${analysis.ticker}
 
 Requesting @Girl_SunLumi analytics:
-#TRON #PinkerTape #ID${uniqueID}
+#TRON #PinkerTape #AI #ID${uniqueID}
     `.trim();
 
+    let mediaIds = [];
+
+    // --- 🎨 IMAGE GENERATION ---
     try {
-        const tweet = await twitterClient.v2.tweet(statusText);
+        console.log("🎨 Rendering Gemini's Vision...");
+        const encodedPrompt = encodeURIComponent(analysis.imagePrompt + ", 3D render, futuristic, tron legacy style, neon, 4k");
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&width=1024&height=1024`;
+        
+        const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        
+        const mediaId = await twitterClient.v1.uploadMedia(Buffer.from(imageBuffer.data), { mimeType: 'image/jpeg' });
+        mediaIds = [mediaId];
+        console.log("✅ Image Uploaded to Twitter Media.");
+
+    } catch (imgError) {
+        console.error("⚠️ Visual Render Failed:", imgError.message);
+    }
+
+    try {
+        const tweet = await twitterClient.v2.tweet({
+            text: statusText,
+            media: mediaIds.length > 0 ? { media_ids: mediaIds } : undefined
+        });
+
         console.log(`✅ TWEET POSTED! ID: ${tweet.data.id}`);
         
         const alertData = {
             timestamp: new Date().toISOString(),
             token: tokenName,
             isVIP: !!vipMatch,
-            amount: amount.toLocaleString(),
+            amount: amount,
             risk: analysis.risk,
             tweet: statusText
         };
