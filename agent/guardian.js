@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: INTELLIGENCE UPGRADE (Smarter Analysis) */
+/* agent/guardian.js - VERSION: UNIQUE FALLBACKS (Never the same name twice) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -19,7 +19,7 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const TRON_API = "https://api.trongrid.io"; 
 const PRICE_API = "https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT";
 
-// 🧠 MODEL: Using 1.5 Flash (Fast & reliable)
+// 🧠 MODEL: Using 1.5 Flash
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
 // Twitter Client
@@ -67,8 +67,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (INTELLIGENCE MODE) ONLINE");
-console.log("🧠 Status: Tactical Analysis Active");
+console.log("\n🤖 PINKERTAPE SENTINEL (UNIQUE FALLBACK MODE) ONLINE");
+console.log("🧠 Status: Advanced Procedural Generation Active");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -133,7 +133,7 @@ async function checkMentions(botId) {
 }
 
 async function generateAIReply(userText) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const lastPrice = memory.market.lastPrice || "Unknown";
     
     const prompt = `
@@ -251,7 +251,7 @@ async function checkTargets() {
 
 // --- 8. AI ANALYSIS: MARKET ---
 async function analyzeMarketVol(price, percent) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const direction = percent > 0 ? "SURGE" : "CRASH";
     const prompt = `
         You are PinkerTape. TRX Price ${direction}! Moved ${percent.toFixed(2)}%.
@@ -270,12 +270,11 @@ async function analyzeMarketVol(price, percent) {
 // --- 9. AI ANALYSIS: WHALES ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     console.log(`🚨 WHALE DETECTED: ${target.name}`);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     
     let contextStr = `Analyze whale movement.`;
     if (vipMatch) contextStr = `CRITICAL: Sender is ${vipMatch.name}. Tone: "COMMANDER ALERT".`;
 
-    // 🚀 NEW PROMPT: Forces TACTICAL ANALYSIS
     const prompt = `
         You are PinkerTape, an Advanced Military AI on TRON.
         EVENT: Scanned Token: ${target.name}, Amount: ${amount.toLocaleString()}
@@ -285,8 +284,7 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         TASK:
         1. ANALYZE the move. Do not just say "Whale moved". 
            - SPECULATE INTENT: Is it "Accumulation", "Liquidity Injection", "Panic Sell", "Cold Storage", or "Testing"?
-           - Use cool Cyberpunk/Military phrasing.
-        2. INVENT a unique Defense Unit Name that sounds advanced (e.g., "Aegis-7", "Iron_Sentinel", "Ghost-Protocol").
+        2. INVENT a unique Defense Unit Name (e.g., "Aegis-7", "Iron_Sentinel", "Ghost-Protocol").
         3. CREATE a unique ticker (e.g., $AEGIS, $IRON, $GHST).
         
         OUTPUT JSON ONLY:
@@ -307,12 +305,19 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         await executeRealDefense(analysis, amount, target.name, tx.transaction_id, vipMatch);
 
     } catch (e) {
-        // Fallback
+        // ⚠️ FALLBACK MODE (If AI fails, we mathematically generate a name)
+        console.error("⚠️ AI Failed - Engaging Procedural Backup:", e.message);
+        
+        const suffixes = ["Alpha", "Prime", "Core", "Flux", "Nexus", "Vanguard"];
+        const randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+        const randomNum = Math.floor(Math.random() * 999);
+        const randomTicker = "DEF" + Math.floor(Math.random() * 99);
+
         const emergencyAnalysis = {
             risk: "HIGH",
-            reason: `Large volumetric shift detected on ${target.name}. Monitoring.`,
-            tokenName: "PinkerGuard Alpha",
-            ticker: "GUARD"
+            reason: `Huge volumetric shift detected on ${target.name}. Strategic monitoring active.`,
+            tokenName: `Sentinel-${randomSuffix}-${randomNum}`, // e.g. Sentinel-Prime-823
+            ticker: randomTicker
         };
         await executeRealDefense(emergencyAnalysis, amount, target.name, tx.transaction_id, vipMatch);
     }
@@ -322,6 +327,7 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     
+    // ANTI-DUPLICATE HASH
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
     const timeHash = new Date().toLocaleTimeString();
 
@@ -331,7 +337,7 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
 
     const displayName = analysis.tokenName || "Protocol Alpha";
 
-    // ✅ NEW STATUS TEXT FORMAT
+    // ✅ STATUS TEXT
     const statusText = `
 ${header}
 
@@ -360,6 +366,7 @@ CC: @Girl_SunLumi
 
         const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' });
         
+        // RoboHash returns PNG
         const mediaId = await twitterClient.v1.uploadMedia(Buffer.from(imageBuffer.data), { mimeType: 'image/png' });
         mediaIds = [mediaId];
         console.log("✅ Avatar Uploaded.");
