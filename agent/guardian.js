@@ -1,4 +1,4 @@
-/* agent/guardian.js - FINAL ROBUST VERSION (Auto-Fix + Visuals) */
+/* agent/guardian.js - VERSION: DAILY BRIEFING + WHALE ALERTS */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -36,28 +36,37 @@ const WATCH_LIST = [
     { name: "WIN", address: "TLa2f6J26qCmf6ELRRnPaMHgck0dPrQtqK", decimals: 6, threshold: 500000 }
 ];
 
-// --- 2. MEMORY SYSTEM (Self-Healing) ---
+// --- 2. MEMORY SYSTEM (Self-Healing + Stats) ---
 const MEMORY_FILE = path.join(__dirname, 'agent_memory.json');
-let memory = { handledTx: [], alerts: [] };
+let memory = { 
+    handledTx: [], 
+    alerts: [],
+    stats: { totalScans: 0, lastBriefing: Date.now() } // Default to 'now' so we wait 24h for first tweet
+};
 
-// Robust Load: If file is corrupt or empty, this resets it automatically
-// so you never have to manually delete 'agent_memory.json'
+// Robust Load
 try {
     if (fs.existsSync(MEMORY_FILE)) {
         const rawData = fs.readFileSync(MEMORY_FILE, 'utf8');
         if (rawData.trim()) {
-            memory = JSON.parse(rawData);
+            const loaded = JSON.parse(rawData);
+            memory = { ...memory, ...loaded }; // Merge defaults with loaded data
+            if (!memory.stats) memory.stats = { totalScans: 0, lastBriefing: Date.now() };
         }
     }
 } catch (e) {
     console.log("⚠️ Memory File Corrupt. Auto-healing...");
-    memory = { handledTx: [], alerts: [] };
+    // Keep defaults
+}
+
+function saveMemory() {
+    fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2));
 }
 
 // Initialize AI
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
-console.log("\n🤖 PINKERTAPE SENTINEL (STABLE MODE) ONLINE");
+console.log("\n🤖 PINKERTAPE SENTINEL (LIVE + DAILY REPORTING) ONLINE");
 console.log(`👁️  Connected to TRON Mainnet.`);
 console.log(`🐦 Twitter Relay: ACTIVE`);
 console.log("----------------------------------------------------\n");
@@ -65,12 +74,67 @@ console.log("----------------------------------------------------\n");
 // --- 3. MAIN LOOP ---
 async function startPatrol() {
     console.log("...Scanning Blockchain Mempool...");
+    
+    // Initial Run
     await checkTargets();
+    
+    // 15 Second Loop for Alerts
     setInterval(checkTargets, 15000); 
+
+    // 60 Second Loop for Daily Briefing Check
+    setInterval(checkDailyBriefing, 60000);
 }
 
-// --- 4. CHECK LOGIC ---
+// --- 4. DAILY BRIEFING LOGIC ---
+async function checkDailyBriefing() {
+    const now = Date.now();
+    const ONE_DAY = 24 * 60 * 60 * 1000; // 24 Hours in milliseconds
+    const timeSince = now - memory.stats.lastBriefing;
+
+    // Optional Log to let you know it checks
+    // console.log(`⏳ Time until Daily Briefing: ${((ONE_DAY - timeSince)/1000/60/60).toFixed(1)} hours`);
+
+    if (timeSince > ONE_DAY) {
+        console.log("\n📜 GENERATING DAILY SECURITY BRIEFING...");
+        
+        const uniqueID = Math.floor(Math.random() * 9000);
+        const scans = memory.stats.totalScans || 0;
+        
+        const briefingText = `
+🛡️ DAILY SECURITY REPORT
+
+✅ System Status: ONLINE
+📡 Scans Performed: ${scans.toLocaleString()}
+🌊 Sector Threat Level: STABLE
+
+Scanning for Whale movements and Anomalies.
+CC: @Agent_SunGenX @Girl_SunLumi
+
+#TRON #PinkerTape #Security #ID${uniqueID}
+        `.trim();
+
+        try {
+            const tweet = await twitterClient.v2.tweet(briefingText);
+            console.log(`✅ DAILY BRIEFING POSTED! ID: ${tweet.data.id}`);
+            
+            // Reset Stats after successful tweet
+            memory.stats.lastBriefing = now;
+            memory.stats.totalScans = 0;
+            saveMemory();
+
+        } catch (e) {
+            console.error("❌ BRIEFING ERROR:", e.message);
+        }
+        console.log("----------------------------------------------------\n");
+    }
+}
+
+// --- 5. CHECK LOGIC (ALERT SYSTEM) ---
 async function checkTargets() {
+    // Increment scan counter for the Daily Report
+    memory.stats.totalScans += WATCH_LIST.length; 
+    saveMemory(); // Save stats increment
+
     for (const target of WATCH_LIST) {
         const url = `${TRON_API}/v1/contracts/${target.address}/events?event_name=Transfer&limit=5`;
         try {
@@ -80,10 +144,9 @@ async function checkTargets() {
             const events = res.data.data;
 
             for (const tx of events) {
-                // VISUAL HEARTBEAT: Checks if we already processed this.
+                // VISUAL HEARTBEAT
                 if (memory.handledTx.includes(tx.transaction_id)) {
-                    // This log proves the bot is running, even if it does nothing
-                    console.log(`➡️  [SKIP] Known TX: ${target.name} (${tx.transaction_id.slice(0,5)}...)`);
+                    // console.log(`➡️  [SKIP] Known TX: ${target.name}`); // Uncomment if you want spam
                     continue;
                 }
 
@@ -99,17 +162,16 @@ async function checkTargets() {
                     await analyzeRisk(tx, readableAmount, target);
                 }
 
-                // Add to memory immediately
+                // Add to memory
                 memory.handledTx.push(tx.transaction_id);
-                // Keep file size healthy (last 200 items)
                 if (memory.handledTx.length > 200) memory.handledTx.shift(); 
-                fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2));
+                saveMemory();
             }
         } catch (e) { /* ignore network blips */ }
     }
 }
 
-// --- 5. AI ANALYSIS LOGIC ---
+// --- 6. AI ANALYSIS LOGIC ---
 async function analyzeRisk(tx, amount, target) {
     console.log("...Consulting Gemini Brain...");
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
@@ -129,8 +191,7 @@ async function analyzeRisk(tx, amount, target) {
         TASK:
         1. Determine Risk Level (HIGH/MEDIUM).
         2. Create a specific, catchy Ticker and Name for a reaction token.
-        3. Write a Tweet requesting action from Agent_SunGenX.
-        4. Write a Tweet requesting action from Girl_SunLumi
+        3. Write a short tweet.
 
         OUTPUT FORMAT (JSON ONLY):
         {
@@ -160,14 +221,14 @@ async function analyzeRisk(tx, amount, target) {
     }
 }
 
-// --- 6. EXECUTION & TWEETING ---
+// --- 7. EXECUTION & TWEETING ---
 async function executeRealDefense(analysis, amount, tokenName, txID) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     
     // ✅ UNIQUE ID avoids duplicate error
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
 
-    // 🔥 "TAG & LAUNCH" FORMAT (Tag is in body to allow posting)
+    // 🔥 TAGS BOTH AGENTS
     const statusText = `
 🚨 ${tokenName} MOVEMENT DETECTED 🚨
 
@@ -179,7 +240,6 @@ Name: ${analysis.tokenName}
 Ticker: $${analysis.ticker}
 
 Requesting @Girl_SunLumi analytics:
-
 #TRON #PinkerTape #ID${uniqueID}
     `.trim();
 
@@ -187,7 +247,7 @@ Requesting @Girl_SunLumi analytics:
         const tweet = await twitterClient.v2.tweet(statusText);
         console.log(`✅ TWEET POSTED! ID: ${tweet.data.id}`);
         
-        // 2. DASHBOARD LOGGING
+        // Dashboard Log
         const alertData = {
             timestamp: new Date().toISOString(),
             token: tokenName,
@@ -201,7 +261,7 @@ Requesting @Girl_SunLumi analytics:
         if (!memory.alerts) memory.alerts = [];
         memory.alerts.unshift(alertData);
         if (memory.alerts.length > 20) memory.alerts.pop();
-        fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2));
+        saveMemory();
 
     } catch (e) {
         console.error("❌ TWITTER API ERROR:", e.message);
