@@ -64,7 +64,7 @@ function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, nul
 
 console.log("\n🤖 PINKERTAPE SENTINEL (GEMINI VISUAL MODE) ONLINE");
 console.log(`👑 Watching VIP: Justin Sun`);
-console.log("🎨 Images: Architected by Gemini 1.5");
+console.log("🎨 Images: Architected by Gemini 3");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
