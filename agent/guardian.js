@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: MATRIX MODE (Visuals Restored + Interaction) */
+/* agent/guardian.js - VERSION: MATRIX MODE + NO SELF-TALK FIX */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -70,7 +70,7 @@ try {
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
 console.log("\n🤖 PINKERTAPE SENTINEL (MATRIX MODE) ONLINE");
-console.log("🔊 Neural Interface: Listening for Mentions...");
+console.log("🔊 Neural Interface: Listening (Self-Talk Filter Active)");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -99,12 +99,13 @@ async function startPatrol() {
     setInterval(() => checkMentions(botId), 120000); // Replies (2 mins)
 }
 
-// --- 4. THE NEURAL INTERFACE (Replies) ---
+// --- 4. THE NEURAL INTERFACE (With Self-Talk Protection) ---
 async function checkMentions(botId) {
     try {
         const mentions = await twitterClient.v2.userMentionTimeline(botId, {
             since_id: memory.mentions.lastId ? memory.mentions.lastId : undefined,
-            max_results: 5 
+            max_results: 5,
+            'tweet.fields': ['author_id', 'text'] // ✅ Request Author ID
         });
 
         if (mentions.data.meta.result_count === 0) return;
@@ -112,7 +113,16 @@ async function checkMentions(botId) {
         const tweets = mentions.data.data.reverse();
 
         for (const tweet of tweets) {
-            console.log(`📨 Incoming Transmission: "${tweet.text}"`);
+            // 🛑 STOP: IF AUTHOR IS ME, IGNORIT!
+            if (tweet.author_id === botId) {
+                // Update memory to skip this one next time, but DO NOT REPLY
+                memory.mentions.lastId = tweet.id;
+                saveMemory();
+                continue;
+            }
+
+            console.log(`📨 Incoming Transmission from ${tweet.author_id}: "${tweet.text}"`);
+            
             const replyText = await generateAIReply(tweet.text);
             await twitterClient.v2.reply(replyText, tweet.id);
             console.log(`🗣️ Replied: "${replyText}"`);
@@ -133,7 +143,7 @@ async function generateAIReply(userText) {
         User Input: "${userText}"
         Context: TRX Price: $${lastPrice}.
         Personality: Robotic, Efficient. 
-        TASK: Write a reply under 200 chars. 
+        TASK: Write a reply under 200 chars. Do not use hashtags if not needed.
     `;
 
     try {
@@ -201,7 +211,7 @@ async function checkPriceVolatility() {
     } catch (e) { /* ignore */ }
 }
 
-// --- 7. WHALE & VIP CHECK LOGIC (FIXED TERMINAL LOGS) ---
+// --- 7. WHALE & VIP CHECK LOGIC (MATRIX VISUALS ACTIVE) ---
 async function checkTargets() {
     memory.stats.totalScans += WATCH_LIST.length; 
     saveMemory(); 
@@ -226,13 +236,11 @@ async function checkTargets() {
                 // CHECK IF KNOWN (BUT LOG IT ANYWAY FOR MATRIX EFFECT)
                 const isKnown = memory.handledTx.includes(tx.transaction_id);
                 
-                // 🖥️ VISUAL HEARTBEAT (Fixed)
-                // If it's old, we just log "👁️ Scan", else "🆕 Scan"
-                // This ensures scrolling text always appears
+                // 🖥️ VISUAL HEARTBEAT
                 const logSymbol = isKnown ? "👁️" : "🆕";
                 process.stdout.write(`${logSymbol} Scan: ${readableAmount.toFixed(0).padEnd(5)} ${target.name} \r`);
                 
-                if (isKnown) continue; // Skip analysis, but we already showed the log!
+                if (isKnown) continue; // Skip analysis
 
                 console.log(`\n🆕 NEW SIGNAL: ${readableAmount.toFixed(2)} ${target.name}`);
 
@@ -341,8 +349,8 @@ ${header}
 Data: ${amount.toLocaleString()} ${tokenName}
 Analysis: ${analysis.reason}
 
-Requesting @Agent__SunGenX deployment:
-Name: ${analysis.tokenName}
+Requesting @Agent_SunGenX deployment:
+Name: ${analysistokenName}
 Ticker: $${analysis.ticker}
 
 Requesting @Girl_SunLumi analytics:
