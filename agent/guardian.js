@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: VISUAL REPAIR (Resized + Browser Headers) */
+/* agent/guardian.js - VERSION: ROBO-DEFENSE (100% Uptime Images) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -67,8 +67,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (VISUAL REPAIR MODE) ONLINE");
-console.log("🎨 Image Engine: 768px (Fast Render) + Browser Masking");
+console.log("\n🤖 PINKERTAPE SENTINEL (ROBO-DEFENSE MODE) ONLINE");
+console.log("🎨 Image Engine: RoboHash (100% Uptime)");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -121,7 +121,6 @@ async function checkMentions(botId) {
             const replyText = await generateAIReply(tweet.text);
             
             if(replyText) {
-                // Add Unique Hash to prevent 403 on replies
                 const uniqueReply = `${replyText} \n[Ref:${Math.floor(Math.random()*999)}]`;
                 await twitterClient.v2.reply(uniqueReply, tweet.id);
                 console.log(`🗣️ Replied: "${uniqueReply}"`);
@@ -228,7 +227,7 @@ async function checkTargets() {
 
                 const isKnown = memory.handledTx.includes(tx.transaction_id);
                 
-                // Visual Matrix Log
+                // Visual Log
                 const logSymbol = isKnown ? "👁️" : "🆕";
                 process.stdout.write(`${logSymbol} Scan: ${readableAmount.toFixed(0).padEnd(5)} ${target.name} \r`);
                 
@@ -257,7 +256,7 @@ async function analyzeMarketVol(price, percent) {
     const prompt = `
         You are PinkerTape. TRX Price ${direction}! Moved ${percent.toFixed(2)}%.
         TASK: JSON Response Only.
-        { "risk": "VOLATILITY", "reason": "...", "tokenName": "Market Alert", "ticker": "GAP", "imagePrompt": "neon chart" }
+        { "risk": "VOLATILITY", "reason": "...", "tokenName": "Market Alert", "ticker": "GAP" }
     `;
 
     try {
@@ -276,7 +275,6 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     let contextStr = `Analyze whale movement.`;
     if (vipMatch) contextStr = `CRITICAL: Sender is ${vipMatch.name}. Tone: "COMMANDER ALERT".`;
 
-    // 🚀 CREATIVE PROMPT: FORCES NEW NAMES
     const prompt = `
         You are PinkerTape, AI Sentinel on TRON.
         EVENT: Scanned Token: ${target.name}, Amount: ${amount.toLocaleString()}
@@ -287,15 +285,13 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         1. INVENT a Defensive Token Name. DO NOT USE "${target.name}".
            Examples: "Whale Shield", "Cyber Aegis", "Iron Wall", "Sun Guard".
         2. Create a 4-letter Ticker (e.g., $SHLD, $WALL).
-        3. Write a tiny Image Prompt (Max 4 words).
         
         OUTPUT JSON ONLY:
         { 
             "risk": "HIGH", 
             "reason": "Whale moved ${amount.toLocaleString()} ${target.name}", 
             "tokenName": "INVENT A NEW NAME HERE", 
-            "ticker": "TICKER", 
-            "imagePrompt": "Neon Shield Glowing" 
+            "ticker": "TICKER"
         }
     `;
 
@@ -305,7 +301,6 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         const analysis = JSON.parse(text);
 
         console.log("🧠 GEMINI DECISION:", analysis.tokenName, `(${analysis.ticker})`);
-
         await executeRealDefense(analysis, amount, target.name, tx.transaction_id, vipMatch);
 
     } catch (e) {
@@ -314,8 +309,7 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
             risk: "HIGH",
             reason: `Huge ${target.name} movement.`,
             tokenName: "PinkerGuard Protocol",
-            ticker: "GUARD",
-            imagePrompt: "Cyberpunk shield neon"
+            ticker: "GUARD"
         };
         await executeRealDefense(emergencyAnalysis, amount, target.name, tx.transaction_id, vipMatch);
     }
@@ -352,31 +346,22 @@ CC: @Girl_SunLumi
 
     let mediaIds = [];
 
-    // --- 🎨 IMAGE GENERATION (FIXED) ---
+    // --- 🎨 IMAGE GENERATION: ROBO-HASH (100% UPTIME) ---
     try {
-        console.log("🎨 Rendering Gemini's Vision...");
+        console.log("🎨 Rendering Guardian Avatar...");
         
-        const safePrompt = analysis.imagePrompt ? analysis.imagePrompt.slice(0, 50) : "Cyberpunk data block";
-        const encodedPrompt = encodeURIComponent(safePrompt + " futuristic neon 3d render");
+        // Use the Unique Ticker to generate a Unique Robot
+        const uniqueKey = analysis.ticker + uniqueID;
+        const imageUrl = `https://robohash.org/${uniqueKey}.png?set=set1&bgset=bg1&size=600x600`;
         
-        // 🛠️ FIX #1: REDUCED SIZE (768x768) + RANDOM SEED
-        const seed = Math.floor(Math.random() * 1000000);
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&width=768&height=768&seed=${seed}`;
-        
-        console.log(`🔎 Debug URL: ${imageUrl}`); // You can click this if it fails!
+        console.log(`🔎 Generated: ${imageUrl}`); 
 
-        // 🛠️ FIX #2: BROWSER HEADERS (Pretends to be Chrome to avoid blocking)
-        const imageBuffer = await axios.get(imageUrl, { 
-            responseType: 'arraybuffer',
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            },
-            timeout: 20000 // 20s Timeout
-        });
+        const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' });
         
-        const mediaId = await twitterClient.v1.uploadMedia(Buffer.from(imageBuffer.data), { mimeType: 'image/jpeg' });
+        // ⚠️ NOTE: RoboHash returns PNG, so we tell Twitter it is PNG
+        const mediaId = await twitterClient.v1.uploadMedia(Buffer.from(imageBuffer.data), { mimeType: 'image/png' });
         mediaIds = [mediaId];
-        console.log("✅ Image Uploaded to Twitter Media.");
+        console.log("✅ Robot Avatar Uploaded.");
 
     } catch (imgError) {
         console.error(`⚠️ Visual Render Failed: ${imgError.message}`);
