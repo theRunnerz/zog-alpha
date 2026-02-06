@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: ALL SYSTEMS GO (Typo Fixed) */
+/* agent/guardian.js - VERSION: STABLE (Typo Fixed + 403 Helper) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -61,16 +61,14 @@ try {
         if (rawData.trim()) {
             const loaded = JSON.parse(rawData);
             memory = { ...memory, ...loaded };
-            if (!memory.mentions) memory.mentions = { lastId: null };
-            if (!memory.market) memory.market = { lastPrice: 0 };
         }
     }
-} catch (e) { console.log("⚠️ Memory Logic Reset"); }
+} catch (e) { console.log("⚠️ Memory Reset"); }
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (MATRIX MODE) ONLINE");
-console.log("🔊 Neural Interface: Active (Self-Talk Filter ON)");
+console.log("\n🤖 PINKERTAPE SENTINEL (STABLE MODE) ONLINE");
+console.log("🔊 Neural Interface: Active");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -79,9 +77,10 @@ async function startPatrol() {
     try {
         const me = await twitterClient.v2.me();
         botId = me.data.id;
-        console.log(`🆔 Identity Confirmed: @${me.data.username} (${botId})`);
+        console.log(`🆔 Identity Confirmed: @${me.data.username}`);
     } catch (e) {
-        console.error("❌ Twitter Auth Failed. Check Keys.");
+        console.error("❌ TWITTER KEY ERROR. Check .env.local");
+        if(e.code === 403) console.log("🚨 HINT: You might need to change App Permissions to 'Read & Write' and REGENERATE keys.");
         return;
     }
 
@@ -93,13 +92,13 @@ async function startPatrol() {
     await checkMentions(botId);
 
     // Loop Intervals
-    setInterval(checkTargets, 15000);             // Scans Blockchain (15s)
-    setInterval(checkPriceVolatility, 60000);     // Scans Price (60s)
-    setInterval(checkDailyBriefing, 60000);       // Checks Schedule (60s)
-    setInterval(() => checkMentions(botId), 120000); // Replies (2 mins)
+    setInterval(checkTargets, 15000);             
+    setInterval(checkPriceVolatility, 60000);     
+    setInterval(checkDailyBriefing, 60000);       
+    setInterval(() => checkMentions(botId), 120000); 
 }
 
-// --- 4. THE NEURAL INTERFACE (With Self-Talk Protection) ---
+// --- 4. THE NEURAL INTERFACE ---
 async function checkMentions(botId) {
     try {
         const mentions = await twitterClient.v2.userMentionTimeline(botId, {
@@ -113,24 +112,24 @@ async function checkMentions(botId) {
         const tweets = mentions.data.data.reverse();
 
         for (const tweet of tweets) {
-            // 🛑 STOP: IF AUTHOR IS ME, SKIP!
-            if (tweet.author_id === botId) {
+            if (tweet.author_id === botId) { // No Self-Talk
                 memory.mentions.lastId = tweet.id;
                 saveMemory();
                 continue;
             }
 
-            console.log(`📨 Incoming Transmission from ${tweet.author_id}: "${tweet.text}"`);
-            
+            console.log(`📨 Incoming: "${tweet.text}"`);
             const replyText = await generateAIReply(tweet.text);
-            await twitterClient.v2.reply(replyText, tweet.id);
-            console.log(`🗣️ Replied: "${replyText}"`);
+            
+            if(replyText) {
+                await twitterClient.v2.reply(replyText, tweet.id);
+                console.log(`🗣️ Replied: "${replyText}"`);
+            }
 
             memory.mentions.lastId = tweet.id;
             saveMemory();
         }
-
-    } catch (e) { /* Ignore rate limits/no data */ }
+    } catch (e) { /* Quiet fail */ }
 }
 
 async function generateAIReply(userText) {
@@ -138,17 +137,16 @@ async function generateAIReply(userText) {
     const lastPrice = memory.market.lastPrice || "Unknown";
     
     const prompt = `
-        You are PinkerTape, an Autonomous AI Sentinel on TRON.
+        You are PinkerTape, an AI Sentinel on TRON.
         User Input: "${userText}"
         Context: TRX Price: $${lastPrice}.
-        Personality: Robotic, Efficient. 
-        TASK: Write a reply under 200 chars. Do not use hashtags.
+        Reply Personality: Robotic, Efficient. Under 200 chars. No hashtags.
     `;
 
     try {
         const result = await model.generateContent(prompt);
         return result.response.text().trim();
-    } catch (e) { return "⚠️ Neural Link Error."; }
+    } catch (e) { return null; }
 }
 
 // --- 5. DAILY BRIEFING ---
@@ -163,14 +161,10 @@ async function checkDailyBriefing() {
         
         const briefingText = `
 🛡️ DAILY SECURITY REPORT
-
 ✅ System Status: ONLINE
 📡 Scans: ${scans.toLocaleString()}
 🌊 Threat Level: STABLE
-
-Watching for @justinsuntron movements.
 CC: @Agent_SunGenX @Girl_SunLumi
-
 #TRON #PinkerTape #ID${uniqueID}
         `.trim();
 
@@ -191,7 +185,7 @@ async function checkPriceVolatility() {
         const currentPrice = parseFloat(res.data.price);
         const lastPrice = memory.market.lastPrice;
 
-        if (lastPrice === 0) {
+        if (!lastPrice || lastPrice === 0) {
             memory.market.lastPrice = currentPrice;
             saveMemory();
             return; 
@@ -200,6 +194,7 @@ async function checkPriceVolatility() {
         const diff = currentPrice - lastPrice;
         const percentChange = (diff / lastPrice) * 100;
 
+        // Trigger on 2% moves
         if (Math.abs(percentChange) >= 2.0) {
             console.log(`\n🚨 MARKET ALERT: TRX MOVED ${percentChange.toFixed(2)}%`);
             await analyzeMarketVol(currentPrice, percentChange);
@@ -224,7 +219,6 @@ async function checkTargets() {
             const events = res.data.data;
 
             for (const tx of events) {
-                // CALC VALUE
                 let rawVal = parseInt(tx.result.value);
                 let divisor = Math.pow(10, target.decimals);
                 let readableAmount = rawVal / divisor;
@@ -232,14 +226,13 @@ async function checkTargets() {
                 
                 try { if (TronWeb.address) senderAddr = TronWeb.address.fromHex(senderAddr); } catch(e) {}
 
-                // CHECK IF KNOWN (BUT LOG IT ANYWAY FOR MATRIX EFFECT)
                 const isKnown = memory.handledTx.includes(tx.transaction_id);
                 
-                // 🖥️ VISUAL HEARTBEAT
+                // Matrix Visual Heartbeat
                 const logSymbol = isKnown ? "👁️" : "🆕";
                 process.stdout.write(`${logSymbol} Scan: ${readableAmount.toFixed(0).padEnd(5)} ${target.name} \r`);
                 
-                if (isKnown) continue; // Skip analysis
+                if (isKnown) continue; 
 
                 console.log(`\n🆕 NEW SIGNAL: ${readableAmount.toFixed(2)} ${target.name}`);
 
@@ -256,7 +249,7 @@ async function checkTargets() {
                 if (memory.handledTx.length > 200) memory.handledTx.shift(); 
                 saveMemory();
             }
-        } catch (e) { /* ignore network blips */ }
+        } catch (e) { /* ignore */ }
     }
 }
 
@@ -265,31 +258,17 @@ async function analyzeMarketVol(price, percent) {
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const direction = percent > 0 ? "SURGE" : "CRASH";
     const prompt = `
-        You are PinkerTape, an Autonomous AI Sentinel on TRON.
-        EVENT: TRX Price ${direction}! Moved ${percent.toFixed(2)}%. Current Price: $${price}.
-        TASK:
-        1. Create a "Rally" or "Panic" alert.
-        2. Create a Ticker: e.g., $SHIELD or $ROCKET.
-        3. DESIGN A VISUAL for Pollinations.
-        
-        OUTPUT JSON:
-        {
-            "risk": "VOLATILITY",
-            "reason": "Market moving fast.",
-            "tokenName": "Market Reaction Token",
-            "ticker": "TICKER",
-            "imagePrompt": "Visual description"
-        }
+        You are PinkerTape, an AI Sentinel on TRON.
+        EVENT: TRX Price ${direction}! Moved ${percent.toFixed(2)}%.
+        TASK: JSON Response { "risk": "VOLATILITY", "reason": "...", "tokenName": "Market Alert", "ticker": "GAP", "imagePrompt": "Cyberpunk market graph" }
     `;
 
     try {
         const result = await model.generateContent(prompt);
         const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const analysis = JSON.parse(text);
-        
         await executeRealDefense(analysis, `TRX PRICE`, direction, "MARKET_EVENT", false);
-
-    } catch(e) { console.error("AI Market Error:", e.message); }
+    } catch(e) { console.error("AI Market Error"); }
 }
 
 // --- 9. AI ANALYSIS: WHALES ---
@@ -303,20 +282,7 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         EVENT: Asset: ${target.name}, Amount: ${amount.toLocaleString()}
         SENDER: ${sender} ${vipMatch ? `(IDENTITY: ${vipMatch.name})` : ""}
         CONTEXT: ${contextStr}
-        
-        TASK:
-        1. Determine Risk Level. If VIP, Risk = "STRATEGIC".
-        2. Create a reaction Token Name & Ticker.
-        3. DESIGN A VISUAL for Pollinations.
-
-        OUTPUT JSON:
-        {
-            "risk": "HIGH",
-            "reason": "Analysis.",
-            "tokenName": "Token Name",
-            "ticker": "TICKER",
-            "imagePrompt": "Visual description"
-        }
+        TASK: Return JSON { "risk": "HIGH", "reason": "...", "tokenName": "Name", "ticker": "TICKER", "imagePrompt": "Cyberpunk visual description" }
     `;
 
     try {
@@ -330,9 +296,7 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
             await executeRealDefense(analysis, amount, target.name, tx.transaction_id, vipMatch);
         }
 
-    } catch (e) {
-        console.error("AI Error:", e.message);
-    }
+    } catch (e) { console.error("AI Error:", e.message); }
 }
 
 // --- 10. EXECUTION ---
@@ -344,7 +308,9 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     if (vipMatch) header = `👑 COMMANDER ALERT: ${vipMatch.name} ACTIVE 👑`;
     if (tokenName === "TRX PRICE") header = `📉 MARKET VOLATILITY ALERT 📈`;
 
-    // ✅ FIXED THE TYPO HERE: analysis.tokenName
+    // ✅ FIXED: Use analysis.tokenName correctly to avoid crash
+    const displayName = analysis.tokenName || "Unknown Alert";
+
     const statusText = `
 ${header}
 
@@ -352,7 +318,7 @@ Data: ${amount.toLocaleString()} ${tokenName}
 Analysis: ${analysis.reason}
 
 Requesting @Agent_SunGenX deployment:
-Name: ${analysis.tokenName}
+Name: ${displayName}
 Ticker: $${analysis.ticker}
 
 Requesting @Girl_SunLumi analytics:
@@ -374,7 +340,7 @@ Requesting @Girl_SunLumi analytics:
         console.log("✅ Image Uploaded to Twitter Media.");
 
     } catch (imgError) {
-        console.error("⚠️ Visual Render Failed:", imgError.message);
+        console.error("⚠️ Visual Render Failed (Skipping Image):", imgError.message);
     }
 
     try {
@@ -385,22 +351,14 @@ Requesting @Girl_SunLumi analytics:
 
         console.log(`✅ TWEET POSTED! ID: ${tweet.data.id}`);
         
-        const alertData = {
-            timestamp: new Date().toISOString(),
-            token: tokenName,
-            isVIP: !!vipMatch,
-            amount: amount,
-            risk: analysis.risk,
-            tweet: statusText
-        };
-        
+        // Save to memory
         if (!memory.alerts) memory.alerts = [];
-        memory.alerts.unshift(alertData);
-        if (memory.alerts.length > 20) memory.alerts.pop();
+        memory.alerts.unshift({ timestamp: new Date(), token: tokenName });
         saveMemory();
 
     } catch (e) {
-        console.error("❌ TWITTER ERROR:", e.message);
+        console.error(`❌ TWITTER ERROR: ${e.code || e.message}`);
+        if(e.code === 403) console.log("🚨 FIX: Go to Twitter Dev Portal -> App Settings -> 'Read and Write' -> Regenerate Keys.");
     }
     
     console.log("----------------------------------------------------\n");
