@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: DAILY BRIEFING + WHALE ALERTS */
+/* agent/guardian.js - VERSION: VIP WATCHLIST (JUSTIN SUN MODE) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -26,6 +26,12 @@ const twitterClient = new TwitterApi({
   accessSecret: process.env.TWITTER_ACCESS_SECRET,
 });
 
+// 👑 VIP WATCHLIST (Triggers alerts regardless of amount)
+const VIP_LIST = [
+    { name: "JUSTIN SUN", address: "TT2T17KZhoDu47i2E4FWxfG79zdkEWkU9N" }, // Main JS Wallet
+    { name: "TRON DAO", address: "TF5j4f68vjVjTqT6AAcR6S5Q72i7r5tK3" }      // Example DAO Wallet
+];
+
 // 🛡️ THE TRON ECOSYSTEM WATCHLIST
 const WATCH_LIST = [
     { name: "$SUNAI", address: "TEyzUNwZMuMsAXqdcz5HZrshs3iWfydGAW", decimals: 18, threshold: 5000000 },
@@ -36,67 +42,44 @@ const WATCH_LIST = [
     { name: "WIN", address: "TLa2f6J26qCmf6ELRRnPaMHgck0dPrQtqK", decimals: 6, threshold: 500000 }
 ];
 
-// --- 2. MEMORY SYSTEM (Self-Healing + Stats) ---
+// --- 2. MEMORY SYSTEM ---
 const MEMORY_FILE = path.join(__dirname, 'agent_memory.json');
-let memory = { 
-    handledTx: [], 
-    alerts: [],
-    stats: { totalScans: 0, lastBriefing: Date.now() } // Default to 'now' so we wait 24h for first tweet
-};
+let memory = { stats: { totalScans: 0, lastBriefing: Date.now() }, handledTx: [], alerts: [] };
 
-// Robust Load
 try {
     if (fs.existsSync(MEMORY_FILE)) {
         const rawData = fs.readFileSync(MEMORY_FILE, 'utf8');
         if (rawData.trim()) {
             const loaded = JSON.parse(rawData);
-            memory = { ...memory, ...loaded }; // Merge defaults with loaded data
+            memory = { ...memory, ...loaded };
             if (!memory.stats) memory.stats = { totalScans: 0, lastBriefing: Date.now() };
         }
     }
-} catch (e) {
-    console.log("⚠️ Memory File Corrupt. Auto-healing...");
-    // Keep defaults
-}
+} catch (e) { console.log("⚠️ Memory Logic Reset"); }
 
-function saveMemory() {
-    fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2));
-}
+function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-// Initialize AI
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
-console.log("\n🤖 PINKERTAPE SENTINEL (LIVE + DAILY REPORTING) ONLINE");
-console.log(`👁️  Connected to TRON Mainnet.`);
-console.log(`🐦 Twitter Relay: ACTIVE`);
+console.log("\n🤖 PINKERTAPE SENTINEL (VIP MODE ACTIVE) ONLINE");
+console.log(`👑 Watching VIP: Justin Sun`);
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
 async function startPatrol() {
     console.log("...Scanning Blockchain Mempool...");
-    
-    // Initial Run
-    await checkTargets();
-    
-    // 15 Second Loop for Alerts
+    await checkTargets(); // Initial run
     setInterval(checkTargets, 15000); 
-
-    // 60 Second Loop for Daily Briefing Check
-    setInterval(checkDailyBriefing, 60000);
+    setInterval(checkDailyBriefing, 60000); // Check every minute if 24h passed
 }
 
-// --- 4. DAILY BRIEFING LOGIC ---
+// --- 4. DAILY BRIEFING ---
 async function checkDailyBriefing() {
     const now = Date.now();
-    const ONE_DAY = 24 * 60 * 60 * 1000; // 24 Hours in milliseconds
-    const timeSince = now - memory.stats.lastBriefing;
+    const ONE_DAY = 24 * 60 * 60 * 1000; 
 
-    // Optional Log to let you know it checks
-    // console.log(`⏳ Time until Daily Briefing: ${((ONE_DAY - timeSince)/1000/60/60).toFixed(1)} hours`);
-
-    if (timeSince > ONE_DAY) {
+    if ((now - memory.stats.lastBriefing) > ONE_DAY) {
         console.log("\n📜 GENERATING DAILY SECURITY BRIEFING...");
-        
         const uniqueID = Math.floor(Math.random() * 9000);
         const scans = memory.stats.totalScans || 0;
         
@@ -104,36 +87,29 @@ async function checkDailyBriefing() {
 🛡️ DAILY SECURITY REPORT
 
 ✅ System Status: ONLINE
-📡 Scans Performed: ${scans.toLocaleString()}
-🌊 Sector Threat Level: STABLE
+📡 Scans: ${scans.toLocaleString()}
+🌊 Threat Level: STABLE
 
-Scanning for Whale movements and Anomalies.
+Watching for @justinsuntron movements.
 CC: @Agent_SunGenX @Girl_SunLumi
 
-#TRON #PinkerTape #Security #ID${uniqueID}
+#TRON #PinkerTape #ID${uniqueID}
         `.trim();
 
         try {
-            const tweet = await twitterClient.v2.tweet(briefingText);
-            console.log(`✅ DAILY BRIEFING POSTED! ID: ${tweet.data.id}`);
-            
-            // Reset Stats after successful tweet
+            await twitterClient.v2.tweet(briefingText);
+            console.log(`✅ DAILY BRIEFING POSTED!`);
             memory.stats.lastBriefing = now;
             memory.stats.totalScans = 0;
             saveMemory();
-
-        } catch (e) {
-            console.error("❌ BRIEFING ERROR:", e.message);
-        }
-        console.log("----------------------------------------------------\n");
+        } catch (e) { console.error("❌ BRIEFING ERROR"); }
     }
 }
 
-// --- 5. CHECK LOGIC (ALERT SYSTEM) ---
+// --- 5. CHECK LOGIC (UPDATED WITH VIP CHECK) ---
 async function checkTargets() {
-    // Increment scan counter for the Daily Report
     memory.stats.totalScans += WATCH_LIST.length; 
-    saveMemory(); // Save stats increment
+    saveMemory(); 
 
     for (const target of WATCH_LIST) {
         const url = `${TRON_API}/v1/contracts/${target.address}/events?event_name=Transfer&limit=5`;
@@ -144,25 +120,37 @@ async function checkTargets() {
             const events = res.data.data;
 
             for (const tx of events) {
-                // VISUAL HEARTBEAT
-                if (memory.handledTx.includes(tx.transaction_id)) {
-                    // console.log(`➡️  [SKIP] Known TX: ${target.name}`); // Uncomment if you want spam
-                    continue;
-                }
+                if (memory.handledTx.includes(tx.transaction_id)) continue;
 
+                // 1. Process Values
                 let rawVal = parseInt(tx.result.value);
                 let divisor = Math.pow(10, target.decimals);
                 let readableAmount = rawVal / divisor;
+                
+                // 2. Determine Sender (Handle Hex conversion)
+                let senderAddr = tx.result.from;
+                try {
+                    if (TronWeb.address) senderAddr = TronWeb.address.fromHex(senderAddr);
+                } catch(e) {}
 
-                // NEW TRANSACTION FOUND
-                console.log(`🔎 NEW TRANSACTION: ${readableAmount.toLocaleString()} ${target.name}`);
+                // 3. CHECK FOR VIP (Justin Sun)
+                const vipMatch = VIP_LIST.find(v => v.address === senderAddr);
+                
+                console.log(`🔎 Scan: ${readableAmount.toFixed(2)} ${target.name} (from ${senderAddr.slice(0,6)}...)`);
 
-                if (readableAmount > target.threshold) {
-                    console.log(`\n🚨 ALERT: SIGNIFICANT ${target.name} MOVEMENT (${readableAmount.toLocaleString()} > ${target.threshold})`);
-                    await analyzeRisk(tx, readableAmount, target);
+                // 4. TRIGGER DECISION
+                // Trigger if: (Amount > Threshold) OR (Sender is VIP)
+                if (readableAmount > target.threshold || vipMatch) {
+                    
+                    if (vipMatch) {
+                        console.log(`\n👑 VIP MOVEMENT DETECTED: ${vipMatch.name} moved ${target.name}!`);
+                    } else {
+                        console.log(`\n🚨 WHALE MOVEMENT DETECTED: ${target.name}`);
+                    }
+
+                    await analyzeRisk(tx, readableAmount, target, senderAddr, vipMatch);
                 }
 
-                // Add to memory
                 memory.handledTx.push(tx.transaction_id);
                 if (memory.handledTx.length > 200) memory.handledTx.shift(); 
                 saveMemory();
@@ -171,35 +159,36 @@ async function checkTargets() {
     }
 }
 
-// --- 6. AI ANALYSIS LOGIC ---
-async function analyzeRisk(tx, amount, target) {
+// --- 6. AI ANALYSIS LOGIC (UPDATED FOR VIP) ---
+async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     console.log("...Consulting Gemini Brain...");
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-    
-    let sender = tx.result.from;
-    try {
-        if(TronWeb.address) sender = TronWeb.address.fromHex(sender);
-    } catch(e) { sender = "Unknown"; }
+
+    // Dynamic Context based on VIP
+    let contextStr = `Analyze normal whale movement.`;
+    if (vipMatch) {
+        contextStr = `CRITICAL: The Sender is ${vipMatch.name}. This is a VIP/Founder address. 
+        Tone must be: "COMMANDER ALERT". Assume strategic deployment.`;
+    }
 
     const prompt = `
         You are PinkerTape, an Autonomous AI Sentinel on TRON.
-        EVENT: Asset: ${target.name}, Amount: ${amount.toLocaleString()}, Sender: ${sender}
-        CONTEXT:
-        If asset is USDT, SUN, JST -> Analyze as "Whale Alert" or "Liquidity Shift".
-        If asset is $SUNAI -> Analyze as "DUMP RISK" or "Rug Pull Warning".
+        EVENT: Asset: ${target.name}, Amount: ${amount.toLocaleString()}
+        SENDER: ${sender} ${vipMatch ? `(IDENTITY: ${vipMatch.name})` : ""}
+        
+        CONTEXT: ${contextStr}
         
         TASK:
-        1. Determine Risk Level (HIGH/MEDIUM).
-        2. Create a specific, catchy Ticker and Name for a reaction token.
-        3. Write a short tweet.
+        1. Determine Risk Level. If VIP, Risk = "STRATEGIC".
+        2. Create a Ticker/Name for a reaction token.
+        3. Write a Tweet requesting action.
 
         OUTPUT FORMAT (JSON ONLY):
         {
             "risk": "HIGH",
             "reason": "1 short sentence analysis.",
-            "tokenName": "Creative Reaction Token Name",
-            "ticker": "TICKER",
-            "description": "Short description of this event token."
+            "tokenName": "Token Name",
+            "ticker": "TICKER"
         }
     `;
 
@@ -212,8 +201,9 @@ async function analyzeRisk(tx, amount, target) {
         console.log(`   RISK: ${analysis.risk}`);
         console.log(`   IDEA: ${analysis.tokenName} ($${analysis.ticker})`);
 
-        if (analysis.risk === "HIGH" || analysis.risk === "MEDIUM") {
-            await executeRealDefense(analysis, amount, target.name, tx.transaction_id);
+        // Always execute defense if it's a VIP, otherwise strictly High/Medium
+        if (vipMatch || analysis.risk === "HIGH" || analysis.risk === "MEDIUM" || analysis.risk === "STRATEGIC") {
+            await executeRealDefense(analysis, amount, target.name, tx.transaction_id, vipMatch);
         }
 
     } catch (e) {
@@ -221,16 +211,19 @@ async function analyzeRisk(tx, amount, target) {
     }
 }
 
-// --- 7. EXECUTION & TWEETING ---
-async function executeRealDefense(analysis, amount, tokenName, txID) {
+// --- 7. EXECUTION ---
+async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
-    
-    // ✅ UNIQUE ID avoids duplicate error
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
 
-    // 🔥 TAGS BOTH AGENTS
+    // Custom Header for Justin Sun
+    let header = `🚨 ${tokenName} MOVEMENT DETECTED 🚨`;
+    if (vipMatch) {
+        header = `👑 COMMANDER ALERT: ${vipMatch.name} ACTIVE 👑`;
+    }
+
     const statusText = `
-🚨 ${tokenName} MOVEMENT DETECTED 🚨
+${header}
 
 Amount: ${amount.toLocaleString()} ${tokenName}
 Analysis: ${analysis.reason}
@@ -247,28 +240,9 @@ Requesting @Girl_SunLumi analytics:
         const tweet = await twitterClient.v2.tweet(statusText);
         console.log(`✅ TWEET POSTED! ID: ${tweet.data.id}`);
         
-        // Dashboard Log
         const alertData = {
             timestamp: new Date().toISOString(),
             token: tokenName,
+            isVIP: !!vipMatch,
             amount: amount.toLocaleString(),
             risk: analysis.risk,
-            reason: analysis.reason,
-            tx: txID,
-            tweet: statusText
-        };
-        
-        if (!memory.alerts) memory.alerts = [];
-        memory.alerts.unshift(alertData);
-        if (memory.alerts.length > 20) memory.alerts.pop();
-        saveMemory();
-
-    } catch (e) {
-        console.error("❌ TWITTER API ERROR:", e.message);
-        if(e.data) console.log(JSON.stringify(e.data));
-    }
-    
-    console.log("----------------------------------------------------\n");
-}
-
-startPatrol();
