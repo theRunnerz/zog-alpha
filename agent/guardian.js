@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: HACKATHON DEMO (Bulletproof) */
+/* agent/guardian.js - VERSION: CREATIVE MODE + IMAGE FIX */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -19,7 +19,7 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const TRON_API = "https://api.trongrid.io"; 
 const PRICE_API = "https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT";
 
-// 🧠 MODEL: Using 1.5 Flash (Fastest/Most Stable)
+// 🧠 MODEL: Using 1.5-Flash (Best for creativity + JSON)
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
 // Twitter Client
@@ -67,8 +67,9 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (HACKATHON DEMO MODE) ONLINE");
-console.log("🎨 Image Engine: Pollinations (Simplified)");
+console.log("\n🤖 PINKERTAPE SENTINEL (CREATIVE MODE) ONLINE");
+console.log("🧠 Model: Gemini 1.5 Flash");
+console.log("🎨 Image Engine: Pollinations (Random Seed Active)");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -134,7 +135,7 @@ async function checkMentions(botId) {
 }
 
 async function generateAIReply(userText) {
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const lastPrice = memory.market.lastPrice || "Unknown";
     
     const prompt = `
@@ -252,7 +253,7 @@ async function checkTargets() {
 
 // --- 8. AI ANALYSIS: MARKET ---
 async function analyzeMarketVol(price, percent) {
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const direction = percent > 0 ? "SURGE" : "CRASH";
     const prompt = `
         You are PinkerTape. TRX Price ${direction}! Moved ${percent.toFixed(2)}%.
@@ -271,22 +272,32 @@ async function analyzeMarketVol(price, percent) {
 // --- 9. AI ANALYSIS: WHALES ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     console.log(`🚨 WHALE DETECTED: ${target.name}`);
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
     let contextStr = `Analyze whale movement.`;
     if (vipMatch) contextStr = `CRITICAL: Sender is ${vipMatch.name}. Tone: "COMMANDER ALERT".`;
 
+    // 🚀 IMPROVED PROMPT: Forces creativity & Short Image Prompts
     const prompt = `
         You are PinkerTape, AI Sentinel on TRON.
-        EVENT: Asset: ${target.name}, Amount: ${amount.toLocaleString()}
+        EVENT: Scanned Token: ${target.name}, Amount: ${amount.toLocaleString()}
         SENDER: ${sender} ${vipMatch ? `(IDENTITY: ${vipMatch.name})` : ""}
         CONTEXT: ${contextStr}
         
-        TASK: Return JSON Only.
-        imagePrompt: 3 words max. Example: "Neon Cyber Whale".
+        TASK:
+        1. INVENT a Defensive Token Name. DO NOT USE "${target.name}".
+           Examples: "Whale Shield", "Cyber Aegis", "Iron Wall", "Sun Guard".
+        2. Create a 4-letter Ticker (e.g., $SHLD, $WALL).
+        3. Write a tiny Image Prompt (Max 4 words).
         
-        OUTPUT JSON:
-        { "risk": "HIGH", "reason": "...", "tokenName": "Name", "ticker": "TICKER", "imagePrompt": "Neon Cyber Object" }
+        OUTPUT JSON ONLY:
+        { 
+            "risk": "HIGH", 
+            "reason": "Whale moved ${amount.toLocaleString()} ${target.name}", 
+            "tokenName": "INVENT A NEW NAME HERE", 
+            "ticker": "TICKER", 
+            "imagePrompt": "Neon Shield Glowing" 
+        }
     `;
 
     try {
@@ -296,17 +307,25 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
 
         console.log("🧠 GEMINI DECISION:", analysis.ticker);
 
-        // Always execute if VIP or High Risk
         await executeRealDefense(analysis, amount, target.name, tx.transaction_id, vipMatch);
 
-    } catch (e) { console.error("AI Error:", e.message); }
+    } catch (e) {
+        // Fallback for creative failures
+        const emergencyAnalysis = {
+            risk: "HIGH",
+            reason: `Huge ${target.name} movement.`,
+            tokenName: "PinkerGuard Protocol",
+            ticker: "GUARD",
+            imagePrompt: "Cyberpunk shield neon"
+        };
+        await executeRealDefense(emergencyAnalysis, amount, target.name, tx.transaction_id, vipMatch);
+    }
 }
 
 // --- 10. EXECUTION ---
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
     
-    // ANTI-DUPLICATE HASH (This fixes the 403)
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
     const timeHash = new Date().toLocaleTimeString();
 
@@ -314,17 +333,17 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     if (vipMatch) header = `👑 COMMANDER ALERT: ${vipMatch.name} ACTIVE 👑`;
     if (tokenName === "TRX PRICE") header = `📉 MARKET VOLATILITY ALERT 📈`;
 
-    const displayName = analysis.tokenName || "Unknown Alert";
+    const displayName = analysis.tokenName || "Protocol Alpha";
 
-    // ✅ ADDED TIMEHASH TO TWEET BODY TO PREVENT 403 BLOCKS
+    // ✅ STATUS TEXT
     const statusText = `
 ${header}
 
 Amount: ${amount.toLocaleString()}
-Info: ${analysis.reason}
+Intel: ${analysis.reason}
 
 Deploying @Agent_SunGenX:
-Name: ${displayName}
+Protocol: ${displayName}
 Ticker: $${analysis.ticker}
 
 CC: @Girl_SunLumi
@@ -333,15 +352,16 @@ CC: @Girl_SunLumi
 
     let mediaIds = [];
 
-    // --- 🎨 IMAGE GENERATION (Simplified) ---
+    // --- 🎨 IMAGE GENERATION (FIXED WITH SEED) ---
     try {
         console.log("🎨 Rendering Gemini's Vision...");
         
-        // Very Simple Prompt to avoid 502 Errors
         const safePrompt = analysis.imagePrompt ? analysis.imagePrompt.slice(0, 50) : "Cyberpunk data block";
         const encodedPrompt = encodeURIComponent(safePrompt + " futuristic neon 3d render");
         
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&width=1024&height=1024`;
+        // 🔑 SEED ADDED HERE: Ensures unique image every time to fix 502/Cached errors
+        const seed = Math.floor(Math.random() * 1000000);
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&width=1024&height=1024&seed=${seed}`;
         
         const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' });
         
@@ -361,8 +381,16 @@ CC: @Girl_SunLumi
 
         console.log(`✅ TWEET POSTED! ID: ${tweet.data.id}`);
         
+        // --- 💾 SAVE FULL DATA FOR DASHBOARD ---
         if (!memory.alerts) memory.alerts = [];
-        memory.alerts.unshift({ timestamp: new Date(), token: tokenName });
+        memory.alerts.unshift({ 
+            timestamp: new Date(), 
+            token: tokenName,
+            amount: amount,                 
+            risk: analysis.risk || "HIGH",  
+            reason: analysis.reason,        
+            tweet: statusText
+        });
         saveMemory();
 
     } catch (e) {

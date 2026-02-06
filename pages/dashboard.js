@@ -1,15 +1,15 @@
-/* pages/dashboard.js - CLIENT SIDE ONLY */
+/* pages/dashboard.js - CLIENT SIDE (Crash Fixed) */
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function GuardianDashboard() {
   const [logs, setLogs] = useState([]);
 
-  // Poll for updates every 2 seconds from the API
+  // Poll for updates every 2 seconds
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const res = await fetch('/api/logs'); // Fetches from your API file
+        const res = await fetch('/api/logs'); 
         const data = await res.json();
         if (data.alerts) setLogs(data.alerts);
       } catch (e) { console.error(e); }
@@ -44,7 +44,7 @@ export default function GuardianDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '40px' }}>
         <StatCard label="Scope" value="6 ASSETS" sub="USDT, BTT, SUN, JST..." />
         <StatCard label="Threat Level" value="ACTIVE" sub="Scanning Mempool..." color="white" />
-        <StatCard label="AI Engine" value="GEMINI-3" sub="Flash Preview" />
+        <StatCard label="AI Engine" value="GEMINI-1.5" sub="Flash Preview" />
         <StatCard label="Actions Taken" value={logs.length} sub="Real-time Interventions" color="#0f0" />
       </div>
 
@@ -67,16 +67,16 @@ export default function GuardianDashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                 <span style={{ color: '#666', fontSize: '12px' }}>{new Date(log.timestamp).toLocaleTimeString()}</span>
                 <span style={{ background: log.risk === 'HIGH' ? 'red' : 'yellow', color: 'black', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
-                  {log.risk} RISK
+                  {log.risk || 'INFO'} RISK
                 </span>
               </div>
               
               <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px', color:'#fff' }}>
-                DETECTED: {log.amount} {log.token} MOVEMENT
+                DETECTED: {log.amount || 'Unknown'} {log.token} MOVEMENT
               </div>
               
               <div style={{ background: '#111', padding: '15px', borderRadius: '5px', marginBottom: '15px', fontSize: '13px', color: '#ccc', border:'1px solid #333' }}>
-                <span style={{ color: '#0f0', fontWeight:'bold' }}>🧠 ANALYSIS:</span> "{log.reason}"
+                <span style={{ color: '#0f0', fontWeight:'bold' }}>🧠 ANALYSIS:</span> "{log.reason || 'AI Analysis pending...'}"
               </div>
 
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom:'10px' }}>
@@ -86,7 +86,8 @@ export default function GuardianDashboard() {
               </div>
 
               <div style={{ fontSize:'12px', color:'#00acee', fontStyle:'italic' }}>
-                 🐦 TWEET SENT: "{log.tweet.substring(0, 80)}..."
+                 {/* 🛠️ FIX IS HERE: We check if log.tweet exists before substrings */}
+                 🐦 TWEET SENT: "{log.tweet ? log.tweet.substring(0, 80) : 'Transmission sent...'}"...
               </div>
             </div>
           ))
