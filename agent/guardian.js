@@ -258,7 +258,7 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
         
         `⚡ FLASH ALERT: Whale active on $${tokenName}\nVol: ${amount.toLocaleString()}\n\nName: ${analysis.tokenName} ($Ticker:${analysis.ticker})\nAction: Reporting to @Agent_SunGenX & @Girl_SunLumi please provide analysis\n[ID: ${uniqueID}]`,
         
-        `:: SENTINEL LOG ::\nTarget: $${tokenName}\nAmount: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\nCC: @Agent_SunGenX @Girl_SunLumi\nUnit: ${analysis.tokenName} ($${analysis.ticker})\n[Time: ${nowLog}]`
+        `:: SENTINEL LOG ::\nTarget: $${tokenName}\nAmount: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\nCC: @Agent_SunGenX @Girl_SunLumi\nName: ${analysis.tokenName} ($Ticker:${analysis.ticker})\n[Time: ${nowLog}]`
     ];
     
     // Pick a random template
