@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: LIVE FIRE + TAGS RESTORED */
+/* agent/guardian.js - VERSION: CONCURRENCY LOCK (Prevents Double-Posting) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -8,7 +8,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// --- 1. SETUP & CONFIGURATION ---
+// --- 0. GLOBAL SAFETY LOCKS ---
+let isScanning = false; // <--- PREVENTS OVERLAPS
+process.on('uncaughtException', (err) => { console.log(`\n⚠️ ERROR: ${err.message}`); });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,7 +21,7 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const TRON_API = "https://api.trongrid.io"; 
 const PRICE_API = "https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT";
 
-// 🧠 MODEL: Gemini 3 Flash Preview (Smartest)
+// 🧠 MODEL: Gemini 3
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
 // Twitter Client
@@ -45,7 +47,7 @@ const WATCH_LIST = [
     { name: "WIN", address: "TLa2f6J26qCmf6ELRRnPaMHgck0dPrQtqK", decimals: 6, threshold: 500000 }
 ];
 
-// --- 2. MEMORY & COOLDOWN SYSTEM ---
+// --- 2. MEMORY SYSTEM ---
 const MEMORY_FILE = path.join(__dirname, 'agent_memory.json');
 let memory = { 
     stats: { totalScans: 0, lastBriefing: Date.now() }, 
@@ -55,8 +57,9 @@ let memory = {
     alerts: [] 
 };
 
-// ⏳ GLOBAL COOLDOWN (2 Minutes Safety)
+// ⏳ TWEET COOLDOWN (Increased to 3 Minutes for safety)
 let lastTweetTime = 0; 
+const COOLDOWN_MS = 180000; 
 
 try {
     if (fs.existsSync(MEMORY_FILE)) {
@@ -70,8 +73,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (FULL LIVE MODE) ONLINE");
-console.log("🔥 Status: Twitter Active + Mentions Restored");
+console.log("\n🤖 PINKERTAPE SENTINEL (LOCKED MODE) ONLINE");
+console.log("🔒 Status: Concurrency Lock Active (No Overlaps)");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -86,18 +89,25 @@ async function startPatrol() {
         return;
     }
 
-    console.log("...Scanning Protocols Active...");
-    
-    // Initial Run
-    await checkTargets(); 
-    await checkPriceVolatility();
-    await checkMentions(botId);
+    // Run loops SAFELY
+    setInterval(safeScan, 15000);              // Check Transactions
+    setInterval(checkPriceVolatility, 60000);  // Check Price
+    setInterval(checkMentionsWrapper, 120000, botId); // Check Repliess
+}
 
-    // Loops
-    setInterval(checkTargets, 15000);             
-    setInterval(checkPriceVolatility, 60000);     
-    setInterval(checkDailyBriefing, 60000);       
-    setInterval(() => checkMentions(botId), 120000); 
+// Wrapper to prevent overlap
+async function safeScan() {
+    if (isScanning) return; // SKIP if busy
+    isScanning = true;
+    try {
+        await checkTargets();
+    } catch(e) { console.error("Scan Error:", e.message); }
+    isScanning = false;
+}
+
+// Wrapper for mentions
+async function checkMentionsWrapper(botId) {
+    await checkMentions(botId);
 }
 
 // --- 4. NEURAL INTERFACE ---
@@ -138,47 +148,11 @@ async function checkMentions(botId) {
 async function generateAIReply(userText) {
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const lastPrice = memory.market.lastPrice || "Unknown";
-    
-    const prompt = `
-        You are PinkerTape, an AI Sentinel on TRON.
-        User Input: "${userText}"
-        Context: TRX Price: $${lastPrice}.
-        Reply Personality: Robotic, Efficient. Under 180 chars. No hashtags.
-    `;
-
+    const prompt = `You are PinkerTape, AI on TRON. Input: "${userText}". TRX: $${lastPrice}. Reply robotic, <180 chars.`;
     try {
         const result = await model.generateContent(prompt);
         return result.response.text().trim();
     } catch (e) { return null; }
-}
-
-// --- 5. DAILY BRIEFING ---
-async function checkDailyBriefing() {
-    const now = Date.now();
-    const ONE_DAY = 24 * 60 * 60 * 1000; 
-
-    if ((now - memory.stats.lastBriefing) > ONE_DAY) {
-        console.log("\n📜 GENERATING DAILY SECURITY BRIEFING...");
-        const uniqueID = Math.floor(Math.random() * 9000);
-        const scans = memory.stats.totalScans || 0;
-        
-        const briefingText = `
-DAILY SECURITY REPORT
-System: ONLINE
-Scans: ${scans.toLocaleString()}
-Threat Level: STABLE
-CC: @Agent_SunGenX @Girl_SunLumi
-ID: ${uniqueID}
-        `.trim();
-
-        try {
-            await twitterClient.v2.tweet(briefingText);
-            console.log(`✅ DAILY BRIEFING POSTED!`);
-            memory.stats.lastBriefing = now;
-            memory.stats.totalScans = 0;
-            saveMemory();
-        } catch (e) { console.error("❌ BRIEFING ERROR"); }
-    }
 }
 
 // --- 6. MARKET VOLATILITY ---
@@ -203,7 +177,6 @@ async function checkPriceVolatility() {
             memory.market.lastPrice = currentPrice;
             saveMemory();
         }
-
     } catch (e) { /* ignore */ }
 }
 
@@ -228,25 +201,24 @@ async function checkTargets() {
                 
                 try { if (TronWeb.address) senderAddr = TronWeb.address.fromHex(senderAddr); } catch(e) {}
 
-                const isKnown = memory.handledTx.includes(tx.transaction_id);
-                
-                // Visual Log
-                const logSymbol = isKnown ? "👁️" : "🆕";
-                process.stdout.write(`${logSymbol} Scan: ${readableAmount.toFixed(0).padEnd(5)} ${target.name} \r`);
-                
-                if (isKnown) continue; 
+                // CHECK MEMORY FIRST
+                if (memory.handledTx.includes(tx.transaction_id)) continue; 
 
-                console.log(`\n🆕 NEW SIGNAL: ${readableAmount.toFixed(2)} ${target.name}`);
-
+                // Threshold Check
                 const vipMatch = VIP_LIST.find(v => v.address === senderAddr);
                 
-                if (readableAmount > target.threshold || vipMatch) {
+                // Visual Log (Compact)
+                if (readableAmount > target.threshold) {
+                    process.stdout.write(`⚡ Found: ${readableAmount.toFixed(0)} ${target.name}... `);
+                    
+                    // SAVE IMMEDIATELY TO PREVENT RE-ENTRY
+                    memory.handledTx.push(tx.transaction_id);
+                    if (memory.handledTx.length > 200) memory.handledTx.shift(); 
+                    saveMemory();
+
+                    // THEN ANALYZE
                     await analyzeRisk(tx, readableAmount, target, senderAddr, vipMatch);
                 }
-
-                memory.handledTx.push(tx.transaction_id);
-                if (memory.handledTx.length > 200) memory.handledTx.shift(); 
-                saveMemory();
             }
         } catch (e) { /* ignore */ }
     }
@@ -256,28 +228,23 @@ async function checkTargets() {
 async function analyzeMarketVol(price, percent) {
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const direction = percent > 0 ? "SURGE" : "CRASH";
-    const prompt = `
-        You are PinkerTape. TRX Price ${direction}! Moved ${percent.toFixed(2)}%.
-        TASK: JSON Response Only.
-        { "risk": "VOLATILITY", "reason": "Market volatility detected.", "tokenName": "Market Pulse", "ticker": "VOL" }
-    `;
-
     try {
+        const prompt = `PinkerTape Alert. TRX Price ${direction} ${percent.toFixed(2)}%. JSON output: { "risk": "VOLATILITY", "reason": "Market move", "tokenName": "Market Pulse", "ticker": "VOL" }`;
         const result = await model.generateContent(prompt);
         const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const analysis = JSON.parse(text);
         await executeRealDefense(analysis, `TRX PRICE`, direction, "MARKET_EVENT", false);
-    } catch(e) { console.error("AI Market Error"); }
+    } catch(e) { console.error("AI Error"); }
 }
 
 // --- 9. AI ANALYSIS: WHALES ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
-    if (Date.now() - lastTweetTime < 120000) { 
-        console.log(`⏳ Cooldown (Safety). Skipping ${target} analysis.`);
+    if (Date.now() - lastTweetTime < COOLDOWN_MS) { 
+        console.log(`(Cooldown Active - Logged Only)`);
         return;
     }
 
-    console.log(`🚨 WHALE DETECTED: ${target.name}`);
+    console.log(`\n🚨 ANALYZING WHALE: ${target.name}`);
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     
     let contextStr = `Analyze whale movement.`;
@@ -289,15 +256,14 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         SENDER: ${sender} ${vipMatch ? `(IDENTITY: ${vipMatch.name})` : ""}
         
         TASK:
-        1. ANALYZE the move. Do not just say "Whale moved". 
-           - SPECULATE INTENT: Is it "Accumulation", "Liquidity Injection", "Panic Sell"?
-        2. INVENT a unique Defense Unit Name (e.g., "Aegis-7", "Iron_Sentinel", "Ghost-Protocol").
-        3. CREATE a unique ticker (e.g., $AEGIS, $IRON, $GHST).
+        1. ANALYZE the move. Speculate intent.
+        2. INVENT a unique Defense Unit Name (e.g., "Aegis-7").
+        3. CREATE a unique ticker (e.g., $AEGIS).
         
         OUTPUT JSON ONLY:
         { 
             "risk": "HIGH", 
-            "reason": "Tactical liquidity injection detected. Preparing for market shift.", 
+            "reason": "Tactical liquidity injection detected.", 
             "tokenName": "Aegis-7 Protocol", 
             "ticker": "AEGIS"
         }
@@ -308,14 +274,13 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const analysis = JSON.parse(text);
 
-        console.log("🧠 GEMINI DECISION:", analysis.tokenName, `(${analysis.ticker})`);
+        console.log("🧠 PLAN:", analysis.tokenName);
         await executeRealDefense(analysis, amount, target.name, tx.transaction_id, vipMatch);
 
     } catch (e) {
-        // Fallback
         const emergencyAnalysis = {
             risk: "HIGH",
-            reason: `Volumetric shift on ${target.name}. Monitoring active.`,
+            reason: `Volumetric shift on ${target.name}.`,
             tokenName: `Sentinel-${Math.floor(Math.random()*999)}`, 
             ticker: "DEF"
         };
@@ -325,9 +290,9 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
 
 // --- 10. EXECUTION ---
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
-    if (Date.now() - lastTweetTime < 120000) return;
+    if (Date.now() - lastTweetTime < COOLDOWN_MS) return;
 
-    console.log("\n⚡ EXECUTING DEFENSE...");
+    console.log("⚡ EXECUTING DEFENSE...");
     lastTweetTime = Date.now(); 
     
     const nowLog = new Date().toISOString().split('T')[1].split('.')[0]; 
@@ -349,16 +314,15 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
 
     // --- 🎨 IMAGE GENERATION ---
     try {
-        console.log("🎨 Generating Unit Avatar...");
+        console.log("🎨 Generating...");
         const uniqueKey = `${analysis.ticker}-${uniqueID}`;
         const imageUrl = `https://robohash.org/${uniqueKey}.png?set=set1&bgset=bg1&size=600x600`;
-        const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer', timeout: 20000 });
         const mediaId = await twitterClient.v1.uploadMedia(Buffer.from(imageBuffer.data), { mimeType: 'image/png' });
         mediaIds = [mediaId];
-        console.log("✅ Avatar Uploaded.");
 
     } catch (imgError) {
-        console.error(`⚠️ Visual Render Failed: ${imgError.message}`);
+        console.error(`⚠️ Image Skipped: ${imgError.message}`);
     }
 
     // ⭐ LIVE TWEET ⭐
@@ -368,7 +332,7 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
             media: mediaIds.length > 0 ? { media_ids: mediaIds } : undefined
         });
 
-        console.log(`✅ TWEET POSTED! ID: ${tweet.data.id}`);
+        console.log(`✅ POSTED: ${tweet.data.id}`);
         
         if (!memory.alerts) memory.alerts = [];
         memory.alerts.unshift({ 
@@ -383,11 +347,7 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
 
     } catch (e) {
         console.error(`❌ TWITTER ERROR: ${e.code || e.message}`);
-        
-        if(e.code === 403) {
-            console.log("🚨 403: Bot is still in Timeout. Check back later.");
-            lastTweetTime = Date.now() + 600000; // Wait 10 mins if flagged
-        }
+        if(e.code === 403) lastTweetTime = Date.now() + 600000; // 10m Penalty
     }
     
     console.log("----------------------------------------------------\n");
