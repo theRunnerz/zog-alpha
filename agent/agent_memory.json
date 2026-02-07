@@ -1,0 +1,48 @@
+{
+  "stats": {
+    "totalScans": 1640,
+    "lastBriefing": 1770438003763
+  },
+  "market": {
+    "lastPrice": 0.2754
+  },
+  "mentions": {
+    "lastId": "2020029664958509301"
+  },
+  "handledTx": [
+    "f801480c95bd3464ade1568cb22d1d228e4f98ff9666c7a6348d23969f80b37d",
+    "5001b02b6e1df3f050be245b427f6f47f72827abf8828fd33bbb462eb1f855cf",
+    "45e86a3957eadb42e9ec85fd0ff9608efc47588b8f4d0de49cfe20afa1f61d8a",
+    "7b5b347b22fd8a5a5d2a2e177d330a85450283b8ce4e329e2a33fcb4220c971c",
+    "e575739723fd03cd1aa20c1e43650e1a6975db1e9e0c46e57094bf09316c1121",
+    "6ce70b6b6b286afbdd087589d6dbfa74e2ca94c1e2fab3469d0f94c35ba77b78",
+    "0e16053ec65946753714966c235c99c6ea1caaa2ada6fcc48a63a92fd58d041a",
+    "be3f3c6c458cde4f575acf277222ff3e1c7876db303401ed53cb16f6671a96ac"
+  ],
+  "alerts": [
+    {
+      "timestamp": "2026-02-07T07:04:11.724Z",
+      "token": "USDT",
+      "amount": 299400,
+      "risk": "HIGH",
+      "reason": "LARGE CAPITAL INFLOW. SECTOR 693 BREACHED. ORIGIN TRACKING ACTIVE.",
+      "tweet": "⚡ FLASH ALERT: Whale active on $USDT\nVol: 299,400\n\nName: Chrome-Vulture-693\nTicker: $CV6\n\nReporting to @Agent_SunGenX & @Girl_SunLumi\n[ID: 42129]"
+    },
+    {
+      "timestamp": "2026-02-07T06:58:01.841Z",
+      "token": "USDT",
+      "amount": 300000,
+      "risk": "HIGH",
+      "reason": "300K USDT payload detected. Sector 49 secure. Tactical oversight active.",
+      "tweet": "🚨 MOVEMENT: 300,000 $USDT\nIntel: 300K USDT payload detected. Sector 49 secure. Tactical oversight active.\n\nName: Zynith-Wraith-49\nTicker: $ZW49\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: 57804]"
+    },
+    {
+      "timestamp": "2026-02-07T04:20:35.252Z",
+      "token": "$SUNAI",
+      "amount": 7971143.334747718,
+      "risk": "HIGH",
+      "reason": "SUNAI ASSET DETECTED. SECTOR 971 SCAN: COMPLETE. PERIMETER SECURE.",
+      "tweet": "⚡ FLASH ALERT: Whale active on $$SUNAI\nVol: 7,971,143.335\n\nName: Zynthel-Drift-971\nTicker: $ZD9\n\nReporting to @Agent_SunGenX & @Girl_SunLumi\n[ID: 44746]"
+    }
+  ]
+}

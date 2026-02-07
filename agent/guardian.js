@@ -56,6 +56,17 @@ let memory = {
     handledTx: [], 
     alerts: [] 
 };
+// --- HEARTBEAT SYSTEM ---
+const HEARTBEAT_INTERVAL = 60000; // 1 minute
+let lastActivityTime = Date.now();
+
+function heartbeat() {
+    const idleSeconds = Math.floor((Date.now() - lastActivityTime) / 1000);
+    console.log(
+        `🫀 HEARTBEAT | scans=${memory.stats.totalScans} | idle=${idleSeconds}s | ${new Date().toISOString()}`
+    );
+}
+
 
 // ⏳ TWEET COOLDOWN (2 Minutes)
 let lastTweetTime = 0; 
@@ -93,7 +104,16 @@ async function startPatrol() {
     setInterval(safeScan, 15000);              
     setInterval(checkPriceVolatility, 60000);  
     setInterval(checkMentionsWrapper, 120000, botId); 
+    setInterval(heartbeat, HEARTBEAT_INTERVAL);
+    setInterval(reportIdleHealth, IDLE_REPORT_INTERVAL);
+
+
 }
+function markActivity(reason = "event") {
+    lastActivityTime = Date.now();
+    // Optional future use
+}
+
 
 async function safeScan() {
     if (isScanning) return; 
@@ -103,6 +123,27 @@ async function safeScan() {
 }
 
 async function checkMentionsWrapper(botId) { await checkMentions(botId); }
+// --- IDLE STATUS REPORTER ---
+const IDLE_REPORT_INTERVAL = 10 * 60 * 1000; // 10 minutes
+const MAX_IDLE_BEFORE_REPORT = 30 * 60 * 1000; // 30 minutes
+
+async function reportIdleHealth() {
+    const idleTime = Date.now() - lastActivityTime;
+    if (idleTime < MAX_IDLE_BEFORE_REPORT) return;
+    if (Date.now() - lastTweetTime < COOLDOWN_MS) return;
+
+    const msg = `🫀 SYSTEM STATUS: ACTIVE\nSector scans normal\nNo whale activity detected\nTRX: $${memory.market.lastPrice}\n[Idle:${Math.floor(idleTime/60000)}m]`;
+
+    try {
+        await twitterClient.v2.tweet(msg);
+        lastTweetTime = Date.now();
+        markActivity("idle_report");
+        console.log("📡 Idle health report posted");
+    } catch (e) {
+        console.log("⚠️ Idle report skipped");
+    }
+}
+
 
 // --- 4. MENTIONS HANDLER ---
 async function checkMentions(botId) {
