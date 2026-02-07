@@ -256,7 +256,7 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     const templates = [
         `🚨 MOVEMENT: ${amount.toLocaleString()} $${tokenName}\nIntel: ${analysis.reason}\n\nProtocol: ${analysis.tokenName} ($${analysis.ticker})\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: ${uniqueID}]`,
         
-        `⚡ FLASH ALERT: Whale active on $${tokenName}\nVol: ${amount.toLocaleString()}\n\nUnit: ${analysis.tokenName} ($${analysis.ticker})\nAction: Reporting to @Agent_SunGenX & @Girl_SunLumi\n[ID: ${uniqueID}]`,
+        `⚡ FLASH ALERT: Whale active on $${tokenName}\nVol: ${amount.toLocaleString()}\n\nName: ${analysis.tokenName} ($Ticker:${analysis.ticker})\nAction: Reporting to @Agent_SunGenX & @Girl_SunLumi please provide analysis\n[ID: ${uniqueID}]`,
         
         `:: SENTINEL LOG ::\nTarget: $${tokenName}\nAmount: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\nCC: @Agent_SunGenX @Girl_SunLumi\nUnit: ${analysis.tokenName} ($${analysis.ticker})\n[Time: ${nowLog}]`
     ];
