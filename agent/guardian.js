@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: HACKATHON DEMO (Bulletproof) */
+/* agent/guardian.js - VERSION: LIVE FIRE + TAGS RESTORED */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -19,7 +19,7 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const TRON_API = "https://api.trongrid.io"; 
 const PRICE_API = "https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT";
 
-// 🧠 MODEL: Using Gemini 3 Flash (Fastest/Most Stable)
+// 🧠 MODEL: Gemini 3 Flash Preview (Smartest)
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
 // Twitter Client
@@ -45,7 +45,7 @@ const WATCH_LIST = [
     { name: "WIN", address: "TLa2f6J26qCmf6ELRRnPaMHgck0dPrQtqK", decimals: 6, threshold: 500000 }
 ];
 
-// --- 2. MEMORY SYSTEM ---
+// --- 2. MEMORY & COOLDOWN SYSTEM ---
 const MEMORY_FILE = path.join(__dirname, 'agent_memory.json');
 let memory = { 
     stats: { totalScans: 0, lastBriefing: Date.now() }, 
@@ -54,6 +54,9 @@ let memory = {
     handledTx: [], 
     alerts: [] 
 };
+
+// ⏳ GLOBAL COOLDOWN (2 Minutes Safety)
+let lastTweetTime = 0; 
 
 try {
     if (fs.existsSync(MEMORY_FILE)) {
@@ -67,8 +70,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (HACKATHON DEMO MODE) ONLINE");
-console.log("🎨 Meme image generator ready");
+console.log("\n🤖 PINKERTAPE SENTINEL (FULL LIVE MODE) ONLINE");
+console.log("🔥 Status: Twitter Active + Mentions Restored");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -97,7 +100,7 @@ async function startPatrol() {
     setInterval(() => checkMentions(botId), 120000); 
 }
 
-// --- 4. NEURAL INTERFACE (No Dupes) ---
+// --- 4. NEURAL INTERFACE ---
 async function checkMentions(botId) {
     try {
         const mentions = await twitterClient.v2.userMentionTimeline(botId, {
@@ -121,7 +124,6 @@ async function checkMentions(botId) {
             const replyText = await generateAIReply(tweet.text);
             
             if(replyText) {
-                // Add Unique Hash to prevent 403 on replies
                 const uniqueReply = `${replyText} \n[Ref:${Math.floor(Math.random()*999)}]`;
                 await twitterClient.v2.reply(uniqueReply, tweet.id);
                 console.log(`🗣️ Replied: "${uniqueReply}"`);
@@ -161,12 +163,12 @@ async function checkDailyBriefing() {
         const scans = memory.stats.totalScans || 0;
         
         const briefingText = `
-🛡️ DAILY SECURITY REPORT
-✅ System Status: ONLINE
-📡 Scans: ${scans.toLocaleString()}
-🌊 Threat Level: STABLE
-GM @justinsuntron  @Girl_SunLumi whats your analysis on today's activity?
-#TRON #PinkerTape #ID${uniqueID}
+DAILY SECURITY REPORT
+System: ONLINE
+Scans: ${scans.toLocaleString()}
+Threat Level: STABLE
+CC: @Agent_SunGenX @Girl_SunLumi
+ID: ${uniqueID}
         `.trim();
 
         try {
@@ -228,7 +230,7 @@ async function checkTargets() {
 
                 const isKnown = memory.handledTx.includes(tx.transaction_id);
                 
-                // Visual Matrix Log
+                // Visual Log
                 const logSymbol = isKnown ? "👁️" : "🆕";
                 process.stdout.write(`${logSymbol} Scan: ${readableAmount.toFixed(0).padEnd(5)} ${target.name} \r`);
                 
@@ -257,7 +259,7 @@ async function analyzeMarketVol(price, percent) {
     const prompt = `
         You are PinkerTape. TRX Price ${direction}! Moved ${percent.toFixed(2)}%.
         TASK: JSON Response Only.
-        { "risk": "VOLATILITY", "reason": "...", "tokenName": "Market Alert", "ticker": "GAP", "imagePrompt": "neon chart" }
+        { "risk": "VOLATILITY", "reason": "Market volatility detected.", "tokenName": "Market Pulse", "ticker": "VOL" }
     `;
 
     try {
@@ -323,32 +325,25 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
 
 // --- 10. EXECUTION ---
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
-    console.log("\n⚡ EXECUTING DEFENSE PROTOCOLS...");
+    if (Date.now() - lastTweetTime < 120000) return;
+
+    console.log("\n⚡ EXECUTING DEFENSE...");
+    lastTweetTime = Date.now(); 
     
-    // ANTI-DUPLICATE HASH (This fixes the 403)
+    const nowLog = new Date().toISOString().split('T')[1].split('.')[0]; 
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
-    const timeHash = new Date().toLocaleTimeString();
+    const displayName = analysis.tokenName || "Protocol Alpha";
 
-    let header = `🚨 ${tokenName} MOVEMENT DETECTED 🚨`;
-    if (vipMatch) header = `👑 COMMANDER ALERT: ${vipMatch.name} ACTIVE 👑`;
-    if (tokenName === "TRX PRICE") header = `📉 MARKET VOLATILITY ALERT 📈`;
+    // 🔄 RANDOMIZED TEMPLATES + MENTIONS
+    const templates = [
+        `[LOG: ${nowLog}]\nTarget: ${tokenName}\nVolume: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\nDeploying @Agent_SunGenX | Monitor: @Girl_SunLumi\n[Unit: ${displayName} | $${analysis.ticker}]\nRef: ${uniqueID}`,
+        
+        `[SCAN_COMPLETE]\nAsset: ${tokenName}\nMoved: ${amount.toLocaleString()}\nIntel: "${analysis.reason}"\n\nActive: ${displayName} ($${analysis.ticker})\nCC: @Agent_SunGenX @Girl_SunLumi\nTX: ${uniqueID}`,
+        
+        `:: PinkerTape Sentinel ::\nDetected: ${amount.toLocaleString()} ${tokenName}\nAnalysis: ${analysis.reason}\n\nReporting to @Agent_SunGenX & @Girl_SunLumi\nUnit: ${displayName} ($${analysis.ticker})\nID: ${uniqueID}`
+    ];
 
-    const displayName = analysis.tokenName || "Unknown Alert";
-
-    // ✅ ADDED TIMEHASH TO TWEET BODY TO PREVENT 403 BLOCKS
-    const statusText = `
-${header}
-
-Amount: ${amount.toLocaleString()}
-Info: ${analysis.reason}
-
-Deploying @Agent_SunGenX:
-Name: ${displayName}
-Ticker: $${analysis.ticker}
-
-CC: @Girl_SunLumi can you provide backup analysis on this?
-#TRON #ID${uniqueID} [${timeHash}]
-    `.trim();
+    const statusText = templates[Math.floor(Math.random() * templates.length)];
 
     let mediaIds = [];
 
@@ -357,24 +352,16 @@ CC: @Girl_SunLumi can you provide backup analysis on this?
         console.log("🎨 Generating Unit Avatar...");
         const uniqueKey = `${analysis.ticker}-${uniqueID}`;
         const imageUrl = `https://robohash.org/${uniqueKey}.png?set=set1&bgset=bg1&size=600x600`;
-        
-        // Increased Timeout for slower connections
-        const imageBuffer = await axios.get(imageUrl, { 
-            responseType: 'arraybuffer',
-            timeout: 20000 
-        });
-        
+        const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer' });
         const mediaId = await twitterClient.v1.uploadMedia(Buffer.from(imageBuffer.data), { mimeType: 'image/png' });
         mediaIds = [mediaId];
         console.log("✅ Avatar Uploaded.");
 
     } catch (imgError) {
-        // If image fails, we just log it but CONTINUE to post the text.
-        // The global handler prevents the crash, but we handle it locally to proceed gracefully.
-        console.error(`⚠️ Visual Render Failed (Continuing with Text Only): ${imgError.message}`);
+        console.error(`⚠️ Visual Render Failed: ${imgError.message}`);
     }
 
-
+    // ⭐ LIVE TWEET ⭐
     try {
         const tweet = await twitterClient.v2.tweet({
             text: statusText,
@@ -384,12 +371,23 @@ CC: @Girl_SunLumi can you provide backup analysis on this?
         console.log(`✅ TWEET POSTED! ID: ${tweet.data.id}`);
         
         if (!memory.alerts) memory.alerts = [];
-        memory.alerts.unshift({ timestamp: new Date(), token: tokenName });
+        memory.alerts.unshift({ 
+            timestamp: new Date(), 
+            token: tokenName,
+            amount: amount,                 
+            risk: analysis.risk || "HIGH",  
+            reason: analysis.reason,        
+            tweet: statusText
+        });
         saveMemory();
 
     } catch (e) {
         console.error(`❌ TWITTER ERROR: ${e.code || e.message}`);
-        if(e.code === 403) console.log("🚨 403: Twitter blocked this as Duplicate. The Anti-Dupe ID should fix this next time.");
+        
+        if(e.code === 403) {
+            console.log("🚨 403: Bot is still in Timeout. Check back later.");
+            lastTweetTime = Date.now() + 600000; // Wait 10 mins if flagged
+        }
     }
     
     console.log("----------------------------------------------------\n");
