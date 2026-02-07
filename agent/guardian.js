@@ -19,7 +19,7 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const TRON_API = "https://api.trongrid.io"; 
 const PRICE_API = "https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT";
 
-// 🧠 MODEL: Using 1.5 Flash (Fastest/Most Stable)
+// 🧠 MODEL: Using Gemini 3 Flash (Fastest/Most Stable)
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
 // Twitter Client
@@ -68,7 +68,7 @@ try {
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
 console.log("\n🤖 PINKERTAPE SENTINEL (HACKATHON DEMO MODE) ONLINE");
-console.log("🎨 Image Engine: Pollinations (Simplified)");
+console.log("🎨 Meme image generator ready");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -165,7 +165,7 @@ async function checkDailyBriefing() {
 ✅ System Status: ONLINE
 📡 Scans: ${scans.toLocaleString()}
 🌊 Threat Level: STABLE
-CC: @Agent_SunGenX @Girl_SunLumi
+GM @justinsuntron  @Girl_SunLumi whats your analysis on today's activity?
 #TRON #PinkerTape #ID${uniqueID}
         `.trim();
 
@@ -270,6 +270,11 @@ async function analyzeMarketVol(price, percent) {
 
 // --- 9. AI ANALYSIS: WHALES ---
 async function analyzeRisk(tx, amount, target, sender, vipMatch) {
+    if (Date.now() - lastTweetTime < 120000) { 
+        console.log(`⏳ Cooldown (Safety). Skipping ${target} analysis.`);
+        return;
+    }
+
     console.log(`🚨 WHALE DETECTED: ${target.name}`);
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     
@@ -277,16 +282,23 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     if (vipMatch) contextStr = `CRITICAL: Sender is ${vipMatch.name}. Tone: "COMMANDER ALERT".`;
 
     const prompt = `
-        You are PinkerTape, AI Sentinel on TRON.
-        EVENT: Asset: ${target.name}, Amount: ${amount.toLocaleString()}
+        You are PinkerTape, an Advanced Military AI on TRON.
+        EVENT: Scanned Token: ${target.name}, Amount: ${amount.toLocaleString()}
         SENDER: ${sender} ${vipMatch ? `(IDENTITY: ${vipMatch.name})` : ""}
-        CONTEXT: ${contextStr}
         
-        TASK: Return JSON Only.
-        imagePrompt: 3 words max. Example: "Neon Cyber Whale".
+        TASK:
+        1. ANALYZE the move. Do not just say "Whale moved". 
+           - SPECULATE INTENT: Is it "Accumulation", "Liquidity Injection", "Panic Sell"?
+        2. INVENT a unique Defense Unit Name (e.g., "Aegis-7", "Iron_Sentinel", "Ghost-Protocol").
+        3. CREATE a unique ticker (e.g., $AEGIS, $IRON, $GHST).
         
-        OUTPUT JSON:
-        { "risk": "HIGH", "reason": "...", "tokenName": "Name", "ticker": "TICKER", "imagePrompt": "Neon Cyber Object" }
+        OUTPUT JSON ONLY:
+        { 
+            "risk": "HIGH", 
+            "reason": "Tactical liquidity injection detected. Preparing for market shift.", 
+            "tokenName": "Aegis-7 Protocol", 
+            "ticker": "AEGIS"
+        }
     `;
 
     try {
@@ -294,12 +306,19 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const analysis = JSON.parse(text);
 
-        console.log("🧠 GEMINI DECISION:", analysis.ticker);
-
-        // Always execute if VIP or High Risk
+        console.log("🧠 GEMINI DECISION:", analysis.tokenName, `(${analysis.ticker})`);
         await executeRealDefense(analysis, amount, target.name, tx.transaction_id, vipMatch);
 
-    } catch (e) { console.error("AI Error:", e.message); }
+    } catch (e) {
+        // Fallback
+        const emergencyAnalysis = {
+            risk: "HIGH",
+            reason: `Volumetric shift on ${target.name}. Monitoring active.`,
+            tokenName: `Sentinel-${Math.floor(Math.random()*999)}`, 
+            ticker: "DEF"
+        };
+        await executeRealDefense(emergencyAnalysis, amount, target.name, tx.transaction_id, vipMatch);
+    }
 }
 
 // --- 10. EXECUTION ---
@@ -327,7 +346,7 @@ Deploying @Agent_SunGenX:
 Name: ${displayName}
 Ticker: $${analysis.ticker}
 
-CC: @Girl_SunLumi
+CC: @Girl_SunLumi can you provide backup analysis on this?
 #TRON #ID${uniqueID} [${timeHash}]
     `.trim();
 
