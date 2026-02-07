@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: HYBRID (Randomized Templates + Guaranteed Tags) */
+/* agent/guardian.js - VERSION: LIVE (formatted for SunLumi/SunGenX interaction) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -73,8 +73,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (TEMPLATE RANDOMIZER) ONLINE");
-console.log("🎲 Status: Unique content generation active.");
+console.log("\n🤖 PINKERTAPE SENTINEL (LIVE FORMAT) ONLINE");
+console.log("💎 Status: Bot is Live & Active.");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -225,7 +225,7 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         TASK:
         1. Short Analysis (Under 80 chars - Military Style).
         2. VERY CREATIVE Unique Unit Name (e.g. Iron-Viper-9, Sun-Glider-Alpha).
-        3. VERY CREATIVE Ticker (e.g. $IV9, $SGA).
+        3. VERY CREATIVE Ticker (e.g. IV9, SGA).
         4. NEVER use "Aegis" or "Sentinel". Invent new words.
         
         OUTPUT JSON ONLY:
@@ -241,24 +241,24 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     } catch (e) { console.log("AI Failed, using backup"); }
 }
 
-// --- 8. DEFENSE EXECUTION (HYBRID MODE) ---
+// --- 8. DEFENSE EXECUTION (LIVE FORMAT) ---
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
     if (Date.now() - lastTweetTime < COOLDOWN_MS) return;
 
-    console.log("⚡ EXECUTING DEFENSE... (Attempting Image)");
+    console.log("⚡ EXECUTING DEFENSE...");
     lastTweetTime = Date.now(); 
     
     // Unique ID
     const nowLog = new Date().toISOString().split('T')[1].split('.')[0]; 
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
 
-    // 🎲 RANDOMIZED TEMPLATES (Prevents "Duplicate Content" Error)
+    // 🎲 FORMATTED TEMPLATES (UPDATED)
     const templates = [
-        `🚨 MOVEMENT: ${amount.toLocaleString()} $${tokenName}\nIntel: ${analysis.reason}\n\nProtocol: ${analysis.tokenName} ($${analysis.ticker})\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: ${uniqueID}]`,
+        `🚨 MOVEMENT: ${amount.toLocaleString()} $${tokenName}\nIntel: ${analysis.reason}\n\nName: ${analysis.tokenName}\nTicker: $${analysis.ticker}\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: ${uniqueID}]`,
         
-        `⚡ FLASH ALERT: Whale active on $${tokenName}\nVol: ${amount.toLocaleString()}\n\nName: ${analysis.tokenName} ($Ticker:${analysis.ticker})\nAction: Reporting to @Agent_SunGenX & @Girl_SunLumi please provide analysis\n[ID: ${uniqueID}]`,
+        `⚡ FLASH ALERT: Whale active on $${tokenName}\nVol: ${amount.toLocaleString()}\n\nName: ${analysis.tokenName}\nTicker: $${analysis.ticker}\n\nReporting to @Agent_SunGenX & @Girl_SunLumi\n[ID: ${uniqueID}]`,
         
-        `:: SENTINEL LOG ::\nTarget: $${tokenName}\nAmount: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\nCC: @Agent_SunGenX @Girl_SunLumi\nName: ${analysis.tokenName} ($Ticker:${analysis.ticker})\n[Time: ${nowLog}]`
+        `:: SENTINEL LOG ::\nTarget: $${tokenName}\nAmount: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\nName: ${analysis.tokenName}\nTicker: $${analysis.ticker}\n\nCC: @Agent_SunGenX @Girl_SunLumi\n[Time: ${nowLog}]`
     ];
     
     // Pick a random template
@@ -278,9 +278,8 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
         console.log("⚠️ Art Failed (Network). Proceeding Text-Only.");
     }
 
-    // 2. TWEET ATTEMPT (Image First)
+    // 2. TWEET (Hybrid)
     try {
-        
         const tweet = await twitterClient.v2.tweet({
             text: statusText,
             media: mediaIds.length > 0 ? { media_ids: mediaIds } : undefined
