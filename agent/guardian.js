@@ -8,6 +8,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// 🧠 Prediction Engine
+import {
+  createDailyStrike,
+  resolveDailyStrike,
+  getAccuracy
+} from './predictionEngine.js';
+
 // --- 0. GLOBAL SAFETY LOCKS ---
 let isScanning = false; 
 process.on('uncaughtException', (err) => { 
@@ -67,7 +74,32 @@ function heartbeat() {
         `🫀 HEARTBEAT | scans=${memory.stats.totalScans} | idle=${idleSeconds}s | ${new Date().toISOString()}`
     );
 }
+// --- Signal Feed ---
+const signals = {
+  whaleScore: 65,      // from your whale detection logic
+  momentum: 58,        // price direction bias
+  volatility: 60,      // compression = higher score
+  stress: 55           // lower stress = higher score
+};
+// --- DAILY PREDICTION FLOW ---
+async function dailyPredictionCycle() {
+  try {
+    const signals = buildSignals();
+    const strike = await createDailyStrike(signals);
 
+    if (strike?.date) {
+      console.log(`📊 DAILY STRIKE CREATED: ${strike.id} | P=${strike.probability}%`);
+    }
+
+    const resolved = await resolveDailyStrike();
+    if (resolved) {
+      const acc = getAccuracy(30);
+      console.log(`✅ STRIKE RESOLVED: ${resolved.outcome} | 30D ACC=${acc}%`);
+    }
+  } catch (e) {
+    console.log("⚠️ Prediction cycle error");
+  }
+}
 
 // ⏳ TWEET COOLDOWN (2 Minutes)
 let lastTweetTime = 0; 
@@ -107,6 +139,7 @@ async function startPatrol() {
     setInterval(checkMentionsWrapper, 120000, botId); 
     setInterval(heartbeat, HEARTBEAT_INTERVAL);
     setInterval(reportIdleHealth, IDLE_REPORT_INTERVAL);
+    setInterval(dailyPredictionCycle, 5 * 60 * 1000); // every 5 min (safe)
 
 
 }
