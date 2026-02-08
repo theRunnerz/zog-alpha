@@ -1,13 +1,13 @@
 {
   "stats": {
-    "totalScans": 22056,
+    "totalScans": 22488,
     "lastBriefing": 1770438003763
   },
   "market": {
     "lastPrice": 0.2754
   },
   "mentions": {
-    "lastId": "2020552200955847053"
+    "lastId": "2020560521800593782"
   },
   "handledTx": [
     "f801480c95bd3464ade1568cb22d1d228e4f98ff9666c7a6348d23969f80b37d",
@@ -78,9 +78,28 @@
     "c368f509a90de6ebe398d4eebd5275edae9973d02cfeb8539b35681fbf269d19",
     "db7813bc8cf02869e29b4f5ad079866b71123935c1fad2ac1dbfca7e22b81c03",
     "b6632f424437a5043cb399edf2e3933e515752968a35d79a59f7144664747924",
-    "eca844a6398f5601d31a8c864a143795af8c398be4b5c191537139f0f5a31aa2"
+    "eca844a6398f5601d31a8c864a143795af8c398be4b5c191537139f0f5a31aa2",
+    "a8db814dd6c14fb8c6b585fd255eed3d4944cc3bfac42984ff0d44856ad5c941",
+    "2bd7f700c9513a9bff5d3d09e26bfa972e8286c5e70040af953edd5cfc27fbd9",
+    "897e7a3a0d89fff8e500ad3934b221be64561c3c1b91b6a2633545a749336da4"
   ],
   "alerts": [
+    {
+      "timestamp": "2026-02-08T18:05:09.741Z",
+      "token": "USDT",
+      "amount": 200000,
+      "risk": "HIGH",
+      "reason": "USDT MASSIVE INFLOW. SECTOR 0X7E ENGAGED. MONITORING LIQUIDITY VECTORS.",
+      "tweet": "🚨 MOVEMENT: 200,000 $USDT\nIntel: USDT MASSIVE INFLOW. SECTOR 0X7E ENGAGED. MONITORING LIQUIDITY VECTORS.\n\nName: Quartz-Titan-636\nTicker: $QT63\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: 91251]"
+    },
+    {
+      "timestamp": "2026-02-08T17:56:06.141Z",
+      "token": "USDT",
+      "amount": 77422,
+      "risk": "HIGH",
+      "reason": "Target 77K USDT inbound. Sentinel scan: liquidity surge confirmed.",
+      "tweet": "🚨 MOVEMENT: 77,422 $USDT\nIntel: Target 77K USDT inbound. Sentinel scan: liquidity surge confirmed.\n\nName: Phantom-Cipher-929\nTicker: $PC929\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: 96588]"
+    },
     {
       "timestamp": "2026-02-08T17:33:18.006Z",
       "token": "USDT",
