@@ -1,0 +1,22 @@
+[
+  {
+    "id": "TRX-2026-02-08",
+    "date": "2026-02-08",
+    "asset": "TRX",
+    "strike": 0.281,
+    "direction": "ABOVE",
+    "resolutionUTC": "2026-02-08T00:00:00Z",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1770570723849
+    },
+    "status": "RESOLVED",
+    "outcome": "NO",
+    "resolvedPrice": 0.2792
+  }
+]
