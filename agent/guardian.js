@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: PHASE 2 (Social Consensus + Pepe Included) */
+/* agent/guardian.js - VERSION: PHASE 3 (The Payday) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -8,14 +8,17 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// 🧠 Prediction Engine (UPDATED IMPORTS)
+// 🧠 Prediction Engine (Logic)
 import {
   createDailyStrike,
   resolveDailyStrike,
   getAccuracy,
-  updateStrikeTweet, // NEW: Links tweet to DB
-  updateVoteStats    // NEW: Counts the votes
+  updateStrikeTweet, 
+  updateVoteStats    
 } from './predictionEngine.js';
+
+// 💰 Treasury (New: Simulation of Cash Flow)
+import { calculateMarketData, formatCurrency } from './treasury.js';
 
 // --- 0. GLOBAL SAFETY LOCKS ---
 let isScanning = false; 
@@ -47,7 +50,7 @@ const VIP_LIST = [
     { name: "TRON DAO", address: "TF5j4f68vjVjTqT6AAcR6S5Q72i7r5tK3" }      
 ];
 
-// 🛡️ TOKEN WATCHLIST (Kept exactly as you had it)
+// 🛡️ TOKEN WATCHLIST (Includes PEPE)
 const WATCH_LIST = [
     { name: "$SUNAI", address: "TEyzUNwZMuMsAXqdcz5HZrshs3iWfydGAW", decimals: 18, threshold: 5000000 },
     { name: "USDT", address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", decimals: 6, threshold: 50000 },
@@ -76,7 +79,7 @@ function heartbeat() {
     console.log(`🫀 HEARTBEAT | scans=${memory.stats.totalScans} | idle=${idleSeconds}s`);
 }
 
-// --- DAILY PREDICTION FLOW (PHASE 2 UPGRADE) ---
+// --- DAILY PREDICTION FLOW (PHASE 3: TREASURY INTEGRATED) ---
 const signals = { whaleScore: 65, momentum: 58, volatility: 60, stress: 55 };
 
 function buildSignals() {
@@ -93,57 +96,55 @@ async function dailyPredictionCycle() {
   try {
     const sigs = buildSignals();
     
-    // 1. Resolve Old Predictions AND Count Votes
+    // 1. Resolve Old Predictions AND Count Votes AND Calculate Yield
     const oldStrike = await resolveDailyStrike();
     if (oldStrike) {
       
-      // A. Fetch Community Votes (If tweet ID exists)
-      let voteMsg = "Community: N/A";
+      let likes = 0;
+      let rts = 0;
+      
+      // A. Fetch Votes
       if (oldStrike.tweetId) {
           try {
               const tweetMetrics = await twitterClient.v2.singleTweet(oldStrike.tweetId, {
                   "tweet.fields": ["public_metrics"]
               });
               const metrics = tweetMetrics.data.public_metrics;
-              const likes = metrics.like_count;
-              const rts = metrics.retweet_count;
-              
+              likes = metrics.like_count || 0;
+              rts = metrics.retweet_count || 0;
               await updateVoteStats(oldStrike.date, likes, rts);
-              
-              const consensus = likes > rts ? "AGREED" : "DISAGREED";
-              voteMsg = `🗳️ Community ${consensus} (${likes} vs ${rts})`;
           } catch(e) { console.log("⚠️ Could not fetch vote stats"); }
       }
 
+      // B. CALCULATE TREASURY (The "Payday")
+      const treasuryData = calculateMarketData(likes, rts, oldStrike.outcome);
+
       const acc = getAccuracy(30);
-      const winMsg = oldStrike.outcome === "WIN" ? "✅ TARGET HIT" : "❌ MISSED";
+      const winIcon = oldStrike.outcome === "WIN" ? "✅" : "❌";
       
-      const resTweet = `🎯 MARKET SETTLEMENT\n\nResult: ${winMsg}\nFinal Price: $${oldStrike.resolvedPrice}\nTarget: $${oldStrike.strike}\n\n${voteMsg}\nAccuracy (30D): ${acc}%\n\n#TRON #Result`;
+      // C. THE SETTLEMENT TWEET
+      const resTweet = `💰 MARKET SETTLEMENT [${oldStrike.date}]\n\nResult: ${winIcon} ${oldStrike.outcome}\nStrike: $${oldStrike.strike} (Act: $${oldStrike.resolvedPrice})\n\n📊 POOL STATS:\nVol: ${formatCurrency(treasuryData.totalVolume)} TRX\nPay: ${treasuryData.winners}\nYield: ${treasuryData.payoutMultiplier}x 🚀\n\nAI Accuracy: ${acc}%\n#TRON #DeFi #Payout`;
       
       await twitterClient.v2.tweet(resTweet);
-      console.log(`✅ STRIKE RESOLVED: ${oldStrike.outcome} | TWEET SENT`);
+      console.log(`✅ SETTLEMENT POSTED | Yield: ${treasuryData.payoutMultiplier}x`);
     }
 
     // 2. Create New Prediction
     const strike = await createDailyStrike(sigs);
     if (strike?.date) {
-        // Only log/tweet if it's NEW
         const predictionKey = `pred-${strike.date}`;
-        if(memory[predictionKey]) return; // Already handled today
+        if(memory[predictionKey]) return; 
 
-        console.log(`📊 DAILY PREDICTION: ${strike.confidence} confidence to hit $${strike.strike}`);
+        console.log(`📊 DAILY PREDICTION: Conf=${strike.confidence} | Target=$${strike.strike}`);
         
-        // TWEET THE PREDICTION WITH VOTING INSTRUCTIONS
-        const msg = `🔮 MARKET PREDICTION [${strike.date}]\n\nAsset: $TRX (Current: $${strike.startPrice})\nTarget: $${strike.strike} (ABOVE)\nConfidence: ${strike.probability}%\n\n🗳️ VOTE NOW:\n❤️ Like = AGREE (Long)\n🔁 RT = DISAGREE (Short)\n\n#TRON #Prediction #AI`;
+        // TWEET THE PREDICTION (Call to Action)
+        const msg = `🔮 MARKET OPEN [${strike.date}]\n\nAsset: $TRX \nTarget: $${strike.strike} (ABOVE)\nAI Conf: ${strike.probability}%\n\n🗳️ PLACE BETS:\n❤️ Like = LONG (Agree)\n🔁 RT = SHORT (Disagree)\n\n#TRON #Prediction #RealYield`;
         
         try {
-            // POST and CAPTURE ID
             const postedTweet = await twitterClient.v2.tweet(msg);
-            console.log(`✅ PREDICTION POSTED: ID ${postedTweet.data.id}`);
-
-            // save ID to DB
+            console.log(`✅ MARKET OPEN: ID ${postedTweet.data.id}`);
+            
             await updateStrikeTweet(strike.date, postedTweet.data.id);
-
             memory[predictionKey] = true;
             saveMemory();
         } catch(e) { console.log("⚠️ Tweet Failed (Prediction)"); }
@@ -169,8 +170,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (PHASE 2: VOTING LIVE) ONLINE");
-console.log("💎 Status: Bot is Live. Pepe is watched. Votes are counted.");
+console.log("\n🤖 PINKERTAPE SENTINEL (PHASE 3: TREASURY) ONLINE");
+console.log("💰 Status: Virtual Liquidity Engines Active.");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -194,7 +195,7 @@ async function startPatrol() {
     setInterval(checkMentionsWrapper, 120000, botId); 
     setInterval(heartbeat, HEARTBEAT_INTERVAL);
     setInterval(reportIdleHealth, (10 * 60 * 1000));
-    setInterval(dailyPredictionCycle, 5 * 60 * 1000); // Check every 5 mins
+    setInterval(dailyPredictionCycle, 5 * 60 * 1000); 
 }
 
 function markActivity() { lastActivityTime = Date.now(); }
