@@ -44,7 +44,7 @@ export default function GuardianDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '40px' }}>
         <StatCard label="Scope" value="6 ASSETS" sub="USDT, BTT, SUN, JST..." />
         <StatCard label="Threat Level" value="ACTIVE" sub="Scanning Mempool..." color="white" />
-        <StatCard label="AI Engine" value="GEMINI-1.5" sub="Flash Preview" />
+        <StatCard label="AI Engine" value="GEMINI-3" sub="Flash Preview" />
         <StatCard label="Actions Taken" value={logs.length} sub="Real-time Interventions" color="#0f0" />
       </div>
 

@@ -1,13 +1,13 @@
 {
   "stats": {
-    "totalScans": 19110,
+    "totalScans": 21144,
     "lastBriefing": 1770438003763
   },
   "market": {
     "lastPrice": 0.2754
   },
   "mentions": {
-    "lastId": "2020403972528644246"
+    "lastId": "2020539495649816835"
   },
   "handledTx": [
     "f801480c95bd3464ade1568cb22d1d228e4f98ff9666c7a6348d23969f80b37d",
@@ -71,9 +71,39 @@
     "3f7aa511ad640e00c92d244f5b85b9550d9cfab7cb894fd44e5a42cc1b56a117",
     "06c2ed62d9b9600e9e3d685b18cb61c291ebfc6a058399c12db0f9126f0215a4",
     "d0ba7a4ab6f10990d801dad504ec7d095971fd23923c54f39cb8d4a0af19f1bf",
-    "ac0a5db8e48b0ecea6bd04d7a2af597850f4d9dd76eb69a800ea4843d1f67229"
+    "ac0a5db8e48b0ecea6bd04d7a2af597850f4d9dd76eb69a800ea4843d1f67229",
+    "65f323f5584fd934b95172d973da36858ca4d779b37021eef2fddd5bee14e162",
+    "c185aff74586226d348cc156e4f287c3470840478ba717a225e25cb8a389ea9e",
+    "5d8fc0256f0546bab9185dcdc5418e019526df2a9ca074352d0d7ccecd4eb45a",
+    "c368f509a90de6ebe398d4eebd5275edae9973d02cfeb8539b35681fbf269d19",
+    "db7813bc8cf02869e29b4f5ad079866b71123935c1fad2ac1dbfca7e22b81c03",
+    "b6632f424437a5043cb399edf2e3933e515752968a35d79a59f7144664747924"
   ],
   "alerts": [
+    {
+      "timestamp": "2026-02-08T16:31:00.579Z",
+      "token": "USDT",
+      "amount": 100000,
+      "risk": "HIGH",
+      "reason": "100K USDT movement detected. Whale-tier ingress confirmed.",
+      "tweet": "🚨 MOVEMENT: 100,000 $USDT\nIntel: 100K USDT movement detected. Whale-tier ingress confirmed.\n\nName: Obsidian-Specter-633\nTicker: $OS633\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: 46800]"
+    },
+    {
+      "timestamp": "2026-02-08T16:28:34.128Z",
+      "token": "USDT",
+      "amount": 500000,
+      "risk": "HIGH",
+      "reason": "MASSIVE USDT PAYLOAD. SECTOR 0x40A CLEARANCE REQUIRED. TRACE ACTIVE.",
+      "tweet": "⚡ FLASH ALERT: Whale active on $USDT\nVol: 500,000\n\nName: Kineto-Spike-Omega\nTicker: $KSO\n\nReporting to @Agent_SunGenX & @Girl_SunLumi\n[ID: 73941]"
+    },
+    {
+      "timestamp": "2026-02-08T16:23:21.748Z",
+      "token": "USDT",
+      "amount": 80000,
+      "risk": "HIGH",
+      "reason": "Scanning 0xf6. 80K USDT detected. Grid-Lock protocol active.",
+      "tweet": ":: SENTINEL LOG ::\nTarget: $USDT\nAmount: 80,000\nData: Scanning 0xf6. 80K USDT detected. Grid-Lock protocol active.\n\nName: Fractal-Marrow-804\nTicker: $FMRW\n\nCC: @Agent_SunGenX @Girl_SunLumi\n[Time: 16:23:19]"
+    },
     {
       "timestamp": "2026-02-08T07:41:46.719Z",
       "token": "USDT",

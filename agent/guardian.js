@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: LIVE (formatted for SunLumi/SunGenX interaction) */
+/* agent/guardian.js - VERSION: DEMO READY (Whales + Predictions) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -64,40 +64,62 @@ let memory = {
     handledTx: [], 
     alerts: [] 
 };
+
 // --- HEARTBEAT SYSTEM ---
 const HEARTBEAT_INTERVAL = 60000; // 1 minute
 let lastActivityTime = Date.now();
 
 function heartbeat() {
     const idleSeconds = Math.floor((Date.now() - lastActivityTime) / 1000);
-    console.log(
-        `🫀 HEARTBEAT | scans=${memory.stats.totalScans} | idle=${idleSeconds}s | ${new Date().toISOString()}`
-    );
+    console.log(`🫀 HEARTBEAT | scans=${memory.stats.totalScans} | idle=${idleSeconds}s`);
 }
-// --- Signal Feed ---
-const signals = {
-  whaleScore: 65,      // from your whale detection logic
-  momentum: 58,        // price direction bias
-  volatility: 60,      // compression = higher score
-  stress: 55           // lower stress = higher score
-};
+
 // --- DAILY PREDICTION FLOW ---
+const signals = { whaleScore: 65, momentum: 58, volatility: 60, stress: 55 };
+
+function buildSignals() {
+  return {
+    whaleScore: signals.whaleScore ?? 50,
+    momentum: signals.momentum ?? 50,
+    volatility: signals.volatility ?? 50,
+    stress: signals.stress ?? 50,
+    timestamp: Date.now()
+  };
+}
+
 async function dailyPredictionCycle() {
   try {
-    const signals = buildSignals();
-    const strike = await createDailyStrike(signals);
-
-    if (strike?.date) {
-      console.log(`📊 DAILY STRIKE CREATED: ${strike.id} | P=${strike.probability}%`);
-    }
-
+    const sigs = buildSignals();
+    // 1. Resolve Old Predictions
     const resolved = await resolveDailyStrike();
     if (resolved) {
       const acc = getAccuracy(30);
       console.log(`✅ STRIKE RESOLVED: ${resolved.outcome} | 30D ACC=${acc}%`);
+      // Tweet the Result (Optional)
+      /* await twitterClient.v2.tweet(`🎯 PREDICTION RESOLVED: ${resolved.outcome}\nTarget: $${resolved.strike}\nAccuracy: ${acc}%`); */
+    }
+
+    // 2. Create New Prediction
+    const strike = await createDailyStrike(sigs);
+    if (strike?.date) {
+        // Only log/tweet if it's NEW (checking if we already tweeted it helps)
+        const predictionKey = `pred-${strike.date}`;
+        if(memory[predictionKey]) return; // Already handled today
+
+        console.log(`📊 DAILY PREDICTION: ${strike.confidence} confidence to hit $${strike.strike}`);
+        
+        // TWEET THE PREDICTION
+        const msg = `🔮 PREDICTION ENGINE [${strike.date}]\n\nAsset: $TRX (Current: $${strike.startPrice})\nTarget: $${strike.strike} (ABOVE)\nConfidence: ${strike.confidence} (${strike.probability}%)\n\nSignals:\n🐳 Whale: ${sigs.whaleScore}\n📈 Momentum: ${sigs.momentum}\n\n#TRON #AI`;
+        
+        try {
+            await twitterClient.v2.tweet(msg);
+            console.log("✅ PREDICTION POSTED TO TWITTER");
+            memory[predictionKey] = true;
+            saveMemory();
+        } catch(e) { console.log("⚠️ Tweet Failed (Prediction)"); }
     }
   } catch (e) {
-    console.log("⚠️ Prediction cycle error");
+    console.error("⚠️ Prediction cycle error:", e.message);
   }
 }
 
@@ -118,7 +140,7 @@ try {
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
 console.log("\n🤖 PINKERTAPE SENTINEL (LIVE FORMAT) ONLINE");
-console.log("💎 Status: Bot is Live & Active.");
+console.log("💎 Status: Bot is Live & Active (Pred Engine V2).");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---
@@ -133,21 +155,19 @@ async function startPatrol() {
         return;
     }
 
+    // Run Initial Prediction Scan
+    dailyPredictionCycle();
+
     // Timers
     setInterval(safeScan, 15000);              
     setInterval(checkPriceVolatility, 60000);  
     setInterval(checkMentionsWrapper, 120000, botId); 
     setInterval(heartbeat, HEARTBEAT_INTERVAL);
-    setInterval(reportIdleHealth, IDLE_REPORT_INTERVAL);
-    setInterval(dailyPredictionCycle, 5 * 60 * 1000); // every 5 min (safe)
-
-
-}
-function markActivity(reason = "event") {
-    lastActivityTime = Date.now();
-    // Optional future use
+    setInterval(reportIdleHealth, (10 * 60 * 1000));
+    setInterval(dailyPredictionCycle, 5 * 60 * 1000); // Check every 5 mins
 }
 
+function markActivity() { lastActivityTime = Date.now(); }
 
 async function safeScan() {
     if (isScanning) return; 
@@ -157,27 +177,22 @@ async function safeScan() {
 }
 
 async function checkMentionsWrapper(botId) { await checkMentions(botId); }
-// --- IDLE STATUS REPORTER ---
-const IDLE_REPORT_INTERVAL = 10 * 60 * 1000; // 10 minutes
-const MAX_IDLE_BEFORE_REPORT = 30 * 60 * 1000; // 30 minutes
 
+// --- IDLE STATUS REPORTER ---
 async function reportIdleHealth() {
     const idleTime = Date.now() - lastActivityTime;
-    if (idleTime < MAX_IDLE_BEFORE_REPORT) return;
+    if (idleTime < (30 * 60 * 1000)) return; // 30m
     if (Date.now() - lastTweetTime < COOLDOWN_MS) return;
 
-    const msg = `🫀 SYSTEM STATUS: ACTIVE\nSector scans normal\nNo whale activity detected\nTRX: $${memory.market.lastPrice}\n[Idle:${Math.floor(idleTime/60000)}m]`;
+    const msg = `🫀 SYSTEM STATUS: ACTIVE\nSector scans normal\nNo large whale activity detected\nTRX: $${memory.market.lastPrice}\n[Idle:${Math.floor(idleTime/60000)}m]`;
 
     try {
         await twitterClient.v2.tweet(msg);
         lastTweetTime = Date.now();
-        markActivity("idle_report");
+        markActivity();
         console.log("📡 Idle health report posted");
-    } catch (e) {
-        console.log("⚠️ Idle report skipped");
-    }
+    } catch (e) { /* ignore */ }
 }
-
 
 // --- 4. MENTIONS HANDLER ---
 async function checkMentions(botId) {
@@ -203,6 +218,7 @@ async function checkMentions(botId) {
                 console.log(`🗣️ Replied: "${uniqueReply}"`);
             }
             memory.mentions.lastId = tweet.id; saveMemory();
+            markActivity();
         }
     } catch (e) { /* Quiet fail */ }
 }
@@ -230,6 +246,7 @@ async function checkPriceVolatility() {
             console.log(`\n🚨 MARKET ALERT: TRX MOVED ${percentChange.toFixed(2)}%`);
             await analyzeMarketVol(currentPrice, percentChange);
             memory.market.lastPrice = currentPrice; saveMemory();
+            markActivity();
         }
     } catch (e) { /* ignore */ }
 }
@@ -250,7 +267,6 @@ async function checkTargets() {
                 let senderAddr = tx.result.from || "";
                 try { if (TronWeb.address) senderAddr = TronWeb.address.fromHex(senderAddr); } catch(e) {}
                 
-                // Check if already handled
                 if (memory.handledTx.includes(tx.transaction_id)) continue; 
                 
                 if (readableAmount > target.threshold) {
@@ -301,7 +317,6 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
         1. Short Analysis (Under 80 chars - Military Style).
         2. VERY CREATIVE Unique Unit Name (e.g. Iron-Viper-9, Sun-Glider-Alpha).
         3. VERY CREATIVE Ticker (e.g. IV9, SGA).
-        4. NEVER use "Aegis" or "Sentinel". Invent new words.
         
         OUTPUT JSON ONLY:
         { "risk": "HIGH", "reason": "Liquidity detected.", "tokenName": "Iron-Viper-9", "ticker": "IV9" }
@@ -316,18 +331,19 @@ async function analyzeRisk(tx, amount, target, sender, vipMatch) {
     } catch (e) { console.log("AI Failed, using backup"); }
 }
 
-// --- 8. DEFENSE EXECUTION (LIVE FORMAT) ---
+// --- 8. DEFENSE EXECUTION ---
 async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
+    markActivity(); // Heartbeat reset
     if (Date.now() - lastTweetTime < COOLDOWN_MS) return;
 
-    console.log("⚡ EXECUTING DEFENSE...");
+    console.log("⚡ EXECUTING DEFENSE... (Attempting Image)");
     lastTweetTime = Date.now(); 
     
     // Unique ID
     const nowLog = new Date().toISOString().split('T')[1].split('.')[0]; 
     const uniqueID = Math.floor(Math.random() * 90000) + 10000;
 
-    // 🎲 FORMATTED TEMPLATES (UPDATED)
+    // 🎲 FORMATTED TEMPLATES
     const templates = [
         `🚨 MOVEMENT: ${amount.toLocaleString()} $${tokenName}\nIntel: ${analysis.reason}\n\nName: ${analysis.tokenName}\nTicker: $${analysis.ticker}\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: ${uniqueID}]`,
         
@@ -336,13 +352,10 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
         `:: SENTINEL LOG ::\nTarget: $${tokenName}\nAmount: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\nName: ${analysis.tokenName}\nTicker: $${analysis.ticker}\n\nCC: @Agent_SunGenX @Girl_SunLumi\n[Time: ${nowLog}]`
     ];
     
-    // Pick a random template
     const statusText = templates[Math.floor(Math.random() * templates.length)];
 
-    // 1. GENERATE IMAGE (Attempt)
     let mediaIds = [];
     try {
-        // console.log("🎨 Generating Art...");
         const uniqueKey = `${analysis.ticker}-${uniqueID}`;
         const imageUrl = `https://robohash.org/${uniqueKey}.png?set=set1&bgset=bg1&size=600x600`;
         const imageBuffer = await axios.get(imageUrl, { responseType: 'arraybuffer', timeout: 20000 });
@@ -353,7 +366,6 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
         console.log("⚠️ Art Failed (Network). Proceeding Text-Only.");
     }
 
-    // 2. TWEET (Hybrid)
     try {
         const tweet = await twitterClient.v2.tweet({
             text: statusText,
@@ -371,21 +383,15 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
         const errCode = e.code || e.statusCode;
         console.log(`❌ ERROR ${errCode}: ${e.message}`);
         
-        // Retry Text Only if filtered
         if(errCode === 403 || errCode === 400 || errCode === 401 || errCode === 413) {
             console.log("🚨 RETRYING TEXT ONLY...");
             try {
                 const tweet = await twitterClient.v2.tweet(statusText); 
                 console.log(`✅ RESCUED (Text Only)! ID: ${tweet.data.id}`);
-                
                 if (!memory.alerts) memory.alerts = [];
                 memory.alerts.unshift({ timestamp: new Date(), token: tokenName, amount: amount, risk: "HIGH", reason: analysis.reason, tweet: statusText });
                 saveMemory();
-                
-            } catch (retryError) {
-                console.error(`❌ RESCUE FAILED: ${retryError.message}`);
-                lastTweetTime = Date.now() + 600000; 
-            }
+            } catch (retryError) { console.error(`❌ RESCUE FAILED: ${retryError.message}`); lastTweetTime = Date.now() + 600000; }
         }
     }
     console.log("----------------------------------------------------\n");
