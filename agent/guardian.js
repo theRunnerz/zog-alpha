@@ -1,4 +1,4 @@
-/* agent/guardian.js - VERSION: DEMO READY (Whales + Predictions) */
+/* agent/guardian.js - VERSION: PHASE 2 (Social Consensus + Pepe Included) */
 import dotenv from 'dotenv';
 import TronWeb from 'tronweb';
 import axios from 'axios';
@@ -8,11 +8,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// 🧠 Prediction Engine
+// 🧠 Prediction Engine (UPDATED IMPORTS)
 import {
   createDailyStrike,
   resolveDailyStrike,
-  getAccuracy
+  getAccuracy,
+  updateStrikeTweet, // NEW: Links tweet to DB
+  updateVoteStats    // NEW: Counts the votes
 } from './predictionEngine.js';
 
 // --- 0. GLOBAL SAFETY LOCKS ---
@@ -45,7 +47,7 @@ const VIP_LIST = [
     { name: "TRON DAO", address: "TF5j4f68vjVjTqT6AAcR6S5Q72i7r5tK3" }      
 ];
 
-// 🛡️ TOKEN WATCHLIST
+// 🛡️ TOKEN WATCHLIST (Kept exactly as you had it)
 const WATCH_LIST = [
     { name: "$SUNAI", address: "TEyzUNwZMuMsAXqdcz5HZrshs3iWfydGAW", decimals: 18, threshold: 5000000 },
     { name: "USDT", address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", decimals: 6, threshold: 50000 },
@@ -74,7 +76,7 @@ function heartbeat() {
     console.log(`🫀 HEARTBEAT | scans=${memory.stats.totalScans} | idle=${idleSeconds}s`);
 }
 
-// --- DAILY PREDICTION FLOW ---
+// --- DAILY PREDICTION FLOW (PHASE 2 UPGRADE) ---
 const signals = { whaleScore: 65, momentum: 58, volatility: 60, stress: 55 };
 
 function buildSignals() {
@@ -90,30 +92,58 @@ function buildSignals() {
 async function dailyPredictionCycle() {
   try {
     const sigs = buildSignals();
-    // 1. Resolve Old Predictions
-    const resolved = await resolveDailyStrike();
-    if (resolved) {
+    
+    // 1. Resolve Old Predictions AND Count Votes
+    const oldStrike = await resolveDailyStrike();
+    if (oldStrike) {
+      
+      // A. Fetch Community Votes (If tweet ID exists)
+      let voteMsg = "Community: N/A";
+      if (oldStrike.tweetId) {
+          try {
+              const tweetMetrics = await twitterClient.v2.singleTweet(oldStrike.tweetId, {
+                  "tweet.fields": ["public_metrics"]
+              });
+              const metrics = tweetMetrics.data.public_metrics;
+              const likes = metrics.like_count;
+              const rts = metrics.retweet_count;
+              
+              await updateVoteStats(oldStrike.date, likes, rts);
+              
+              const consensus = likes > rts ? "AGREED" : "DISAGREED";
+              voteMsg = `🗳️ Community ${consensus} (${likes} vs ${rts})`;
+          } catch(e) { console.log("⚠️ Could not fetch vote stats"); }
+      }
+
       const acc = getAccuracy(30);
-      console.log(`✅ STRIKE RESOLVED: ${resolved.outcome} | 30D ACC=${acc}%`);
-      // Tweet the Result (Optional)
-      /* await twitterClient.v2.tweet(`🎯 PREDICTION RESOLVED: ${resolved.outcome}\nTarget: $${resolved.strike}\nAccuracy: ${acc}%`); */
+      const winMsg = oldStrike.outcome === "WIN" ? "✅ TARGET HIT" : "❌ MISSED";
+      
+      const resTweet = `🎯 MARKET SETTLEMENT\n\nResult: ${winMsg}\nFinal Price: $${oldStrike.resolvedPrice}\nTarget: $${oldStrike.strike}\n\n${voteMsg}\nAccuracy (30D): ${acc}%\n\n#TRON #Result`;
+      
+      await twitterClient.v2.tweet(resTweet);
+      console.log(`✅ STRIKE RESOLVED: ${oldStrike.outcome} | TWEET SENT`);
     }
 
     // 2. Create New Prediction
     const strike = await createDailyStrike(sigs);
     if (strike?.date) {
-        // Only log/tweet if it's NEW (checking if we already tweeted it helps)
+        // Only log/tweet if it's NEW
         const predictionKey = `pred-${strike.date}`;
         if(memory[predictionKey]) return; // Already handled today
 
         console.log(`📊 DAILY PREDICTION: ${strike.confidence} confidence to hit $${strike.strike}`);
         
-        // TWEET THE PREDICTION
-        const msg = `🔮 PREDICTION ENGINE [${strike.date}]\n\nAsset: $TRX (Current: $${strike.startPrice})\nTarget: $${strike.strike} (ABOVE)\nConfidence: ${strike.confidence} (${strike.probability}%)\n\nSignals:\n🐳 Whale: ${sigs.whaleScore}\n📈 Momentum: ${sigs.momentum}\n\n#TRON #AI`;
+        // TWEET THE PREDICTION WITH VOTING INSTRUCTIONS
+        const msg = `🔮 MARKET PREDICTION [${strike.date}]\n\nAsset: $TRX (Current: $${strike.startPrice})\nTarget: $${strike.strike} (ABOVE)\nConfidence: ${strike.probability}%\n\n🗳️ VOTE NOW:\n❤️ Like = AGREE (Long)\n🔁 RT = DISAGREE (Short)\n\n#TRON #Prediction #AI`;
         
         try {
-            await twitterClient.v2.tweet(msg);
-            console.log("✅ PREDICTION POSTED TO TWITTER");
+            // POST and CAPTURE ID
+            const postedTweet = await twitterClient.v2.tweet(msg);
+            console.log(`✅ PREDICTION POSTED: ID ${postedTweet.data.id}`);
+
+            // save ID to DB
+            await updateStrikeTweet(strike.date, postedTweet.data.id);
+
             memory[predictionKey] = true;
             saveMemory();
         } catch(e) { console.log("⚠️ Tweet Failed (Prediction)"); }
@@ -139,8 +169,8 @@ try {
 
 function saveMemory() { fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); }
 
-console.log("\n🤖 PINKERTAPE SENTINEL (LIVE FORMAT) ONLINE");
-console.log("💎 Status: Bot is Live & Active (Pred Engine V2).");
+console.log("\n🤖 PINKERTAPE SENTINEL (PHASE 2: VOTING LIVE) ONLINE");
+console.log("💎 Status: Bot is Live. Pepe is watched. Votes are counted.");
 console.log("----------------------------------------------------\n");
 
 // --- 3. MAIN LOOP ---

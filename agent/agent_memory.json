@@ -1,13 +1,13 @@
 {
   "stats": {
-    "totalScans": 21504,
+    "totalScans": 21744,
     "lastBriefing": 1770438003763
   },
   "market": {
     "lastPrice": 0.2754
   },
   "mentions": {
-    "lastId": "2020546713443049909"
+    "lastId": "2020552200955847053"
   },
   "handledTx": [
     "f801480c95bd3464ade1568cb22d1d228e4f98ff9666c7a6348d23969f80b37d",
@@ -77,9 +77,18 @@
     "5d8fc0256f0546bab9185dcdc5418e019526df2a9ca074352d0d7ccecd4eb45a",
     "c368f509a90de6ebe398d4eebd5275edae9973d02cfeb8539b35681fbf269d19",
     "db7813bc8cf02869e29b4f5ad079866b71123935c1fad2ac1dbfca7e22b81c03",
-    "b6632f424437a5043cb399edf2e3933e515752968a35d79a59f7144664747924"
+    "b6632f424437a5043cb399edf2e3933e515752968a35d79a59f7144664747924",
+    "eca844a6398f5601d31a8c864a143795af8c398be4b5c191537139f0f5a31aa2"
   ],
   "alerts": [
+    {
+      "timestamp": "2026-02-08T17:33:18.006Z",
+      "token": "USDT",
+      "amount": 200000,
+      "risk": "HIGH",
+      "reason": "200K USDT SIGNAL DETECTED. STRATEGIC LIQUIDITY INBOUND. SECTOR ALERT.",
+      "tweet": "🚨 MOVEMENT: 200,000 $USDT\nIntel: 200K USDT SIGNAL DETECTED. STRATEGIC LIQUIDITY INBOUND. SECTOR ALERT.\n\nName: Neon-Aegis-819\nTicker: $NAG8\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: 23975]"
+    },
     {
       "timestamp": "2026-02-08T16:31:00.579Z",
       "token": "USDT",
