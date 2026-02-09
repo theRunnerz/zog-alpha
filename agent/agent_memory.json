@@ -1,6 +1,6 @@
 {
   "stats": {
-    "totalScans": 30996,
+    "totalScans": 31116,
     "lastBriefing": 1770438003763
   },
   "market": {
@@ -125,9 +125,19 @@
     "30af62d8cf0b1cafe6a72d010258425d3f072fa354a3851ab02abe9986c4e6a0",
     "75adf05f38e4a394c44c5bb5c525c400b12abdc4fc19990113a738e3af0653be",
     "61a9eaac3a7fbb6598ca0b0cf2d18f61dcc9eac925cfb813561d648cb2f85ba0",
-    "959468187a9352ab9467c0b43330b9b9c681d2e01cf4d37198f2b93036e72ecd"
+    "959468187a9352ab9467c0b43330b9b9c681d2e01cf4d37198f2b93036e72ecd",
+    "b8dc3292359ff3922826f62979a5f6c16843e1580e85edc714d4faf1890cb5c1",
+    "beecc49f226692543f01054dc3cccb45a3444554954084ec936434f95c5cf613"
   ],
   "alerts": [
+    {
+      "timestamp": "2026-02-09T19:34:33.231Z",
+      "token": "USDT",
+      "amount": 250000,
+      "risk": "HIGH",
+      "reason": "HEAVY CAPITAL INFLOW IDENTIFIED. ASSET STABILITY CONFIRMED. MONITORING FLOW.",
+      "tweet": "🚨 MOVEMENT: 250,000 $USDT\nIntel: HEAVY CAPITAL INFLOW IDENTIFIED. ASSET STABILITY CONFIRMED. MONITORING FLOW.\n\nName: Cyber-Omen-36\nTicker: $CO36\n\nDeploying @Agent_SunGenX & | Monitor @Girl_SunLumi\n[Ref: 75974]"
+    },
     {
       "timestamp": "2026-02-09T18:46:37.712Z",
       "token": "$SUNAI",

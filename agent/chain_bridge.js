@@ -5,73 +5,76 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// --- THE FIX ---
-// Load the package
+// --- 1. THE IMPORT FIX ---
+// Load the package specifically to handle ESM/CommonJS issues
 const TronWebPkg = require("tronweb");
-
 // Check: Is 'TronWeb' a property inside the package? Or is it the package itself?
 const TronWeb = TronWebPkg.TronWeb || TronWebPkg;
 
-// Verify it loaded correctly (Simulation Console Log)
+// Safety Check
 if (typeof TronWeb !== 'function') {
     console.error("❌ CRITICAL ERROR: TronWeb failed to load. Type is:", typeof TronWeb);
     process.exit(1); 
 }
-// ----------------
 
-// Load Environment Variables
+// --- 2. CONFIGURATION ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
-// Initialize connection using the unwrapped class
+const PRIVATE_KEY = process.env.TRON_PRIVATE_KEY;
+const CONTRACT_ADDRESS = process.env.TRON_CONTRACT_ADDRESS;
+
+// Initialize connection
 const tronWeb = new TronWeb({
     fullHost: 'https://api.shasta.trongrid.io',
     headers: { "TRON-PRO-API-KEY": process.env.TRONGRID_API_KEY },
-    privateKey: process.env.TRON_PRIVATE_KEY
+    privateKey: PRIVATE_KEY
 });
 
-const CONTRACT_ADDRESS = process.env.TRON_CONTRACT_ADDRESS;
-
-// ... keep the rest of your functions (placeSocialBetOnChain, etc) below ...
+// --- 3. EXPORTED FUNCTIONS ---
 
 export async function placeSocialBetOnChain(handle, amount, prediction) {
     try {
+        // FIX: Explicitly get the address from the private key
+        const issuerAddress = tronWeb.address.fromPrivateKey(PRIVATE_KEY);
+        
         console.log(`🔗 CONNECTING to Shasta Contract: ${CONTRACT_ADDRESS}...`);
         
         const contract = await tronWeb.contract().at(CONTRACT_ADDRESS);
         
-        // Convert TRX to SUN (1 TRX = 1,000,000 SUN)
+        // Convert TRX to SUN
         const amountInSun = tronWeb.toSun(amount);
         const marketId = 1; // Hardcoded for demo
 
         console.log(`📝 SIGNING Transaction: "Move ${amount} TRX for user ${handle}"...`);
         
         // Call the smart contract function
-        // Note: For this to work, the "handle" must be registered in the contract first.
-        // If not, it might revert. ideally register yourself first via TronScan.
-        
+        // We act as the ORACLE here.
         const txId = await contract.placeSocialBet(
             handle, 
             marketId, 
             prediction, 
             amountInSun
         ).send({
-            feeLimit: 100_000_000 // 100 TRX max fee (Testnet is free practically)
+            feeLimit: 100_000_000, 
+            from: issuerAddress // <--- THIS FIXES THE "INVALID ISSUER" ERROR
         });
 
         console.log(`✅ SUCCESS! Transaction Hash: https://shasta.tronscan.org/#/transaction/${txId}`);
         return txId;
 
     } catch (error) {
-        console.error("❌ BLOCKCHAIN ERROR:", error);
-        return null; // Don't crash the app
+        console.error("❌ BLOCKCHAIN ERROR:", error.toString());
+        return null; 
     }
 }
 
 export async function settlePayoutOnChain(handle, amount) {
     try {
-        console.log(`🔗 CONNECTING to Shasta Contract...`);
+        const issuerAddress = tronWeb.address.fromPrivateKey(PRIVATE_KEY);
+        
+        console.log(`🔗 CONNECTING to Shasta Contract to PAYOUT...`);
         const contract = await tronWeb.contract().at(CONTRACT_ADDRESS);
         const amountInSun = tronWeb.toSun(amount);
 
@@ -80,12 +83,15 @@ export async function settlePayoutOnChain(handle, amount) {
         const txId = await contract.distributeWinnings(
             handle, 
             amountInSun
-        ).send();
+        ).send({
+            feeLimit: 100_000_000,
+            from: issuerAddress // <--- Explicit Sender
+        });
 
         console.log(`✅ PAYOUT CONFIRMED: https://shasta.tronscan.org/#/transaction/${txId}`);
         return txId;
     } catch (error) {
-        console.error("❌ SETTLEMENT ERROR:", error);
+        console.error("❌ SETTLEMENT ERROR:", error.toString());
         return null;
     }
 }
