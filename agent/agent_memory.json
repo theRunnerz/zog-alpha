@@ -1,6 +1,6 @@
 {
   "stats": {
-    "totalScans": 29202,
+    "totalScans": 29268,
     "lastBriefing": 1770438003763
   },
   "market": {
@@ -114,9 +114,18 @@
     "ec57d37b55c5175af0f79a156d3cfbc7e7ab925ff7a52f91c9cbfd963ce3fccb",
     "e69b33b48f007ac5cc6be0410dcb06c4d6ccde616c24ceb391e1f6bc428e913f",
     "e46b58749fa4bccf9e9a2986d6279ef05f80f2eadbee143f04d6812ea4e919e9",
-    "211bb29240f9806a126d4fd77e632a434765fddbeb3ffe6c5ec5b47b7430fba5"
+    "211bb29240f9806a126d4fd77e632a434765fddbeb3ffe6c5ec5b47b7430fba5",
+    "23f2fc58c0cbe4fea722cdeaa5d5e42240769b77baad88ecdf586df0b51688be"
   ],
   "alerts": [
+    {
+      "timestamp": "2026-02-09T18:15:25.076Z",
+      "token": "USDT",
+      "amount": 110710.851844,
+      "risk": "HIGH",
+      "reason": "HEAVY CAPITAL INFLUX DETECTED. SECTOR 0x61C SECURED. MONITORING FLOW.",
+      "tweet": "🚨 MOVEMENT: 110,710.852 $USDT\nIntel: HEAVY CAPITAL INFLUX DETECTED. SECTOR 0x61C SECURED. MONITORING FLOW.\n\nName: Void-Vanguard-517\nTicker: $VV517\n\nDeploying @Agent_SunGenX & @SUNAITRON| Monitor @Girl_SunLumi\n[Ref: 15210]"
+    },
     {
       "timestamp": "2026-02-09T18:07:11.342Z",
       "token": "$SUNAI",
