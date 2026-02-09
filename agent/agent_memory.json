@@ -1,13 +1,13 @@
 {
   "stats": {
-    "totalScans": 31116,
+    "totalScans": 31182,
     "lastBriefing": 1770438003763
   },
   "market": {
     "lastPrice": 0.2754
   },
   "mentions": {
-    "lastId": "2020932736194867277"
+    "lastId": "2020945103674802565"
   },
   "handledTx": [
     "f801480c95bd3464ade1568cb22d1d228e4f98ff9666c7a6348d23969f80b37d",
