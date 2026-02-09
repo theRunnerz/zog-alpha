@@ -1,25 +1,39 @@
 /* agent/chain_bridge.js */
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const TronWeb = require("tronweb");
-
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// --- THE FIX ---
+// Load the package
+const TronWebPkg = require("tronweb");
+
+// Check: Is 'TronWeb' a property inside the package? Or is it the package itself?
+const TronWeb = TronWebPkg.TronWeb || TronWebPkg;
+
+// Verify it loaded correctly (Simulation Console Log)
+if (typeof TronWeb !== 'function') {
+    console.error("❌ CRITICAL ERROR: TronWeb failed to load. Type is:", typeof TronWeb);
+    process.exit(1); 
+}
+// ----------------
 
 // Load Environment Variables
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
-// Initialize Shasta Connection
+// Initialize connection using the unwrapped class
 const tronWeb = new TronWeb({
     fullHost: 'https://api.shasta.trongrid.io',
-    headers: { "TRON-PRO-API-KEY": process.env.TRONGRID_API_KEY }, // Optional but good
+    headers: { "TRON-PRO-API-KEY": process.env.TRONGRID_API_KEY },
     privateKey: process.env.TRON_PRIVATE_KEY
 });
 
 const CONTRACT_ADDRESS = process.env.TRON_CONTRACT_ADDRESS;
+
+// ... keep the rest of your functions (placeSocialBetOnChain, etc) below ...
 
 export async function placeSocialBetOnChain(handle, amount, prediction) {
     try {
