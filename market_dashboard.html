@@ -1,92 +1,252 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>PINKERTAPE /// SENTINEL TERMINAL</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PINKERTAPE SENTINEL | WAR ROOM</title>
     <style>
-        body { background: #050505; color: #0f0; font-family: 'Courier New', monospace; padding: 20px; overflow-x: hidden; }
-        .container { max-width: 1200px; margin: 0 auto; border: 1px solid #333; padding: 20px; box-shadow: 0 0 20px rgba(0, 255, 0, 0.1); }
-        h1 { margin: 0; font-size: 2em; letter-spacing: 5px; border-bottom: 2px solid #0f0; padding-bottom: 10px; margin-bottom: 20px; }
+        :root {
+            --neon-green: #0f0;
+            --neon-red: #f00;
+            --bg-color: #050a05;
+            --panel-bg: #0a110a;
+            --border-color: #1a331a;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--neon-green);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- LAYOUT --- */
+        .main-feed { grid-column: 1; display: flex; flex-direction: column; gap: 20px; }
+        .sidebar { grid-column: 2; display: flex; flex-direction: column; gap: 20px; }
         
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
-        .panel { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 15px; position: relative; }
-        .panel h3 { margin: 0 0 10px 0; font-size: 0.7em; color: #555; text-transform: uppercase; }
-        .panel .val { font-size: 2em; font-weight: bold; color: #fff; }
+        .panel {
+            border: 1px solid var(--border-color);
+            background: var(--panel-bg);
+            padding: 15px;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
+            position: relative;
+        }
         
-        .blink { animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
-        
-        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
-        th { text-align: left; color: #444; border-bottom: 1px solid #222; padding: 10px; }
-        td { padding: 12px 10px; border-bottom: 1px solid #111; color: #aaa; }
-        
-        .status-ACTIVE { color: #00ccff; text-shadow: 0 0 5px #00ccff; }
-        .status-WIN { color: #0f0; text-shadow: 0 0 5px #0f0; }
-        .status-LOSS { color: #f00; text-shadow: 0 0 5px #f00; }
-        
-        .scan-line { height: 2px; width: 100%; background: rgba(0, 255, 0, 0.1); position: fixed; top: 0; left: 0; animation: scan 3s linear infinite; pointer-events: none; }
-        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+        h2 {
+            margin-top: 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* --- TERMINAL FEED --- */
+        #log-feed {
+            height: 300px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .log-entry { margin-bottom: 5px; }
+        .timestamp { color: #555; margin-right: 10px; }
+        .alert { color: var(--neon-red); font-weight: bold; }
+        .info { color: #0ff; }
+
+        /* --- BANKING UI (NEW PHASE 4) --- */
+        .bank-input {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 10px;
+            margin-bottom: 10px;
+            font-family: inherit;
+            box-sizing: border-box; /* Fixes padding width issue */
+        }
+        .bank-btn {
+            width: 100%;
+            background: var(--neon-green);
+            color: #000;
+            border: none;
+            padding: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .bank-btn:hover {
+            background: #fff;
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+        .status-light {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #333;
+            margin-right: 10px;
+        }
+        .status-light.active { background: var(--neon-green); box-shadow: 0 0 5px var(--neon-green); }
+
+        /* --- ALERTS --- */
+        .market-card {
+            border-left: 3px solid var(--neon-green);
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(0, 255, 0, 0.05);
+        }
+
     </style>
 </head>
 <body>
-    <div class="scan-line"></div>
-    <div class="container">
-        <h1>PINKERTAPE <span class="blink">_</span>SENTINEL</h1>
-        
-        <div class="grid">
-            <div class="panel">
-                <h3>System Status</h3>
-                <div class="val" style="color:#0f0">ONLINE</div>
-            </div>
-            <div class="panel">
-                <h3>30-Day Accuracy</h3>
-                <div class="val">0%</div>
-            </div>
-            <div class="panel">
-                <h3>Open Markets</h3>
-                <div class="val" style="color:#00ccff">0</div>
-            </div>
-            <div class="panel">
-                <h3>Network</h3>
-                <div class="val">TRON</div>
+
+    <!-- LEFT COLUMN: INTELLIGENCE -->
+    <div class="main-feed">
+        <div class="panel">
+            <h2>📡 LIVE INTERCEPT LOG</h2>
+            <div id="log-feed">
+                <div class="log-entry"><span class="timestamp">INITIALIZING...</span> SYSTEM ONLINE</div>
+                <div class="log-entry"><span class="timestamp">SCANNING...</span> CONNECTED TO TRONGRID (SHASTA)</div>
+                <div class="log-entry"><span class="timestamp">WAITING...</span> LISTENING FOR WHALES</div>
             </div>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>DATE UTC</th>
-                    <th>ASSET</th>
-                    <th>TARGET</th>
-                    <th>VOTE CONSENSUS</th>
-                    <th>RESULT</th>
-                </tr>
-            </thead>
-            <tbody>
-                
-                <tr>
-                    <td>[TRX-2026-02-08]</td>
-                    <td>2026-02-08</td>
-                    <td>TRX</td>
-                    <td>$0.281</td>
-                    <td>WAITING...</td>
-                    <td class="status-NO">NO</td>
-                </tr>
-                
-            </tbody>
-        </table>
-        
-        <p style="margin-top: 30px; font-size: 0.7em; color: #333;">
-            // ENCRYPTED CONNECTION ESTABLISHED<br>
-            // NODE: NILE_TESTNET_BRIDGE<br>
-            // MEMORY ARRAY: 1 ENTRIES
-        </p>
+        <div class="panel" style="flex-grow: 1;">
+            <h2>⚡ ACTIVE MARKETS</h2>
+            <div id="market-container">
+                <!-- Markets appear here dynamically -->
+                <div class="market-card">
+                    <h3>MARKET #001: WAITING FOR SIGNAL...</h3>
+                    <p>Status: SCANNING MEMPOOL</p>
+                </div>
+            </div>
+        </div>
     </div>
-    
+
+    <!-- RIGHT COLUMN: CONTROLS & BANK -->
+    <div class="sidebar">
+        
+        <!-- PHASE 4: SOCIAL BANKING INTERFACE -->
+        <div class="panel">
+            <h2>🏦 OPERATOR UPLINK</h2>
+            <div style="margin-bottom: 15px; display: flex; align-items: center;">
+                <span id="wallet-status" class="status-light"></span>
+                <span id="wallet-address">Wallet: DISCONNECTED</span>
+            </div>
+
+            <label>SOCIAL HANDLE</label>
+            <input type="text" id="twitter-handle" class="bank-input" placeholder="@SunGenX_Fan">
+
+            <label>DEPOSIT AMOUNT (TRX)</label>
+            <input type="number" id="deposit-amount" class="bank-input" placeholder="100">
+
+            <button onclick="depositFunds()" class="bank-btn">AUTHORIZE DEPOSIT</button>
+            <p id="tx-status" style="font-size: 0.8rem; margin-top: 10px; color: #555; text-align: center;">Standby...</p>
+        </div>
+
+        <div class="panel">
+            <h2>🧠 AI METRICS</h2>
+            <p>Accuracy: 87.4%</p>
+            <p>Whales Tracked: 1,420</p>
+            <p>Total Yield Paid: 45,000 TRX</p>
+            <div style="height: 10px; background: #333; margin-top: 10px;">
+                <div style="width: 87%; height: 100%; background: var(--neon-green);"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Auto-refresh for the video feel
-        setTimeout(() => window.location.reload(), 10000);
+        // --- CONFIGURATION ---
+        // ⚠️ PASTE YOUR DEPLOYED SHASTA CONTRACT ADDRESS HERE
+        const CONTRACT_ADDRESS = "YOUR_CONTRACT_ADDRESS_HERE"; 
+
+        // --- UI UTILS ---
+        function log(msg, type="info") {
+            const feed = document.getElementById('log-feed');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const time = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="timestamp">${time}</span> ${msg}`;
+            feed.prepend(entry);
+        }
+
+        // --- TRON LINK INTEGRATION ---
+        let userAddress = null;
+
+        async function initTron() {
+            // Wait for TronLink to inject
+            let attempts = 0;
+            const checkTron = setInterval(async () => {
+                if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
+                    clearInterval(checkTron);
+                    userAddress = window.tronWeb.defaultAddress.base58;
+                    
+                    // Update UI
+                    document.getElementById('wallet-status').classList.add('active');
+                    document.getElementById('wallet-address').innerText = 
+                        userAddress.substring(0, 4) + "..." + userAddress.substring(userAddress.length - 4);
+                    
+                    log(`LINK ESTABLISHED: ${userAddress}`);
+                    log(`CONNECTED TO: SHASTA TESTNET`, "info");
+                } else {
+                    attempts++;
+                    if(attempts > 10) {
+                        clearInterval(checkTron);
+                        document.getElementById('wallet-address').innerText = "TRONLINK NOT FOUND";
+                    }
+                }
+            }, 500);
+        }
+
+        // --- DEPOSIT FUNCTION ---
+        async function depositFunds() {
+            const handle = document.getElementById('twitter-handle').value;
+            const amount = document.getElementById('deposit-amount').value;
+            const statusLabel = document.getElementById('tx-status');
+
+            if (!handle || !amount) return alert("ENTER DETAILS");
+            if (!window.tronWeb) return alert("INSTALL TRONLINK");
+
+            try {
+                statusLabel.innerText = "⏳ REQUESTING SIGNATURE...";
+                statusLabel.style.color = "#ffff00";
+
+                const contract = await window.tronWeb.contract().at(CONTRACT_ADDRESS);
+                const amountInSun = window.tronWeb.toSun(amount);
+
+                // Call the Smart Contract
+                const txId = await contract.registerAndDeposit(handle).send({
+                    callValue: amountInSun
+                });
+
+                statusLabel.innerText = "✅ AUTHORIZED";
+                statusLabel.style.color = "#0f0";
+                
+                log(`DEPOSIT SUCCESS: ${amount} TRX`, "alert");
+                log(`IDENTITY LINKED: ${handle} <-> ${userAddress}`);
+                log(`TX ID: ${txId}`);
+
+                // Clear inputs
+                document.getElementById('deposit-amount').value = "";
+
+            } catch (e) {
+                console.error(e);
+                statusLabel.innerText = "❌ FAILED";
+                statusLabel.style.color = "#f00";
+                log(`ERROR: ${e.message || "User Rejected"}`, "alert");
+            }
+        }
+
+        // Start
+        window.addEventListener('load', initTron);
+
     </script>
 </body>
 </html>

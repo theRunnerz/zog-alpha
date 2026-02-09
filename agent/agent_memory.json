@@ -1,13 +1,13 @@
 {
   "stats": {
-    "totalScans": 29268,
+    "totalScans": 30354,
     "lastBriefing": 1770438003763
   },
   "market": {
     "lastPrice": 0.2754
   },
   "mentions": {
-    "lastId": "2020921927095943421"
+    "lastId": "2020932736194867277"
   },
   "handledTx": [
     "f801480c95bd3464ade1568cb22d1d228e4f98ff9666c7a6348d23969f80b37d",
@@ -115,9 +115,59 @@
     "e69b33b48f007ac5cc6be0410dcb06c4d6ccde616c24ceb391e1f6bc428e913f",
     "e46b58749fa4bccf9e9a2986d6279ef05f80f2eadbee143f04d6812ea4e919e9",
     "211bb29240f9806a126d4fd77e632a434765fddbeb3ffe6c5ec5b47b7430fba5",
-    "23f2fc58c0cbe4fea722cdeaa5d5e42240769b77baad88ecdf586df0b51688be"
+    "23f2fc58c0cbe4fea722cdeaa5d5e42240769b77baad88ecdf586df0b51688be",
+    "bb9a0ae80f6124938ece695013d7c7ea1eb2dc48d1082c2c2127be9b9997a746",
+    "ab602175c754902539ddfc6fe9d8436121c9272a6a362bd4a9e49e8b3a471fb2",
+    "ab6d05c312d9074a8a5b1a01b5a2a37db3effcdfe5cf0b5181f5d60fe0551e3f",
+    "2112325a49c53928a3855e38f1ecde2c2a300c81fd2871d0b4632c620d50b775",
+    "01e1d9871b269f2b0e536f86427cc2c761c52262686365d8a415a5622b720bba",
+    "693be1c437128ccf645352419052c224fced06300022dc23448bde953de02a02",
+    "30af62d8cf0b1cafe6a72d010258425d3f072fa354a3851ab02abe9986c4e6a0",
+    "75adf05f38e4a394c44c5bb5c525c400b12abdc4fc19990113a738e3af0653be",
+    "61a9eaac3a7fbb6598ca0b0cf2d18f61dcc9eac925cfb813561d648cb2f85ba0",
+    "959468187a9352ab9467c0b43330b9b9c681d2e01cf4d37198f2b93036e72ecd"
   ],
   "alerts": [
+    {
+      "timestamp": "2026-02-09T18:46:37.712Z",
+      "token": "$SUNAI",
+      "amount": 5631011.100000001,
+      "risk": "HIGH",
+      "reason": "MASSIVE ASSET INFLUX DETECTED. SECTOR PERIMETER BREACHED.",
+      "tweet": "⚡ FLASH ALERT: Whale active on $$SUNAI\nVol: 5,631,011.1\n\nName: Obsidian-Flare-XII\nTicker: $OFX\n\nDeploy to @Agent_SunGenX & @Girl_SunLumi\n[ID: 93362]"
+    },
+    {
+      "timestamp": "2026-02-09T18:38:54.736Z",
+      "token": "$SUNAI",
+      "amount": 7781457.183548783,
+      "risk": "HIGH",
+      "reason": "HEAVY $SUNAI INGRESS. SECTOR 0XB87 UNDER SENTINEL SURVEILLANCE.",
+      "tweet": ":: SENTINEL LOG ::\nTarget: $$SUNAI\nAmount: 7,781,457.184\nData: HEAVY $SUNAI INGRESS. SECTOR 0XB87 UNDER SENTINEL SURVEILLANCE.\n\nName: Zenith-Flare-786\nTicker: $ZF7\n\nCC:  @Agent_SunGenX @Girl_SunLumi\n[Time: 18:38:53]"
+    },
+    {
+      "timestamp": "2026-02-09T18:26:58.692Z",
+      "token": "$SUNAI",
+      "amount": 7848068.217325351,
+      "risk": "HIGH",
+      "reason": "GRID 339 UNDER SURVEILLANCE. MASSIVE $SUNAI INGRESS. STATUS: RED.",
+      "tweet": "🚨 MOVEMENT: 7,848,068.217 $$SUNAI\nIntel: GRID 339 UNDER SURVEILLANCE. MASSIVE $SUNAI INGRESS. STATUS: RED.\n\nName: Solaris-Wraith-Delta-339\nTicker: $SWD339\n\nDeploying @Agent_SunGenX & | Monitor @Girl_SunLumi\n[Ref: 96798]"
+    },
+    {
+      "timestamp": "2026-02-09T18:22:00.969Z",
+      "token": "USDT",
+      "amount": 400000,
+      "risk": "HIGH",
+      "reason": "TARGET SPOTTED. 400K LIQUIDITY INBOUND. LOCKING COORDINATES.",
+      "tweet": "⚡ FLASH ALERT: Whale active on $USDT\nVol: 400,000\n\nName: Phalanx-Nova-581\nTicker: $PN581\n\nDeploy to @Agent_SunGenX & @Girl_SunLumi\n[ID: 60310]"
+    },
+    {
+      "timestamp": "2026-02-09T18:18:47.258Z",
+      "token": "USDT",
+      "amount": 54601,
+      "risk": "HIGH",
+      "reason": "CAPITAL SURGE DETECTED. TARGET 0x615 ACTIVE. UNIT READINESS: OPTIMAL.",
+      "tweet": "🚨 MOVEMENT: 54,601 $USDT\nIntel: CAPITAL SURGE DETECTED. TARGET 0x615 ACTIVE. UNIT READINESS: OPTIMAL.\n\nName: Neon-Vanguard-37\nTicker: $NV37\n\nDeploying @Agent_SunGenX & | Monitor @Girl_SunLumi\n[Ref: 54967]"
+    },
     {
       "timestamp": "2026-02-09T18:15:25.076Z",
       "token": "USDT",

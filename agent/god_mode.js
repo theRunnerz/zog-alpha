@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import axios from 'axios';
 import readline from 'readline';
+import { placeSocialBetOnChain } from './chain_bridge.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -106,16 +107,25 @@ async function triggerFakePayout() {
 
 // --- SCENARIO 3: FLASH MARKET ---
 async function triggerFakePrediction() {
-    console.log("🎬 ACTION! Simulating Flash Market...");
-    const time = new Date().toISOString().split('T')[1].slice(0, 5); // HH:MM
+    console.log("🎬 ACTION! Simulating Flash Market & Social Bet...");
+    const time = new Date().toISOString().split('T')[1].slice(0, 5); 
     const target = (Math.random() * (0.30 - 0.28) + 0.28).toFixed(4); 
     const conf = Math.floor(Math.random() * (95 - 75) + 75);
 
+    // 1. Post to Twitter
     const msg = `⚡ FLASH MARKET [${time} UTC]\n\nAsset: $TRX \nTarget: $${target} \nAI Conf: ${conf}% (High Volatility)\n\n🗳️ QUICK BET:\n❤️ Like = LONG\n🔁 RT = SHORT\n\n#TRON #Flash #AI`;
 
     try {
         const tweet = await twitterClient.v2.tweet(msg);
         console.log(`✅ CUT! Prediction Posted: https://twitter.com/user/status/${tweet.data.id}`);
+        
+        // 2. TRIGGER THE BLOCKCHAIN ( The "Magic" Moment )
+        console.log("\n🤖 AI SENTINEL: Detects incoming 'Like' from @DemoUser...");
+        
+        // Simulate a 10 TRX bet from a user named "@DemoUser"
+        // (Make sure you registered "@DemoUser" in your contract on TronScan first!)
+        await placeSocialBetOnChain("@DemoUser", 10, "LONG");
+
     } catch (e) {
         console.error("❌ ERROR:", e.message);
     }
