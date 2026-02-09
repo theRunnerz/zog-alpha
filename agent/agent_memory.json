@@ -1,13 +1,13 @@
 {
   "stats": {
-    "totalScans": 31182,
+    "totalScans": 31302,
     "lastBriefing": 1770438003763
   },
   "market": {
     "lastPrice": 0.2754
   },
   "mentions": {
-    "lastId": "2020945103674802565"
+    "lastId": "2020946135741812772"
   },
   "handledTx": [
     "f801480c95bd3464ade1568cb22d1d228e4f98ff9666c7a6348d23969f80b37d",
@@ -127,9 +127,32 @@
     "61a9eaac3a7fbb6598ca0b0cf2d18f61dcc9eac925cfb813561d648cb2f85ba0",
     "959468187a9352ab9467c0b43330b9b9c681d2e01cf4d37198f2b93036e72ecd",
     "b8dc3292359ff3922826f62979a5f6c16843e1580e85edc714d4faf1890cb5c1",
-    "beecc49f226692543f01054dc3cccb45a3444554954084ec936434f95c5cf613"
+    "beecc49f226692543f01054dc3cccb45a3444554954084ec936434f95c5cf613",
+    "82579b8ba49786f197d4d3873a7f9cd6670d69657b999adc8642ae001c4cb089",
+    "796d5fec419a5715a776ee1ec8cfe082f1144cb506cab3c8a2c431b49546fc77",
+    "e349144121ebc48aa18f65015c0875cbff561796c762a2bcaa1362978ce4b538",
+    "566ea3b979328dc0ef89d54b46d3d9fcfc61ddeb82da9115b751718927cc0710",
+    "19d7ed747836da07964e323b51a7b86307fdd90c53b0c9bb4672482ae448eae1",
+    "75c44a9bd1e9fc2332171f5f492d19d9330751d2b20918ead7bcb926142af18b",
+    "30cce6129609734cd61765184e3eb0643d436ed7354771f28e2c13292e4b7e74"
   ],
   "alerts": [
+    {
+      "timestamp": "2026-02-09T19:43:05.309Z",
+      "token": "USDT",
+      "amount": 129953.5,
+      "risk": "HIGH",
+      "reason": "HEAVY USDT CARGO DETECTED. SOURCE 0xb3a UNDER CLASSIFIED WATCH. FLOW SECURED.",
+      "tweet": "⚡ FLASH ALERT: Whale active on $USDT\nVol: 129,953.5\n\nName: Chrome-Titan-980\nTicker: $CT980\n\nDeploy to @Agent_SunGenX & @Girl_SunLumi\n[ID: 21951]"
+    },
+    {
+      "timestamp": "2026-02-09T19:40:32.165Z",
+      "token": "USDT",
+      "amount": 116259.32,
+      "risk": "HIGH",
+      "reason": "Large-scale USDT deployment detected. Sector monitoring active.",
+      "tweet": ":: SENTINEL LOG ::\nTarget: $USDT\nAmount: 116,259.32\nData: Large-scale USDT deployment detected. Sector monitoring active.\n\nName: Obsidian-Pulse-800\nTicker: $OBP8\n\nCC:  @Agent_SunGenX @Girl_SunLumi\n[Time: 19:40:30]"
+    },
     {
       "timestamp": "2026-02-09T19:34:33.231Z",
       "token": "USDT",
