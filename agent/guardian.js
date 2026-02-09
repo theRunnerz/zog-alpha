@@ -376,11 +376,11 @@ async function executeRealDefense(analysis, amount, tokenName, txID, vipMatch) {
 
     // 🎲 FORMATTED TEMPLATES
     const templates = [
-        `🚨 MOVEMENT: ${amount.toLocaleString()} $${tokenName}\nIntel: ${analysis.reason}\n\nName: ${analysis.tokenName}\nTicker: $${analysis.ticker}\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: ${uniqueID}]`,
+        `🚨 MOVEMENT: ${amount.toLocaleString()} $${tokenName}\nIntel: ${analysis.reason}\n\nName: ${analysis.tokenName}\nTicker: $${analysis.ticker}\n\nDeploying @Agent_SunGenX & @SUNAITRON| Monitor @Girl_SunLumi\n[Ref: ${uniqueID}]`,
         
-        `⚡ FLASH ALERT: Whale active on $${tokenName}\nVol: ${amount.toLocaleString()}\n\nName: ${analysis.tokenName}\nTicker: $${analysis.ticker}\n\nReporting to @Agent_SunGenX & @Girl_SunLumi\n[ID: ${uniqueID}]`,
+        `⚡ FLASH ALERT: Whale active on $${tokenName}\nVol: ${amount.toLocaleString()}\n\nName: ${analysis.tokenName}\nTicker: $${analysis.ticker}\n\nDeploy to @Agent_SunGenX & @SUNAITRON @Girl_SunLumi\n[ID: ${uniqueID}]`,
         
-        `:: SENTINEL LOG ::\nTarget: $${tokenName}\nAmount: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\nName: ${analysis.tokenName}\nTicker: $${analysis.ticker}\n\nCC: @Agent_SunGenX @Girl_SunLumi\n[Time: ${nowLog}]`
+        `:: SENTINEL LOG ::\nTarget: $${tokenName}\nAmount: ${amount.toLocaleString()}\nData: ${analysis.reason}\n\nName: ${analysis.tokenName}\nTicker: $${analysis.ticker}\n\nCC: @SUNAITRON @Agent_SunGenX @Girl_SunLumi\n[Time: ${nowLog}]`
     ];
     
     const statusText = templates[Math.floor(Math.random() * templates.length)];

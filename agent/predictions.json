@@ -18,5 +18,31 @@
     "status": "RESOLVED",
     "outcome": "NO",
     "resolvedPrice": 0.2792
+  },
+  {
+    "id": "PRED-8088",
+    "date": "2026-02-09",
+    "asset": "TRX",
+    "startPrice": 0.2778,
+    "strike": 0.2792,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1770596188666
+    },
+    "status": "RESOLVED",
+    "outcome": "WIN",
+    "tweetId": "2020652988835217764",
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
+      "consensus": "DISAGREE"
+    },
+    "resolvedPrice": 0.2792
   }
 ]

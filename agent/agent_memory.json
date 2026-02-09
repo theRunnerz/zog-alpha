@@ -1,13 +1,13 @@
 {
   "stats": {
-    "totalScans": 22824,
+    "totalScans": 29202,
     "lastBriefing": 1770438003763
   },
   "market": {
     "lastPrice": 0.2754
   },
   "mentions": {
-    "lastId": "2020560521800593782"
+    "lastId": "2020921927095943421"
   },
   "handledTx": [
     "f801480c95bd3464ade1568cb22d1d228e4f98ff9666c7a6348d23969f80b37d",
@@ -81,9 +81,122 @@
     "eca844a6398f5601d31a8c864a143795af8c398be4b5c191537139f0f5a31aa2",
     "a8db814dd6c14fb8c6b585fd255eed3d4944cc3bfac42984ff0d44856ad5c941",
     "2bd7f700c9513a9bff5d3d09e26bfa972e8286c5e70040af953edd5cfc27fbd9",
-    "897e7a3a0d89fff8e500ad3934b221be64561c3c1b91b6a2633545a749336da4"
+    "897e7a3a0d89fff8e500ad3934b221be64561c3c1b91b6a2633545a749336da4",
+    "686f576437a362bf9c6bf0ae7b2fd4478faf0e5223fa1f1d9d8e3fbf1343d711",
+    "e8ea624ef79f3b0a9e36d3df9885eeefda426448cf9cebfcd2f0fed5c482598f",
+    "aaa805d370bf4c3fab6ad7faae37edc256fa42d15f336db3c81a30fd56e1bd63",
+    "d496ca7b03b7d7a895aaedc3a465419d8707ce03646b6b411fde08414676ed3a",
+    "2c3a5de25831c10231e9bce4939e003b2bdbb1319deef03f10723821974963a6",
+    "012138a22ed55e7f994db035be65358927db810d9da5282fd22679e5da9f6805",
+    "9e578a3407cafd72033b2d0ba8635e3a01723a9083729e71d65045d351925419",
+    "a462b8d88be88857c0d76cc0d6162edddaf8999d399f4e3e13c3c5f9cc66c9ec",
+    "a44608a37b9025958362246dfb5d8abd0324fa91fbb532a8d244b12772e92097",
+    "ef71bf98216a7bbeac289e4da9c8c0a9f76f1816374cd2bd8dc72171f0d155d3",
+    "385580bc932b07015fb96cd20e43157dc2bb19f2f983b7c05106432dd29687b7",
+    "129681e23d0ef068853235a515cf8b2c4bca67583a5a9a533f65128ca6dc1a56",
+    "4f45aa9663d5c3704259ecd750a2fac95ec9e007527aca1563e711de2b590048",
+    "25303de3d55be98c3b3ea05a9857ba0210bd9605b9f644aa8627bef35f6a12bd",
+    "d5f3441c32ed144716fd252e08cb222dc57c41667dac23df70ca7e3086fb0f06",
+    "3202c2b6f2c0d3ebbc1865836e6c3eaf0f713f88e41c93e462040748e3093979",
+    "5ab085bed25fb983dbbce9537ca2b2d8494451996649b947fd980ec073610e95",
+    "5355d5c17237957409906161ff6eed56ee818e5b520154e8b1320c90c1465097",
+    "973abb04d7f3e4fdd1db313ee7f3c3a2d6fe2e2f31730dfc4c48d74411719fc0",
+    "32127b232662ba87abfe47dc1f511eb9553589c5209f515c96567b5a84304612",
+    "9e55f9b67dfe12c61e51ea653028cc9a75837448d0e812f04e10e59c9129b529",
+    "72e67f661417e33892c4efc6bc41f56bacd89f46889266721868d3b4d57a2cd8",
+    "154ea61614f61549e55422f25e5fe649f4fe132b6c0283b748fc4a2ed4c40407",
+    "fb00d3a6ccd8b1a4be41fe4002c5333feac9eca0845324a4d50b62f6cf072b41",
+    "8c9f690f03ac990caf00448999e9545e7bb0ef7def0b1b10e67df6beaf94485d",
+    "5749d0512cbdfc49bf72ba36917349ca8d460fdb18e064318c0ae9f378fecd2f",
+    "df5fb0b4230cf0e809e5bc26c8466eee0b00d9b1d24995f96ebe1ca903ad7feb",
+    "36259aa9e41d72410dc2e854dad0936635042cb18322f6c444d91a670e635492",
+    "2b0812dd4fde4fbbc9d1b5dd3f90e21ba6faa07f997f252fb307d74ec5db4708",
+    "ec57d37b55c5175af0f79a156d3cfbc7e7ab925ff7a52f91c9cbfd963ce3fccb",
+    "e69b33b48f007ac5cc6be0410dcb06c4d6ccde616c24ceb391e1f6bc428e913f",
+    "e46b58749fa4bccf9e9a2986d6279ef05f80f2eadbee143f04d6812ea4e919e9",
+    "211bb29240f9806a126d4fd77e632a434765fddbeb3ffe6c5ec5b47b7430fba5"
   ],
   "alerts": [
+    {
+      "timestamp": "2026-02-09T18:07:11.342Z",
+      "token": "$SUNAI",
+      "amount": 7832639.520547606,
+      "risk": "HIGH",
+      "reason": "LARGE $SUNAI INGRESS IDENTIFIED. PERIMETER SCAN ACTIVE.",
+      "tweet": ":: SENTINEL LOG ::\nTarget: $$SUNAI\nAmount: 7,832,639.521\nData: LARGE $SUNAI INGRESS IDENTIFIED. PERIMETER SCAN ACTIVE.\n\nName: Prism-Guard-Delta-769\nTicker: $PGD7\n\nCC: @Agent_SunGenX @Girl_SunLumi\n[Time: 18:07:09]"
+    },
+    {
+      "timestamp": "2026-02-09T18:02:55.230Z",
+      "token": "$SUNAI",
+      "amount": 7624060.931567199,
+      "risk": "HIGH",
+      "reason": "MASSIVE $SUNAI DATA STREAM DETECTED. VOLUME SPIKE INTERCEPTED.",
+      "tweet": "⚡ FLASH ALERT: Whale active on $$SUNAI\nVol: 7,624,060.932\n\nName: Solar-Scythe-492\nTicker: $SS492\n\nReporting to @Agent_SunGenX & @Girl_SunLumi\n[ID: 21699]"
+    },
+    {
+      "timestamp": "2026-02-09T17:41:10.829Z",
+      "token": "$SUNAI",
+      "amount": 6700095.424011512,
+      "risk": "HIGH",
+      "reason": "SUNAI VOLUME INTERCEPTED. ASSET FLOW MONITORING ACTIVE. SECTOR SECURE.",
+      "tweet": "🚨 MOVEMENT: 6,700,095.424 $$SUNAI\nIntel: SUNAI VOLUME INTERCEPTED. ASSET FLOW MONITORING ACTIVE. SECTOR SECURE.\n\nName: Amber-Obsidian-667\nTicker: $AOB-6\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: 45458]"
+    },
+    {
+      "timestamp": "2026-02-09T07:26:29.769Z",
+      "token": "$SUNAI",
+      "amount": 10875289.915028604,
+      "risk": "HIGH",
+      "reason": "10.8M SUNAI UNIT DETECTED. ORIGIN 0x35EF. MONITORING LIQUIDITY FLOW.",
+      "tweet": "🚨 MOVEMENT: 10,875,289.915 $$SUNAI\nIntel: 10.8M SUNAI UNIT DETECTED. ORIGIN 0x35EF. MONITORING LIQUIDITY FLOW.\n\nName: Plasma-Stalker-85\nTicker: $PLS85\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: 75444]"
+    },
+    {
+      "timestamp": "2026-02-09T07:24:12.912Z",
+      "token": "$SUNAI",
+      "amount": 10904791.798741123,
+      "risk": "HIGH",
+      "reason": "Large $SUNAI movement detected. Monitoring for distribution patterns.",
+      "tweet": "⚡ FLASH ALERT: Whale active on $$SUNAI\nVol: 10,904,791.799\n\nName: Solar-Wraith-313\nTicker: $SW313\n\nReporting to @Agent_SunGenX & @Girl_SunLumi\n[ID: 34965]"
+    },
+    {
+      "timestamp": "2026-02-09T06:16:27.889Z",
+      "token": "$SUNAI",
+      "amount": 21888888,
+      "risk": "HIGH",
+      "reason": "Large $SUNAI movement detected. Node 0x07af active. Sentinel on alert.",
+      "tweet": "🚨 MOVEMENT: 21,888,888 $$SUNAI\nIntel: Large $SUNAI movement detected. Node 0x07af active. Sentinel on alert.\n\nName: Solar-Cortex-Omega\nTicker: $SCO-223\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: 88270]"
+    },
+    {
+      "timestamp": "2026-02-09T00:19:35.669Z",
+      "token": "USDT",
+      "amount": 99999.09,
+      "risk": "HIGH",
+      "reason": "Whale-class USDT movement detected. Surveillance active. Sector secured.",
+      "tweet": "⚡ FLASH ALERT: Whale active on $USDT\nVol: 99,999.09\n\nName: Cyber-Strider-757\nTicker: $CS757\n\nReporting to @Agent_SunGenX & @Girl_SunLumi\n[ID: 19739]"
+    },
+    {
+      "timestamp": "2026-02-08T20:56:19.238Z",
+      "token": "USDT",
+      "amount": 499996.113834,
+      "risk": "HIGH",
+      "reason": "SIGINT DETECTED: 499K USDT INBOUND. ORIGIN 0x293 SECURED. MONITORING ASSETS.",
+      "tweet": "🚨 MOVEMENT: 499,996.114 $USDT\nIntel: SIGINT DETECTED: 499K USDT INBOUND. ORIGIN 0x293 SECURED. MONITORING ASSETS.\n\nName: Neon-Vanguard-803\nTicker: $NV803\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: 81684]"
+    },
+    {
+      "timestamp": "2026-02-08T18:42:42.786Z",
+      "token": "USDT",
+      "amount": 50029.517415,
+      "risk": "HIGH",
+      "reason": "INBOUND USDT VOLUME: 50K. SENDER VERIFIED. PERIMETER SECURE. STANDING BY.",
+      "tweet": "🚨 MOVEMENT: 50,029.517 $USDT\nIntel: INBOUND USDT VOLUME: 50K. SENDER VERIFIED. PERIMETER SECURE. STANDING BY.\n\nName: Signal-Titan-505\nTicker: $ST505\n\nDeploying @Agent_SunGenX | Monitor @Girl_SunLumi\n[Ref: 48257]"
+    },
+    {
+      "timestamp": "2026-02-08T18:36:24.903Z",
+      "token": "USDT",
+      "amount": 99994,
+      "risk": "HIGH",
+      "reason": "HEAVY CAPITAL INFILTRATION. 99K USDT MOVING. PERIMETER BREACHED.",
+      "tweet": ":: SENTINEL LOG ::\nTarget: $USDT\nAmount: 99,994\nData: HEAVY CAPITAL INFILTRATION. 99K USDT MOVING. PERIMETER BREACHED.\n\nName: Obsidian-Pulse-164\nTicker: $OP164\n\nCC: @Agent_SunGenX @Girl_SunLumi\n[Time: 18:36:23]"
+    },
     {
       "timestamp": "2026-02-08T18:05:09.741Z",
       "token": "USDT",
@@ -453,5 +566,6 @@
       "tweet": "⚡ FLASH ALERT: Whale active on $$SUNAI\nVol: 7,971,143.335\n\nName: Zynthel-Drift-971\nTicker: $ZD9\n\nReporting to @Agent_SunGenX & @Girl_SunLumi\n[ID: 44746]"
     }
   ],
-  "pred-2026-02-08": true
+  "pred-2026-02-08": true,
+  "pred-2026-02-09": true
 }
