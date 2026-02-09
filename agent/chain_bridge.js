@@ -1,5 +1,8 @@
 /* agent/chain_bridge.js */
-import TronWeb from 'tronweb';
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const TronWeb = require("tronweb");
+
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
