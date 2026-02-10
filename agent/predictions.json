@@ -44,5 +44,30 @@
       "consensus": "DISAGREE"
     },
     "resolvedPrice": 0.2792
+  },
+  {
+    "id": "PRED-2743",
+    "date": "2026-02-10",
+    "asset": "TRX",
+    "startPrice": 0.2791,
+    "strike": 0.2805,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1770681833686
+    },
+    "status": "ACTIVE",
+    "outcome": null,
+    "tweetId": "2021012211083428308",
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
+      "consensus": "PENDING"
+    }
   }
 ]
