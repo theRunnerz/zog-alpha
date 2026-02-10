@@ -161,11 +161,9 @@
             </div>
         </div>
     </div>
-
     <script>
-        // --- CONFIGURATION ---
         // ⚠️ PASTE YOUR DEPLOYED SHASTA CONTRACT ADDRESS HERE
-        const CONTRACT_ADDRESS = "TNu2WufgBwb6v3R8ZT4SpN9tHfzTHqxfiG"; 
+        const CONTRACT_ADDRESS = "TNu2WufgBwb6v3R8ZT4SpN9tHfzTHqxfiG"; // <--- REPLACE THIS
 
         // --- UI UTILS ---
         function log(msg, type="info") {
@@ -177,60 +175,67 @@
             feed.prepend(entry);
         }
 
-        // --- TRON LINK INTEGRATION ---
+        // --- CONNECT WALLET MANUALLY ---
         let userAddress = null;
 
-        async function initTron() {
-            // Wait for TronLink to inject
-            let attempts = 0;
-            const checkTron = setInterval(async () => {
-                if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
-                    clearInterval(checkTron);
-                    userAddress = window.tronWeb.defaultAddress.base58;
-                    
-                    // Update UI
-                    document.getElementById('wallet-status').classList.add('active');
-                    document.getElementById('wallet-address').innerText = 
-                        userAddress.substring(0, 4) + "..." + userAddress.substring(userAddress.length - 4);
-                    
-                    log(`LINK ESTABLISHED: ${userAddress}`);
-                    log(`CONNECTED TO: SHASTA TESTNET`, "info");
-                } else {
-                    attempts++;
-                    if(attempts > 10) {
-                        clearInterval(checkTron);
-                        document.getElementById('wallet-address').innerText = "TRONLINK NOT FOUND";
-                    }
-                }
-            }, 500);
+        async function connectWallet() {
+            // 1. Check if Extension exists
+            if (!window.tronWeb) {
+                alert("Please install TronLink!");
+                return;
+            }
+
+            // 2. Request Access (This triggers the popup)
+            const result = await window.tronWeb.request({ method: 'tron_requestAccounts' });
+            
+            if (result.code === 200 || window.tronWeb.ready) {
+                userAddress = window.tronWeb.defaultAddress.base58;
+                
+                // Update UI
+                const statusDot = document.getElementById('wallet-status');
+                const addressText = document.getElementById('wallet-address');
+                
+                statusDot.classList.add('active');
+                statusDot.style.background = "#0f0";
+                addressText.innerText = userAddress;
+                addressText.style.color = "#0f0";
+                
+                log(`LINK ESTABLISHED: ${userAddress}`);
+                log(`NETWORK: SHASTA TESTNET`, "info");
+            } else {
+                alert("Please unlock TronLink and try again.");
+            }
         }
 
         // --- DEPOSIT FUNCTION ---
         async function depositFunds() {
+            if (!userAddress) {
+                await connectWallet(); // Try connecting first
+                if(!userAddress) return; 
+            }
+
             const handle = document.getElementById('twitter-handle').value;
-            const amount = document.getElementById('deposit-amount').value;
+            const amountInput = document.getElementById('deposit-amount').value;
             const statusLabel = document.getElementById('tx-status');
 
-            if (!handle || !amount) return alert("ENTER DETAILS");
-            if (!window.tronWeb) return alert("INSTALL TRONLINK");
+            if (!handle || !amountInput) return alert("ENTER DETAILS");
 
             try {
                 statusLabel.innerText = "⏳ REQUESTING SIGNATURE...";
                 statusLabel.style.color = "#ffff00";
 
                 const contract = await window.tronWeb.contract().at(CONTRACT_ADDRESS);
-                const amountInSun = window.tronWeb.toSun(amount);
+                const amountInSun = window.tronWeb.toSun(amountInput);
 
-                // Call the Smart Contract
+                // Use send() to trigger the transaction
                 const txId = await contract.registerAndDeposit(handle).send({
                     callValue: amountInSun
                 });
 
-                statusLabel.innerText = "✅ AUTHORIZED";
+                statusLabel.innerText = "✅ DEPOSIT SENT";
                 statusLabel.style.color = "#0f0";
                 
-                log(`DEPOSIT SUCCESS: ${amount} TRX`, "alert");
-                log(`IDENTITY LINKED: ${handle} <-> ${userAddress}`);
+                log(`DEPOSIT SUCCESS: ${amountInput} TRX`, "alert");
                 log(`TX ID: ${txId}`);
 
                 // Clear inputs
@@ -238,14 +243,16 @@
 
             } catch (e) {
                 console.error(e);
-                statusLabel.innerText = "❌ FAILED";
+                statusLabel.innerText = "❌ FAILED / REJECTED";
                 statusLabel.style.color = "#f00";
-                log(`ERROR: ${e.message || "User Rejected"}`, "alert");
+                log(`ERROR: ${e}`, "alert");
             }
         }
 
-        // Start
-        window.addEventListener('load', initTron);
+        // Add a visible connect button functionality to the status text
+        document.getElementById('wallet-address').onclick = connectWallet;
+        document.getElementById('wallet-address').style.cursor = "pointer";
+        document.getElementById('wallet-address').innerText = "CLICK TO CONNECT WALLET";
 
     </script>
 </body>

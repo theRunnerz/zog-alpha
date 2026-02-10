@@ -1,6 +1,6 @@
 {
   "stats": {
-    "totalScans": 32562,
+    "totalScans": 33282,
     "lastBriefing": 1770438003763
   },
   "market": {
@@ -157,7 +157,9 @@
     "18ffea4931ea8cb1d43bb1c65359e1d4887ae583754045c9070117565a793a0f",
     "2796d1f1ecf12ec79f2f6044e8e6af6130eed15e8e5488f8abe628bebaf90325",
     "2bc7c2f5b1e58f94406a9acc70305f604c79ff7a9f5675f5dfcbad43daf9cc73",
-    "6b30fffd82fccecf3b3d92ab21f8b84a86c28091cdd39cd519361e1f4ce51c69"
+    "6b30fffd82fccecf3b3d92ab21f8b84a86c28091cdd39cd519361e1f4ce51c69",
+    "a84f69f327ac331b175e3ed08d51352761ffffeb6103d145afc9f5b43a35614d",
+    "58c36ff38a51ad150b96ab6b4ab5bf9209390093eb6fb21c9177652177930318"
   ],
   "alerts": [
     {
