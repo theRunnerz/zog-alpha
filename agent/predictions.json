@@ -87,13 +87,378 @@
       "stress": 55,
       "timestamp": 1770768831238
     },
-    "status": "ACTIVE",
-    "outcome": null,
+    "status": "RESOLVED",
+    "outcome": "LOSS",
     "tweetId": "2021377108556251430",
     "communityVote": {
       "likes": 0,
       "rts": 0,
+      "consensus": "DISAGREE"
+    },
+    "resolvedPrice": 0.2786
+  },
+  {
+    "id": "PRED-3225",
+    "date": "2026-02-12",
+    "asset": "TRX",
+    "startPrice": 0.2786,
+    "strike": 0.28,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1770855214977
+    },
+    "status": "RESOLVED",
+    "outcome": "WIN",
+    "tweetId": "2021739426695815443",
+    "communityVote": {
+      "likes": 0,
+      "rts": 1,
+      "consensus": "DISAGREE"
+    },
+    "resolvedPrice": 0.28
+  },
+  {
+    "id": "PRED-6841",
+    "date": "2026-02-13",
+    "asset": "TRX",
+    "startPrice": 0.2803,
+    "strike": 0.2817,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1770940967108
+    },
+    "status": "RESOLVED",
+    "outcome": "WIN",
+    "tweetId": "2022099095683576313",
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
+      "consensus": "DISAGREE"
+    },
+    "resolvedPrice": 0.2817
+  },
+  {
+    "id": "PRED-7626",
+    "date": "2026-02-14",
+    "asset": "TRX",
+    "startPrice": 0.2821,
+    "strike": 0.2835,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1771028029791
+    },
+    "status": "RESOLVED",
+    "outcome": "WIN",
+    "tweetId": "2022464263298912743",
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
+      "consensus": "DISAGREE"
+    },
+    "resolvedPrice": 0.2837
+  },
+  {
+    "id": "PRED-2518",
+    "date": "2026-02-15",
+    "asset": "TRX",
+    "startPrice": 0.2825,
+    "strike": 0.2839,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1771114802776
+    },
+    "status": "RESOLVED",
+    "outcome": "LOSS",
+    "tweetId": "2022828215384105260",
+    "communityVote": {
+      "likes": 1,
+      "rts": 0,
+      "consensus": "AGREE"
+    },
+    "resolvedPrice": 0.2807
+  },
+  {
+    "id": "PRED-6667",
+    "date": "2026-02-16",
+    "asset": "TRX",
+    "startPrice": 0.2807,
+    "strike": 0.2821,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1771200981622
+    },
+    "status": "RESOLVED",
+    "outcome": "WIN",
+    "tweetId": "2023189679026413627",
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
+      "consensus": "DISAGREE"
+    },
+    "resolvedPrice": 0.2821
+  },
+  {
+    "id": "PRED-9867",
+    "date": "2026-02-17",
+    "asset": "TRX",
+    "startPrice": 0.2847,
+    "strike": 0.2861,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1771287018522
+    },
+    "status": "RESOLVED",
+    "outcome": "LOSS",
+    "tweetId": "2023550540811288810",
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
+      "consensus": "DISAGREE"
+    },
+    "resolvedPrice": 0.2821
+  },
+  {
+    "id": "PRED-4583",
+    "date": "2026-02-18",
+    "asset": "TRX",
+    "startPrice": 0.2821,
+    "strike": 0.2835,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1771373446022
+    },
+    "status": "RESOLVED",
+    "outcome": "LOSS",
+    "tweetId": "2023913044485829104",
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
+      "consensus": "DISAGREE"
+    },
+    "resolvedPrice": 0.2785
+  },
+  {
+    "id": "PRED-3985",
+    "date": "2026-02-19",
+    "asset": "TRX",
+    "startPrice": 0.2785,
+    "strike": 0.2799,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1771460924917
+    },
+    "status": "RESOLVED",
+    "outcome": "WIN",
+    "tweetId": "2024279957292405140",
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
+      "consensus": "DISAGREE"
+    },
+    "resolvedPrice": 0.2799
+  },
+  {
+    "id": "PRED-8769",
+    "date": "2026-02-20",
+    "asset": "TRX",
+    "startPrice": 0.285,
+    "strike": 0.2864,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1771547203611
+    },
+    "status": "RESOLVED",
+    "outcome": "WIN",
+    "tweetId": "2024641834975428966",
+    "communityVote": {
+      "likes": 1,
+      "rts": 1,
+      "consensus": "DISAGREE"
+    },
+    "resolvedPrice": 0.2866
+  },
+  {
+    "id": "PRED-8791",
+    "date": "2026-02-21",
+    "asset": "TRX",
+    "startPrice": 0.2854,
+    "strike": 0.2868,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1771632785577
+    },
+    "status": "RESOLVED",
+    "outcome": "WIN",
+    "tweetId": null,
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
       "consensus": "PENDING"
-    }
+    },
+    "resolvedPrice": 0.2869
+  },
+  {
+    "id": "PRED-5380",
+    "date": "2026-02-22",
+    "asset": "TRX",
+    "startPrice": 0.289,
+    "strike": 0.2904,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1771718954071
+    },
+    "status": "RESOLVED",
+    "outcome": "WIN",
+    "tweetId": null,
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
+      "consensus": "PENDING"
+    },
+    "resolvedPrice": 0.2904
+  },
+  {
+    "id": "PRED-2732",
+    "date": "2026-02-23",
+    "asset": "TRX",
+    "startPrice": 0.2902,
+    "strike": 0.2917,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1771805714906
+    },
+    "status": "RESOLVED",
+    "outcome": "LOSS",
+    "tweetId": null,
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
+      "consensus": "PENDING"
+    },
+    "resolvedPrice": 0.2818
+  },
+  {
+    "id": "PRED-2241",
+    "date": "2026-02-24",
+    "asset": "TRX",
+    "startPrice": 0.2818,
+    "strike": 0.2832,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1771891950607
+    },
+    "status": "RESOLVED",
+    "outcome": "WIN",
+    "tweetId": null,
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
+      "consensus": "PENDING"
+    },
+    "resolvedPrice": 0.2832
+  },
+  {
+    "id": "PRED-8293",
+    "date": "2026-02-25",
+    "asset": "TRX",
+    "startPrice": 0.2841,
+    "strike": 0.2855,
+    "direction": "ABOVE",
+    "probability": 60,
+    "confidence": "MEDIUM",
+    "signals": {
+      "whaleScore": 65,
+      "momentum": 58,
+      "volatility": 60,
+      "stress": 55,
+      "timestamp": 1771978148354
+    },
+    "status": "RESOLVED",
+    "outcome": "WIN",
+    "tweetId": null,
+    "communityVote": {
+      "likes": 0,
+      "rts": 0,
+      "consensus": "PENDING"
+    },
+    "resolvedPrice": 0.2857
   }
 ]

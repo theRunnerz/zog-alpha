@@ -1,0 +1,14 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  xHandle     String   @unique
+  tronAddress String   @unique
+  createdAt   DateTime @default(now())
+}

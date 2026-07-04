@@ -3,23 +3,23 @@ import { useState, useEffect } from 'react';
 // import Navbar from '../components/Navbar';
 
 export default function MarketDashboard() {
-  // --- STATE MANAGEMENT (Replaces simple variables) ---
+  // --- STATE MANAGEMENT ---
   const [logs, setLogs] = useState([]);
   const [walletAddress, setWalletAddress] = useState(null);
   const [statusMsg, setStatusMsg] = useState("Standby...");
   const [socialHandle, setSocialHandle] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
 
-  const CONTRACT_ADDRESS = "TNu2WufgBwb6v3R8ZT4SpN9tHfzTHqxfiG"; 
+  // Pulling dynamically from .env.local, with safety fallback to your real contract!
+  const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_FLASH_MARKET_CONTRACT || "TDhPzPVUFumYL5SyBzCxC8Xg9Wax83iH3b";
 
   // --- LOGGING SYSTEM ---
   const addLog = (msg, type = "info") => {
     const time = new Date().toLocaleTimeString();
-    // Add new log to the TOP of the list
     setLogs((prev) => [{ time, msg, type }, ...prev]);
   };
 
-  // --- INITIALIZATION (Run once on load) ---
+  // --- INITIALIZATION ---
   useEffect(() => {
     addLog("SYSTEM ONLINE", "info");
     addLog("CONNECTED TO TRONGRID (SHASTA)", "info");
@@ -51,7 +51,7 @@ export default function MarketDashboard() {
     }
   };
 
-  // --- DEPOSIT FUNCTION ---
+  // --- DEPOSIT & REGISTER FUNCTION ---
   const handleDeposit = async () => {
     if (!walletAddress) {
       await connectWallet();
@@ -68,13 +68,37 @@ export default function MarketDashboard() {
       const contract = await window.tronWeb.contract().at(CONTRACT_ADDRESS);
       const amountInSun = window.tronWeb.toSun(depositAmount);
 
-      const txId = await contract.registerAndDeposit(socialHandle).send({
-        callValue: amountInSun
+      // 1. Sign and send the TRON transaction calling your actual placeBet function!
+      // We pass "true" to simulate placing a YES bet to deposit funds into the pool.
+      const txId = await contract.placeBet(true).send({
+        callValue: amountInSun,
+        feeLimit: 100_000_000 // Standard safety limit for Shasta
       });
 
-      setStatusMsg("✅ DEPOSIT SENT");
-      addLog(`DEPOSIT SUCCESS: ${depositAmount} TRX`, "alert");
+      setStatusMsg("✅ TRANSACTION SENT. LINKING DB...");
+      addLog(`BET PLACED: ${depositAmount} TRX`, "alert");
       addLog(`TX ID: ${txId}`, "info");
+
+      // 2. Link User in Database (Mapping X Handle to Wallet off-chain)
+      try {
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                xHandle: socialHandle, 
+                tronAddress: walletAddress 
+            })
+        });
+
+        if (response.ok) {
+            addLog(`✅ INTEL LINKED: ${socialHandle} -> ${walletAddress.substring(0,6)}...`, "info");
+            setStatusMsg("✅ FULLY SECURED & LINKED");
+        } else {
+            addLog(`⚠️ DB LINK FAILED. TX PASSED.`, "alert");
+        }
+      } catch (apiErr) {
+        console.error("API Error", apiErr);
+      }
       
       // Clear Amount Input
       setDepositAmount("");
@@ -144,12 +168,12 @@ export default function MarketDashboard() {
             <input 
               type="number" 
               className="bank-input" 
-              placeholder="100"
+              placeholder="10"
               value={depositAmount}
               onChange={(e) => setDepositAmount(e.target.value)}
             />
 
-            <button onClick={handleDeposit} className="bank-btn">AUTHORIZE DEPOSIT</button>
+            <button onClick={handleDeposit} className="bank-btn">PLACE BET (DEPOSIT)</button>
             <p style={{ fontSize: '0.8rem', marginTop: '10px', color: '#555', textAlign: 'center' }}>
               {statusMsg}
             </p>
