@@ -11,7 +11,7 @@ export default function MarketDashboard() {
   const [depositAmount, setDepositAmount] = useState("");
 
   // Pulling dynamically from .env.local, with safety fallback to your real contract!
-  const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_FLASH_MARKET_CONTRACT || "TDhPzPVUFumYL5SyBzCxC8Xg9Wax83iH3b";
+  const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_FLASH_MARKET_CONTRACT || "TS3j3BHZuzAD1QwWMExcXSQtdHdPYr4qob";
 
   // --- LOGGING SYSTEM ---
   const addLog = (msg, type = "info") => {

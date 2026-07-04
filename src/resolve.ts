@@ -37,4 +37,4 @@ async function resolveMarket(winningOutcome: boolean) {
 
 // Change this to 'false' if you want NO to win!
 // We'll pass 'true' to make the YES bets win this round.
-resolveMarket(false);
+resolveMarket(true);

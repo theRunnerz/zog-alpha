@@ -81,7 +81,7 @@ async function processSocialBets(tweetId: string) {
 }
 
 async function runSentinelTest() {
-  const TARGET_TWEET_ID = "2073445234126860628";
+  const TARGET_TWEET_ID = "2073507493641425139";
   await processSocialBets(TARGET_TWEET_ID);
 }
 
